@@ -1,0 +1,151 @@
+﻿<script>
+
+    var Instances = {};
+    var SimulationListID = getUrlParam("SimulationListID");
+    var pageData = {
+
+    }
+
+    function InitToolBar() {
+        $(".H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel({ excludeIDs: ["AclGrid", "ListGrid"] });
+    }
+    $(function () {
+        
+        //创建表格
+        LoadPageData();
+
+        //VUE
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                getText: function (key) { try { return $.Lang(key); } catch (e) { return ""; } },
+               }
+        });
+
+        InitToolBar();
+     
+        if (typeof (pageData.GridData) != "undefined") {
+            $("#AclGrid").ligerGrid({
+                columns: GetInstanceListColumns(),
+                width: '100%',
+                height: '98%',
+                data: pageData.GridData,
+                rownumbers: true,
+                usePager: false,
+                tree: { columnName: 'ObjectID' },
+                allowAdjustColWidth: true
+            });
+        }
+
+        setTimeout(DoRefresh, 30000);
+    });
+
+    function LoadPageData()
+    {
+        var url = _PORTALROOT_GLOBAL + $.Controller.Simulation.LoadSimulationListReport;
+        $.ajax({
+            url: url,
+            async:false,
+            data: { SimulationListID: SimulationListID },
+            success: function (data) {
+                if (data.Success) {
+                    pageData = data.Extend;
+                }
+            }
+        });
+    }
+
+    function GetInstanceListColumns() {
+        var MyInstance_FlowName=$.Lang("Simulation.MyInstance_FlowName");
+        var Simulation_Originator = $.Lang("Simulation.Simulation_Originator");
+        var SysDeployment_State = $.Lang("Simulation.SysDeployment_State");
+        var Simulation_WorkItemCount=$.Lang("Simulation.Simulation_WorkItemCount");
+        var Simulation_SuccessCount=$.Lang("Simulation.Simulation_SuccessCount");
+        var Simulation_FailedCount=$.Lang("Simulation.Simulation_FailedCount");
+        var Simulation_IgnoreCount=$.Lang("Simulation.Simulation_IgnoreCount");
+        var Simulation_Percent=$.Lang("Simulation.Simulation_Percent");
+        var View =$.Lang("GlobalButton.View");
+        var SimulationInstanceList_ViewReport=$.Lang("Simulation.SimulationInstanceList_ViewReport");
+
+        return [
+            { display: MyInstance_FlowName, name: "InstanceName" },
+            { display: Simulation_Originator, name: "Originator", align: "left" },
+            { display: SysDeployment_State, name: "State", align: "center", render: function (row) { return $.Lang(row.State);} },
+            { display:Simulation_WorkItemCount, name: "workItemCount", align: "center" },//总环节数
+            { display: Simulation_SuccessCount, name: "SuccessCount", align: "center" }, //通过环节数
+            { display: Simulation_FailedCount, name: "failedCount", align: "center" },   //不通过环节数
+            { display: Simulation_IgnoreCount, name: "IgnoreCount", align: "center" },    //可忽略环节数
+            { display: Simulation_Percent, name: "Percent", align: "center" },
+            {
+                display: View, name: "",
+                render: function (row) {
+                    return "<div style='float:left;'><a href='#' onclick='ViewInformation(\"" + row.ObjectID + "\",\"" + row.SimulationID + "\")'>" + View + "</a></div>";
+                }
+            },
+            {
+            display: SimulationInstanceList_ViewReport, name: "",
+            render: function (row) {
+                return "<div style='float:left;'><a href='" + row.Url + "' target='_blank'>" + SimulationInstanceList_ViewReport + "</a></div>";
+            }
+            }
+            ];
+    }
+
+    function ViewInformation(_ObjectID, SimulationId) {
+        ShowDialog($.Lang("Simulation.SimulationList_Operation"), _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/SimulationInstanceInfor.html&SimulationID=" + SimulationId + "&InstanceId=" + _ObjectID);
+    }
+
+    //执行刷新
+    var DoRefresh = function () {
+        location.reload();
+    }
+
+</script>
+<div class="H3ToolBar">
+    <a href="javascript:DoRefresh()" data-icon="icon-shuaxin" data-lang="GlobalButton.Refresh"></a>
+</div>
+<div class="H3Panel">
+    <span data-lang="Simulation.SimulationInstanceList_SelectCase"></span>
+    <table>
+        <tr>
+            <td data-lang="Simulation.Simulation_SimulationCode"></td>
+            <td>
+               <span>{{SimulationListCode}}</span>
+                <!--<input type="text" disabled="disabled" id="lblSimulationList" v-model="SimulationListCode" />-->
+            </td>
+            <td data-lang="Simulation.SimulationList_Time"></td>
+            <td>
+               <span>{{RunTime}}</span>
+                <!--<input type="text" disabled="disabled" id="lblRunTime" v-model="RunTime" />-->
+            </td>
+            <td data-lang="Simulation.Simulation_SimulationsNum"></td>
+            <td>
+                <span>{{SimulationNum}}</span>
+                <!--<input type="text" disabled="disabled" id="lblSimulationNum" v-model="SimulationNum" />-->
+            </td>
+        </tr>
+        <tr>
+            <td data-lang="Simulation.Simulation_SuccesseNum"></td>
+            <td>
+                <span>{{SuccessNum}}</span>
+                <!--<input type="text" disabled="disabled" id="lblSuccessNum" v-model="SuccessNum" />-->
+            </td>
+            <td data-lang="Simulation.Simulation_FailedNum"></td>
+            <td>
+                <span>{{FailedNum}}</span>
+                <!--<input type="text" disabled="disabled" id="lblFailedNum" v-model="FailedNum" />-->
+            </td>
+            <td data-lang="Simulation.Simulation_SuccessePercent"></td>
+            <td>
+                <span>{{Percent}}</span>
+                <!--<input type="text" disabled="disabled" id="lblPercent" v-model="Percent" />-->
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="H3Panel">
+    <span data-lang="Simulation.SimulationInstanceList_AllCase"></span>
+    <div id="AclGrid" style="clear: both; margin: 0px; padding: 0px;"></div>
+</div>

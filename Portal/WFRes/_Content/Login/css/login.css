@@ -1,0 +1,159 @@
+﻿html {
+    height: 100%;
+}
+
+body {
+    background-color: #f8f8f8;
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    overflow: hidden;
+    text-align: center;
+}
+
+
+#loginwin {
+    width: 382px;
+    text-align: center;
+    position: absolute;
+}
+
+.login-input {
+    margin-top: 40px;
+    background: url("../images/LoginInputBack.png") no-repeat;
+    width: 382px;
+    height: 149px;
+    text-align: center;
+    padding-top: 10px;
+    padding-left: 10px;
+}
+
+.input-item {
+    width: 361px;
+    height: 65px;
+    line-height: 65px;
+    vertical-align: middle;
+}
+
+.input-item-clreaBottom {
+    width: 10px;
+}
+
+.input-item-Bottom {
+    border-bottom: 2px solid #dddddd;
+}
+
+.input-username, .input-pass {
+    height: 30px;
+    padding-left: 12px;
+}
+
+    .input-username span, .input-pass span {
+        width: 110px;
+        height: 30px;
+        line-height: 44px;
+        font-size: 16px;
+        font-weight: bold;
+        float: left;
+    }
+
+    .input-username .input-textbox, .input-pass .input-textbox {
+        float: left;
+        height: 30px;
+        line-height: 30px;
+        width: 200px;
+        border: none;
+        margin-top: 2px;
+        margin-left: -10px;
+        font-size: 16px;
+        padding-top:5px;
+    }
+
+    .input-username span {
+        background: url("../images/LoginName.png") no-repeat;
+    }
+
+    .input-pass span {
+        background: url("../images/LoginPass.png") no-repeat;
+    }
+
+
+.login-select {
+    line-height: 76px;
+}
+
+.login-select-top {
+    height: 30px;
+    border-bottom: 2px solid #dddddd;
+    background-color: #efefef;
+}
+
+.login-select-center table {
+    height: 59px;
+    width: 100%;
+}
+
+.login-select-check {
+    cursor: pointer;
+    background: url("../images/LoginUnCheck.png") no-repeat;
+    background-position-x: 35%;
+    background-position-y: 50%;
+    background-color: #efefef;
+}
+
+.login-selec-checked {
+    background: url("../images/LoginCheck.png") no-repeat;
+    background-position-x: 35%;
+    background-position-y: 50%;
+    background-color: #efefef;
+}
+
+.login-select-check-split {
+    width: 2px;
+    background-color: #dddddd;
+}
+
+.login-select-left {
+    background: url("../images/LoginCheckLeft.png") no-repeat;
+    width: 18px;
+}
+
+
+.login-select-right {
+    background: url("../images/LoginCheckRight.png") no-repeat;
+    width: 18px;
+}
+
+
+.login-button {
+    margin-top: 10px;
+    height: 49px;
+    line-height: 49px;
+    background: url("../images/login-button-back.png") no-repeat;
+    cursor: pointer;
+}
+
+    .login-button a {
+        display: block;
+        width: 100%;
+        height: 100%;
+        text-decoration: none;
+        color: #fff;
+        font-weight: bolder;
+        font-size: 18px;
+        letter-spacing: 10px;
+    }
+
+.login-misspass {
+    text-align: right;
+    height: 30px;
+    line-height: 30px;
+}
+
+    .login-misspass a {
+        color: #888888;
+        text-decoration: none;
+        font-weight: bold;
+        font-style: oblique;
+        margin-right: 10px;
+    }

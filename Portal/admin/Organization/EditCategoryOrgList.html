@@ -1,0 +1,40 @@
+﻿<script>
+    $(function () {
+        var pageData = {};
+
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel({ excludeIDs: ["CategoryOrgList"] });
+
+        //debugger;
+        var code = getUrlParam("code");
+        // 创建表格
+        CreateLigerGrid(
+            $("#CategoryOrgList"),
+            GetCategoryOrglistColumns(),
+            $.Controller.OrgCategory.GetOrgListByCategoryCode,
+            false, "98%",
+            null, null, null,
+            {
+                categoryCode: code
+            }
+           );
+
+        // TODO:这里没有做真实数据的验证，源程序返回空时是正常的，但是返回有值时是错误的，因为数据结构中没有ObjectID和OrgFullPath
+        function GetCategoryOrglistColumns() {
+            var objectID = $.Lang("EditCategory.ObjectID");
+            var orgFullPath = $.Lang("EditCategory.OrgFullPath");
+            var category = $.Lang("EditOrgUnit.OrgCategory")
+            return [
+                { display: objectID, name: "ObjectID", hide: true },
+                { display: category, name: "Category" },
+                { display: orgFullPath, name: "OrgFullPath" }
+            ];
+        }
+
+    });
+</script>
+
+<div class="H3Panel">
+    <div id="CategoryOrgList"></div>
+</div>
+

@@ -1,0 +1,151 @@
+﻿<script>
+    $(function () {
+        var pageData = {
+            InvokingDetail: {},
+            LanData: $.Languages
+        };
+        //初始化页面数据
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData
+        });
+        function initPageData() {
+            var id = getUrlParam("Id") || "";
+            if (id) {
+                $.ajax({
+                    url: $.Controller.InvokingLog.GetInvokingLogDetail,
+                    type: 'get',
+                    dataType: 'json',
+                    async: false,//同步执行
+                    data: { id: id },
+                    success: function (result) {
+                        if (result.Success) {
+                            pageData.InvokingDetail = result.Extend;
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message)});
+                        }
+                    }
+                });
+            }
+        }
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+    });
+</script>
+<div class="H3Panel">
+    <span>{{LanData.InvokingLog.InforDetail}}</span>
+    <table class="tableList">
+        <tr>
+            <td class="tableLeft">
+                {{LanData.InvokingLog.User}}
+            </td>
+            <td>
+                <span>{{InvokingDetail.User}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableLeft">
+                {{LanData.InvokingLog.StartTime}}
+            </td>
+            <td>
+                <span>{{InvokingDetail.CreatedTime}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableLeft">
+                {{LanData.InvokingLog.EndTime}}
+            </td>
+            <td>
+                <span>{{InvokingDetail.EndTime}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableLeft">
+                {{LanData.InvokingLog.UsedTime}}
+            </td>
+            <td>
+                <span>{{InvokingDetail.UsedTime}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableLeft">
+                {{LanData.InvokingLog.SlaveCode}}
+            </td>
+            <td>
+                <span>{{InvokingDetail.SlaveCode}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableLeft">
+                {{LanData.InvokingLog.TranId}}
+            </td>
+            <td>
+                <span>{{InvokingDetail.TranId}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableLeft">
+                {{LanData.InvokingLog.ServiceCode}}
+            </td>
+            <td>
+                <span>{{InvokingDetail.ServiceCode}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableLeft">
+                {{LanData.InvokingLog.MethodName}}
+            </td>
+            <td>
+                <span>{{InvokingDetail.MethodName}}</span>
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="H3Panel">
+    <span>{{LanData.InvokingLog.Param}}</span>
+    <table class="tableList">
+        <tr>
+            <td class="tableLeft">
+                {{LanData.InvokingLog.ParamXml}}
+            </td>
+            <td>
+                <span>{{InvokingDetail.ParamXml}}</span>
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="H3Panel">
+    <span>{{LanData.InvokingLog.ReturnValue}}</span>
+    <table class="tableList">
+        <tr>
+            <td class="tableLeft">
+                {{LanData.InvokingLog.ReturnXml}}
+            </td>
+            <td>
+                <span>{{InvokingDetail.ReturnXml}}</span>
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="H3Panel">
+    <span>{{LanData.InvokingLog.Exception}}</span>
+    <table class="tableList">
+        <tr>
+            <td class="tableLeft">
+                {{LanData.InvokingLog.ExceptionMessage}}
+            </td>
+            <td>
+                <span>{{InvokingDetail.ExceptionMessage}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableLeft">
+                {{LanData.InvokingLog.ExceptionStack}}
+            </td>
+            <td>
+                <span>{{InvokingDetail.ExceptionStack}}</span>
+            </td>
+        </tr>
+    </table>
+</div>

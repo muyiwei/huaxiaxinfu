@@ -1,0 +1,29 @@
+﻿<div class="item item-divider bpm-userselectitems" ng-show="selectUsers.length!=0">
+    <ul class="breadcrumb-wrapper">
+        <li class="bpm-breadcrumb bpm-orgitem"
+            ng-repeat="user in selectUsers track by user.id"
+            ng-if="user.type=='O'" style="line-height:1.1rem;">
+            <span class="depSelected" style="line-height: 20px; color: #77bcfa;">{{user.name|limitTo:16}}{{user.name.length>16?"...":""}}</span>
+            <span class="del-list" ng-click="cancelSelected($index)"><i class="icon ion-android-close"></i></span>
+        </li>
+        <li class="bpm-breadcrumb bpm-orgitem"
+            ng-repeat="user in selectUsers track by user.id"
+            ng-if="user.type=='G'" style="line-height:1.1rem;">
+            <span class="depSelected" style="line-height: 20px; color: #77bcfa;">{{user.name}}</span>
+            <span class="del-list" ng-click="cancelSelected($index)"><i class="icon ion-android-close"></i></span>
+        </li>
+    </ul>
+    <ul class="breadcrumb-wrapper">
+        <li class="bpm-breadcrumb bpm-useritem"
+            ng-repeat="user in selectUsers"
+            ng-if="user.type=='U'" style="text-align:center;width:1.5rem;padding:0 !important;">
+            <i class="user-name userSelected" style="border:none;margin-left:4px;" ng-click="cancelSelected($index)">
+                <img class="user-name userSelected" style="border:none;margin:5px 0;" ng-src="{{user.UserImageUrl}}" ng-if="user.UserImageUrl">
+                <img class="user-name userSelected" style="border: none; margin: 5px 0;" ng-src="{{portal}}/img/details/usermen.png" ng-if="user.UserImageUrl.length==0||user.UserImageUrl==null?user.UserGender==0||user.UserGender==1:false">
+                <img class="user-name userSelected" style="border: none; margin: 5px 0;" ng-src="{{portal}}/img/details/userwomen.png" ng-if="user.UserImageUrl.length==0||user.UserImageUrl==null?user.UserGender==2:false">
+                <!--<span class="del-list" ng-click="cancelSelected($index)"><i class="icon ion-android-close"></i></span>-->
+            </i>
+            <p style="margin-top:-10px;">{{user.name}}</p>
+        </li>
+    </ul>
+</div>

@@ -1,0 +1,76 @@
+﻿<ion-view view-title="{{userInfo.Name}}" hide-nav-bar="{{$root.dingMobile.hideHeader}}">
+    <ion-nav-bar class="bar-stable">
+        <ion-nav-back-button class="button-clear">
+            <button class="button button-icon button-clear ion-ios-arrow-left"
+                    ng-click="$ionicGoBack()">
+                返回
+            </button>
+        </ion-nav-back-button>
+    </ion-nav-bar>
+    <ion-content>
+        <div class="list">
+            <div ng-if="userInfo.ObjectID==user.ObjectID" class="item item-image"
+                 style="vertical-align:middle;text-align:center; padding:20px;"
+                 ng-click="changeImage()">
+                <div class="user-item">
+                    <div ng-if="userInfo.ImageUrl==''"
+                         class="normal user-avatar" style="width: 75px; height: 75px; margin: 0 auto;"
+                         ng-class="{'user-a':userIndex%4==0,'user-b':userIndex%4==1,'user-c':userIndex%4==2,'user-d':userIndex%4==3}">
+                        <div class="avatar-text" style="width: 75px; height: 75px; font-size:20px;">
+                            {{userInfo.Name|limitTo :-2}}
+                        </div>
+                    </div>
+                    <div ng-if="userInfo.ImageUrl!=''" class="normal user-avatar" style="width: 75px; height: 75px; margin: 0 auto; ">
+                        <img class="ion-image user-img" style="width: 75px; height: 75px;"
+                             ng-src="{{userInfo.ImageUrl}}" />
+                    </div>
+                </div>
+            </div>
+            <div ng-if="userInfo.ObjectID!=user.ObjectID" class="item item-image"
+                 style="vertical-align:middle;text-align:center; padding:20px;">
+                <div class="user-item">
+                    <div class="normal user-avatar" style="width: 75px; height: 75px; margin: 25px auto;"
+                         ng-class="{'user-a':userIndex%4==0,'user-b':userIndex%4==1,'user-c':userIndex%4==2,'user-d':userIndex%4==3}">
+                        <div class="avatar-text" style="width: 75px; height: 75px; font-size: 20px; ">
+                            {{userInfo.Name|limitTo :-2}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="item item-divider" style="padding-top:5px;padding-bottom:3px;">
+                <i class="icon ion-android-person dividerIcon"></i>基本信息
+            </div>
+            <a class="item" href="#">
+                帐号                
+                <span class="item-note">
+                    {{userInfo.Code}}
+                </span>
+            </a>
+            <a class="item" href="#">
+                称谓
+                <span class="item-note">{{userInfo.Appellation}}</span>
+            </a>
+            <a class="item" href="#">
+                部门
+                <span class="item-note">
+                    {{userInfo.DepartmentName|limitTo:16}}{{userInfo.DepartmentName.length>16?"...":""}}
+                </span>
+            </a>
+            <div class="item item-divider" style="padding-top:5px;padding-bottom:3px;">
+                <i class="icon ion-android-call dividerIcon"></i>联系方式
+            </div>
+            <span class="item">
+                邮件
+                <a href="mailto:{{userInfo.Email}}" class="item-note">{{userInfo.Email}}</a>
+            </span>
+            <span class="item">
+                办公电话
+                <a href="tel:{{userInfo.OfficePhone}}" class="item-note">{{userInfo.OfficePhone}}</a>
+            </span>
+            <span class="item">
+                移动电话
+                <a href="tel:{{userInfo.Mobile}}" class="item-note">{{userInfo.Mobile}}</a>
+            </span>
+        </div>
+    </ion-content>
+</ion-view>

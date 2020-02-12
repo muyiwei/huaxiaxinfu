@@ -1,0 +1,352 @@
+﻿html,body {
+    margin:0px;
+    padding:0px;
+    font:normal 12px/20px 'Microsoft YaHei',SimSun,Arial,Verdana;
+    background:#efefef;
+}
+strong {
+    font-weight:bold;
+}
+
+.edit-model .part  {
+    min-height:40px;
+    border:dashed 1px #cccccc;
+    display:block;
+}
+
+.fl {
+    float:left;
+}
+.fr {
+    float:right;
+}
+.clear {
+    clear:both;
+}
+
+.bodywrap {
+    text-align:center;
+}
+.contentwrap {
+    width:1200px;
+    margin:auto;
+    margin-top:10px;
+    margin-bottom:10px;
+    padding:10px 20px;
+    text-align:left;
+    background:white;
+}
+
+/*admin管理div样式*/
+#admin_console {
+    line-height:20px;
+    padding:5px 15px 5px 15px;
+    background:#666666;
+    text-align:right;
+}
+
+    #admin_console .btn-admin {
+        color:white;
+        margin-left:8px;
+        cursor:pointer;
+    }
+
+#portal_information {
+    line-height:20px;
+    text-align:center;
+    color:#999999;
+}
+#portal_information_theme {
+ margin:0px 3px 0px 3px;
+ color:blue;
+ cursor:pointer;
+}
+
+/*添加部件按钮的样式*/
+.tool-button {
+    
+}
+    .tool-button .button {
+        cursor:pointer;
+        text-decoration:underline;
+    }
+
+    .tool-button .delete-button {
+        background:transparent url(../images/delete_16x16.png) 0px 2px no-repeat;
+        padding-left:18px;
+        margin-left:3px;
+        text-decoration:none;
+    }
+    .tool-button .edit-button {
+        background:transparent url(../images/setting_16x16.png) 0px 0px no-repeat;
+        padding-left:18px;
+        margin-left:3px;
+        text-decoration:none;
+    }
+    .tool-button .moveup-button {
+        background: transparent url(../images/moveup_16x16.png) 0px 0px no-repeat;
+        width: 16px;
+        height:16px;
+        vertical-align:middle;
+        margin-left: 5px;
+        display:inline-block;
+        text-decoration: none;
+    }
+    .tool-button .movedown-button {
+        background: transparent url(../images/movedown_16x16.png) 0px 0px no-repeat;
+        width: 16px;
+        height:16px;
+        vertical-align:middle;
+        margin-left: 5px;
+        display:inline-block;
+        text-decoration: none;
+    }
+
+.header {
+}
+
+.footer {
+}
+
+.content {
+    margin-top:20px;
+    margin-bottom:20px;
+}
+
+/*系统部件里面用的样式*/
+.search {
+    line-height:24px;
+}
+.search-title {
+}
+.search-more {
+}
+.search-text {
+}
+.search-button {
+    width:24px;
+    height:24px;
+    display:inline-block;
+    background:url(../images/search.png) no-repeat;
+    cursor:pointer;
+    vertical-align:middle;
+}
+
+.link-list {
+}
+.link-item a {
+    color:#3c3c3c;
+    text-decoration:none;
+    cursor:pointer;
+}
+
+.data-list {
+    width:100%;
+}
+    .data-list td {
+        padding:2px;
+    }
+    .data-list a {
+        cursor:pointer;
+        text-decoration:none;
+        color:#333333;
+    }
+
+.popup-menu {
+    list-style: none;
+    margin: 0px;
+    padding: 0px;
+    font-weight: bold;
+    height: 30px;
+    line-height: 30px;
+    background-color: darkblue;
+}
+
+    .popup-menu li {
+        text-align: center;
+        min-width: 90px;
+        float: left;
+    }
+
+    .popup-menu a {
+        color: white;
+        text-decoration: none;
+        font-size:14px;
+    }
+
+    .popup-menu .menu-icon {
+        width: 20px;
+        height: 22px;
+        vertical-align: middle;
+        overflow: hidden;
+        display: inline-block;
+    }
+    .popup-menu .menu-icon img {
+        vertical-align:top;
+        max-height:22px;
+        max-width:20px;
+    }
+
+    .popup-menu .menu-text {
+        margin: 0px 5px;
+    }
+
+    .popup-menu .menu-more {
+        display: none;
+    }
+
+.list-menu {
+    list-style:none;
+    margin: 0px;
+    padding: 0px;
+    font-weight: bold;
+    line-height: 30px;
+    background-color: #ffffff!important;
+    width:100%;
+}
+
+    .list-menu li {
+        text-align: left;
+        margin-top:1px;
+        background-color: darkblue;
+    }
+
+    .list-menu a {
+        color: white;
+        text-decoration: none;
+        font-size:14px;
+    }
+
+.list-menu-sub {
+    display:none;
+    list-style:none;
+    margin: 0px;
+    padding: 0px;
+    font-weight: bold;
+    line-height: 30px;
+    background-color: #ffffff!important;
+    width:100%;
+}
+    .list-menu-sub li {    
+        background-color: #efefef;
+    }
+    .list-menu-sub a {
+        color:#999999;
+        text-decoration:none;
+        font-size:13px;
+    }
+
+.list-menu .menu-icon {
+    width: 20px;
+    height: 22px;
+    vertical-align: middle;
+    overflow: hidden;
+    background-color: #efefef;
+    display: inline-block;
+}
+    .list-menu .menu-icon img {
+        vertical-align:top;
+        max-height:22px;
+        max-width:20px;
+    }
+
+.list-menu .menu-text {
+    margin: 0px 5px;
+}
+
+.list-menu .menu-more {
+    display: none;
+}
+
+.float-menu, .float-menu ul {
+    position: absolute;
+    z-index: 888;
+    background: #efefef;
+    border: 1px solid #cdcdcd;
+    list-style: none;
+    margin: 0px;
+    padding: 0px;
+    overflow: hidden;
+    line-height: 22px;
+}
+
+    .float-menu li {
+        background-color: #ffffff;
+        overflow-x: visible;
+        margin-top: -1px;
+    }
+
+    .float-menu a {
+        color: darkblue;
+        text-decoration: none;
+    }
+
+    .float-menu .menu-icon {
+        width: 20px;
+        height: 22px;
+        vertical-align: middle;
+        overflow: hidden;
+        background-color: #efefef;
+        display: inline-block;
+    }
+
+    .float-menu .menu-icon img {
+        vertical-align:top;
+        max-height:22px;
+        max-width:20px;
+    }
+
+    .float-menu .menu-text {
+        margin: 0px 5px;
+    }
+
+    .float-menu .menu-more {
+        width: 20px;
+        height: 20px;
+        display: block;
+        float: right;
+        vertical-align: middle;
+        overflow: hidden;
+        background: #cccccc;
+    }
+
+/*部件的样式*/
+.widget {
+    border:solid 1px #aaaaaa;
+    margin-bottom:10px;
+    overflow:auto;
+}
+
+    .widget .widget-title {
+        background-color:#cdcdcd;
+        height:30px;
+        line-height:30px;
+        font-weight:bold;
+        padding:0px 5px 0px 5px;
+    }
+    .widget .widget-title-icon {
+        vertical-align:middle;
+        margin-right:3px;
+    }
+    .widget .widget-holder {
+        padding:10px;
+    }
+    
+.widget-noborder {
+    border-width: 0px;
+}
+
+    .widget-noborder .widget-holder {
+        padding: 0px;
+    }
+
+    .h3gallery {font-size:12px; background-color:#eeeeee;}
+.h3gallery .mainbox {}
+.h3gallery .indexbox {background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NEIyNzUxMTAyMjdFMTFFMzgzRTBDOEE3MjZFM0ZDQzYiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NEIyNzUxMTEyMjdFMTFFMzgzRTBDOEE3MjZFM0ZDQzYiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo0QjI3NTEwRTIyN0UxMUUzODNFMEM4QTcyNkUzRkNDNiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo0QjI3NTEwRjIyN0UxMUUzODNFMEM4QTcyNkUzRkNDNiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PtaQW/8AAAAbSURBVHjaYvz//78PAxGAiYFIMKqQOgoBAgwATakDXa3VkscAAAAASUVORK5CYII=);z-index:2;overflow:hidden;}
+.h3gallery .indexitem {width:20px; height:17px; cursor:pointer; color:#efefef; margin:4px 2px 0px 2px;line-height:17px; background-color:Teal; border-radius:3px; display:inline-block; text-align:center;}
+.h3gallery .indexitemnow {color:White; font-weight:bold;}
+.h3gallery .tooltipbox {color:black; font-weight:bold; z-index:1; overflow:hidden;}
+.h3gallery .tooltipbox span {margin:0px 2px 0px 2px;display:inline-block;}
+.h3gallery .titlebox {}
+.h3gallery .pause {background-color:transparent;background-image:url(../images/gallery-pause.gif); background-repeat:no-repeat; background-position:2px 2px;}
+.h3gallery .play {background-color:transparent;background-image:url(../images/gallery-play.gif); background-repeat:no-repeat; background-position:2px 1px;}

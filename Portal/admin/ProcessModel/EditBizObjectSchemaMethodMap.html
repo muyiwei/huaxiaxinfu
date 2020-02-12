@@ -1,0 +1,361 @@
+﻿<script type="text/javascript" src="../WFRes/_Scripts/designer/misc.js"></script>
+<script type="text/javascript" src="../WFRes/_Scripts/designer/FormulaEditable.js?20150422"></script>
+<link href="../WFRes/css/MvcSheet.css" rel="stylesheet" type="text/css" />
+
+<script>
+    var pageData = {
+        ServiceMethodMap: {},
+        LanData: $.Languages
+    };
+    $(function () {
+        var ParamGridData = new Object();
+        var ReturnGridData = new Object();
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function () {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                },
+                serviceCodeChange: function () {
+                    serviceCodeChange();
+                },
+                methodNameChange: function () {
+                    methodNameChange();
+                },
+                upgrade: function (e) {
+                    if ($(e.currentTarget).attr("disabled")) return false;
+                    upgrade();
+                },
+                createProperty: function (e) {
+                    if ($(e.currentTarget).attr("disabled")) return false;
+                    createProperty();
+                }
+            }
+        });
+        // 获取页面初始化数据
+        function initPageData() {
+            var MethodType = getUrlParam("MethodType") || "";
+            var SchemaCode = getUrlParam("SchemaCode") || "";
+            var Method = getUrlParam("Method") || "";
+            var MapIndex = getUrlParam("MapIndex") || "";
+            $.ajax({
+                url: $.Controller.ServiceMethodMap.GetServiceMethodMap,
+                type: "GET",
+                cache: false,
+                async: false,//同步执行
+                data: { mapIndex: MapIndex, schemaCode: SchemaCode, method: Method, methodType: MethodType },
+                dataType: "JSON",
+                success: function (data) {
+                    if (data.Success) {
+                        pageData = data.Extend;
+                        pageData.ServiceCodes[0].Text = $.Lang(pageData.ServiceCodes[0].Text);
+                        pageData.LanData = $.Languages;
+                        pageData.InitServiceCode = pageData.ServiceMethodMap.ServiceCode;
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(data.Message) });
+                    }
+                }
+            });
+        };
+        $("#MethodChoose").SheetWorkflow({
+            OnChange: function () {
+                pageData.ServiceMethodMap.ServiceCode = $("#MethodChoose").SheetUIManager().GetValue();
+                serviceCodeChange();
+            },
+            SheetWorkflowHandler: $.Controller.ServiceMethodMap.GetTreeServiceMethod,
+            Editable:true,
+            Visiable: true,
+            Mode: getUrlParam("MethodType"),
+            AllowSearch: true,
+            IsMultiple: false,
+            IsSearchThree: true,
+        });
+        var _text = $("input[type=text][id*=txtExeCondition]");
+        _text.FormulaEditable("line-height: 24px;height:26px; border: 1px solid rgb(168, 168, 168);min-height: 24px;margin-left: 1px;width: 246px;padding-left: 4px;padding-right: 4px;");
+        $("#H3ToolBar").AspLinkToolBar();
+        if ($("#ParamGrid").ligerGetGridManager() != null) {
+            $("#ParamGrid").ligerGetGridManager().reload();
+            $("#ReturnGrid").ligerGetGridManager().reload();
+        }
+        $(".H3Panel").BuildPanel({ excludeIDs: ["ParamGrid", "ReturnGrid"] });
+        var selectethodName = pageData.ServiceMethodMap.MethodName;
+        $("#ParamGrid").ligerGrid({
+            columns: GetColumns("Param"),
+            isScroll: false,
+            //url: "EditBizObjectSchemaMethodMap.aspx?Action=GetParamData&" + urlParam,
+            data: pageData.ParamGridData,
+            rownumbers: true,
+            usePager: false,
+            allowAdjustColWidth: true,
+            rownumbers: true,
+            columnWidth: "auto"
+        });
+
+        $("#ReturnGrid").ligerGrid({
+            columns: GetColumns("Return"),
+            isScroll: false,
+            //url: "EditBizObjectSchemaMethodMap.aspx?Action=GetReturnData&" + urlParam,
+            data: pageData.ReturnGridData,
+            rownumbers: true,
+            usePager: false,
+            allowAdjustColWidth: true,
+            rownumbers: true,
+            columnWidth: "auto"
+        });
+        setControlUsable(pageData.IsLocked, $("a"));
+    });
+
+
+    function GetColumns(gridType) {
+
+        var selectMethod = pageData.ServiceMethodMap.MapIndex;
+        var cols = new Array();
+        var ParamName = $.Lang("EditBizObjectSchemaMethodMap.ParamName");
+        var MapType = $.Lang("EditBizObjectSchemaMethodMap.MapType");
+        var MapTo = $.Lang("EditBizObjectSchemaMethodMap.MapTo");
+        var ButtonOpen = $.Lang("GlobalButton.Open");
+        cols.push({
+            display: ParamName, width: "20%", render: function (row) {
+                return row.ItemName;
+            }
+        });
+        if (gridType == "Param") {
+            cols.push({ display: MapType, name: "MapType", width: "20%" });
+            cols.push({ display: MapTo, name: "MapTo", width: "40%" });
+        }
+        else if (selectMethod == "-1") {
+            cols.push({ display: MapTo, name: "MapTo", width: "70%" });
+        }
+        else {
+            cols.push({ display: MapTo, name: "MapTo", width: "60%" });
+        }
+        if (selectMethod != "-1") {
+            cols.push({
+                display: ButtonOpen, code: "edit", width: "10%", render: function (row) {
+                    return "<a href='javascript:void(0)' paramName='" + row.ItemName + "' isParam='" + (gridType == "Param") + "' onclick='AddDialog(this)'>" + ButtonOpen + "</a>";
+                }
+            });
+        }
+        return cols;
+    }
+    //保存
+    function saveData() {
+        $.ajax({
+            url: $.Controller.ServiceMethodMap.SaveServiceMethodMap,
+            type: "post",
+            dataType: "json",
+            data: pageData.ServiceMethodMap,
+            success: function (result) {
+                if (result.Success) {
+                    pageData.ServiceMethodMap = result.Extend;
+                    $.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                    setTimeout(function () {
+                        RealoadParentPage();
+                        var linkUrl = _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/EditBizObjectSchemaMethodMap.html";
+                        linkUrl += "&SchemaCode=" + result.Extend.SchemaCode;
+                        linkUrl += "&Method=" + result.Extend.Method;
+                        linkUrl += "&MapIndex=" + result.Extend.MapIndex;
+                        linkUrl += "&MethodType=" + result.Extend.MethodType;
+                        top.$("iframe[id='" + top.workTab.getSelectedTabItemID() + "']").attr("src", linkUrl);
+                        top.workTab.reload(top.workTab.getSelectedTabItemID());
+                    }, 1000);
+                } else {
+                    $.H3Dialog.Error({ content: $.Lang(result.Message) });
+                }
+            }
+        });
+    }
+
+    //更新到最新方法
+    function upgrade() {
+        $.ajax({
+            url: $.Controller.ServiceMethodMap.UpgradeServiceMethodMap,
+            type: "post",
+            dataType: "json",
+            data: pageData.ServiceMethodMap,
+            success: function (result) {
+                if (result.Success) {
+                    if (result.Extend) ReloadGridData(result.Extend);
+                    $.H3Dialog.Success({ content: $.Lang("EditBizObjectSchemaMethodMap.UpgradeSucced") });
+                } else {
+                    $.H3Dialog.Error({ content: $.Lang(result.Message) });
+                }
+            }
+        });
+    }
+
+    //更新到最新方法
+    function methodNameChange() {
+        $.ajax({
+            url: $.Controller.ServiceMethodMap.MethodNameChange,
+            type: "get",
+            dataType: "json",
+            data: pageData.ServiceMethodMap,
+            success: function (result) {
+                if (result.Success) {
+                    if (result.Extend) ReloadGridData(result.Extend);
+                }
+            }
+        });
+    }
+
+    //创建属性并绑定
+    function createProperty() {
+        $.ajax({
+            url: $.Controller.ServiceMethodMap.CreateProperty,
+            type: "post",
+            dataType: "json",
+            data: pageData.ServiceMethodMap,
+            success: function (result) {
+                if (result.Success) {
+                    ReloadGridData(result.Extend);
+                    $.H3Dialog.Success({ content: $.Lang("EditBizObjectSchemaMethodMap.BindSucced") });
+                } else {
+                    $.H3Dialog.Error({ content: $.Lang("EditBizObjectSchemaMethodMap.BindFailed") });
+
+                }
+            }
+        });
+    }
+
+    function AddDialog(obj) {
+        debugger
+        var ServiceMethodMap = pageData.ServiceMethodMap;
+        var paramName = $(obj).attr("paramName");
+        var isParam = $(obj).attr("isParam");
+        var url = "ProcessModel/EditBizObjectSchemaParamMap.html";
+        url += "&SchemaCode=" + ServiceMethodMap.SchemaCode;
+        url += "&Method=" + ServiceMethodMap.Method;
+        url += "&MapIndex=" +( ServiceMethodMap.MapIndex ? ServiceMethodMap.MapIndex : "");
+        url += "&IsParam=" + isParam;
+        url += "&ParamName=" + paramName;
+        url += "&MethodType=" + ServiceMethodMap.MethodType;
+        ShowDialog(paramName, _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=" + url);
+    }
+
+    //业务方法改变事件
+    function serviceCodeChange() {
+        var ServiceMethodMap = pageData.ServiceMethodMap;
+        $.ajax({
+            url: $.Controller.ServiceMethodMap.GetServiceMethodNamesList,
+            type: "get",
+            dataType: "json",
+            data: { schemaCode: ServiceMethodMap.SchemaCode, method: ServiceMethodMap.Method, methodType: ServiceMethodMap.MethodType, serviceCode: ServiceMethodMap.ServiceCode },
+            success: function (result) {
+                if (result.Success) {
+                    pageData.MethodNames = result.Extend.MethodNames;
+                    pageData.ServiceMethodMap.MethodName = result.Extend.MethodName;
+
+                    if ($("#ParamGrid").ligerGetGridManager() != null) {
+                        $("#ParamGrid").ligerGetGridManager().set({ data: result.Extend.ParamGridData });
+                        $("#ReturnGrid").ligerGetGridManager().set({ data: result.Extend.ReturnGridData });
+                        $("#ParamGrid").ligerGetGridManager().reload();
+                        $("#ReturnGrid").ligerGetGridManager().reload();
+                    }
+                }
+            }
+        });
+    }
+
+    function RealoadParentPage() {
+        var parentTabId = CurrenteTabID.split('#')[0];
+        top.workTab.reload(parentTabId);
+    }
+
+    function DeleteFun(obj) {
+        var ServiceMethodMap = pageData.ServiceMethodMap;
+        if (ConfirmDel(obj)) {
+            $.ajax({
+                url: $.Controller.ServiceMethodMap.DelServiceMethodMap,
+                data: { schemaCode: ServiceMethodMap.SchemaCode, method: ServiceMethodMap.Method, methodType: ServiceMethodMap.MethodType, mapIndex: ServiceMethodMap.MapIndex },
+                type: 'post',
+                dataType: "json",
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.DeleteSucced") });
+                        setTimeout(function () {
+                            RealoadParentPage();
+                            top.workTab.removeTabItem(top.workTab.getSelectedTabItemID());
+                        }, 1000);
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.DeleteFaild") });
+                    }
+                }
+            });
+        }
+    }
+
+    //重新加载表格数据
+    function ReloadGridData(data) {
+        if (data.ParamGridData) {
+            var paramGrid = $("#ParamGrid").ligerGetGridManager();
+            paramGrid.set({ data: data.ParamGridData });
+            paramGrid.reload();
+        }
+        if (data.ReturnGridData) {
+            var returnGrid = $("#ReturnGrid").ligerGetGridManager();
+            returnGrid.set({ data: data.ReturnGridData });
+            returnGrid.reload();
+        }
+    }
+</script>
+<div id="H3ToolBar">
+    <a id="btnSave" data-icon="fa fa-save" href="javascript:void(0)" v-on:click="saveData" data-lang="GlobalButton.Save">保存</a>
+    <a id="btnCreateProperty" data-icon="fa fa-plus" data-lang="GlobalButton.CreateProperty" v-on:click="createProperty" v-bind:disabled="!ServiceMethodMap.IsSelectMap">自动创建属性并绑定</a>
+    <a id="btnUpgrade" data-icon="fa fa-upload" data-lang="GlobalButton.UpgradeMethod" v-on:click="upgrade" v-bind:disabled="!ServiceMethodMap.IsSelectMap">升级到最新的方法</a>
+    <a onclick="DeleteFun(this);" href="javascript:void(0)" id="btnRemove" data-icon="fa fa-minus" data-lang="GlobalButton.Delete" v-bind:disabled="!ServiceMethodMap.IsSelectMap">删除</a>
+</div>
+<validator name="formValidator">
+    <div class="H3Panel">
+        <span>{{LanData.EditBizObjectSchemaMethod.BasicInfo}}</span>
+        <table>
+            <tr>
+                <td>
+                    {{ServiceMethodMap.MethodType=='ServiceMethod'?LanData.EditBizObjectSchemaMethodMap.ServiceName:LanData.EditBizObjectSchemaMethodMap.RuleName}}
+                </td>
+                <td>
+                    <select v-model="InitServiceCode" v-if="InitServiceCode!=''" v-bind:disabled="true">
+                        <option v-for="option in ServiceCodes" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                    <div id="MethodChoose" style="width: 250px" v-if="InitServiceCode==''"></div>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.EditBizObjectSchemaMethod.MethodName}}</td>
+                <td>
+                    <select v-model="ServiceMethodMap.MethodName" v-on:change="methodNameChange" v-bind:disabled="ServiceMethodMap.MapIndex">
+                        <option v-for="option in MethodNames" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td>
+                    {{LanData.EditBizObjectSchemaMethodMap.Condition}}
+                </td>
+                <td>
+                    <input type="text" id="txtExeCondition" v-model="ServiceMethodMap.ExeCondition" />
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>
+
+
+<div class="H3Panel">
+    <span>{{LanData.EditBizObjectSchemaMethodMap.InputParam}}</span>
+    <div id="ParamGrid"></div>
+</div>
+
+<div class="H3Panel">
+    <span>{{LanData.EditBizObjectSchemaMethodMap.ReturnValue}}</span>
+    <div id="ReturnGrid"></div>
+</div>

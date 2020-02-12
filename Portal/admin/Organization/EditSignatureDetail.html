@@ -1,0 +1,135 @@
+﻿
+<script src="../WFRes/_Scripts/jquery/ajaxfileupload.js"></script>
+<script src="../WFRes/_Scripts/jquery/plugin/imagepreview/jquery.imagepreview.js"></script>
+<script>
+    $(function () {
+        var pageData = {
+            SignatureData: {SortKey:1},
+            LanData: $.Languages
+        };
+
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                SaveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                }
+            }
+        });
+
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+        //signature
+        //图片预览初始化
+        $("#fileimage").uploadPreview({ Img: "signature" });
+
+        function saveData()
+        {
+            //debugger;
+            if (CheckFile($("#fileimage")[0])) {
+                var userid = getUrlParam("userid");
+                pageData.SignatureData.UserID = userid;
+                var imageLoacl = $("#fileimage").val();
+                $.ajaxFileUpload({
+                    url: $.Controller.OrgUser.SaveSignaure,
+                    fileElementId: "fileimage",
+                    secureuri: false,
+                    type: "post",
+                    dataType:"json",
+                    data: pageData.SignatureData,
+                    success: function (result) {
+                        //var str = $(result).find("pre").text();
+                        //var data = $.parseJSON(str);
+                        if (result.Success) {
+                            parent.H3DialogManger.Close();
+                        } else {
+                            //图片预览初始化
+                            $("#fileimage").uploadPreview({ Img: "signature" });
+
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        }
+                    }
+                });
+            }
+        }
+    });
+
+    //检查图片，并上传
+    function CheckFile(obj) {
+        var fileTypes = new Array("gif", "jpg", "png", "jpeg",'bmp');
+        if (obj.value == "") {
+            $.H3Dialog.Warn({ content: $.Lang("EditUser.SelectFile") });
+            return false;
+        }
+        else {
+            var fileContentType = obj.value.match(/^(.*)(\.)(.{1,8})$/)[3];//取文件类型的正则法则
+            var isExists = false;
+            for (var i in fileTypes) {
+                if (fileContentType.toLocaleLowerCase() == fileTypes[i]) {
+                    isExists = true;
+                    //eval($("#<%=btnImgUpload.ClientID%>").attr("href"));
+                    return true;
+                }
+            }
+            if (!isExists) {
+                $.H3Dialog.Warn({ content: $.Lang("EditUser.SelectPicFile") });
+                return false;
+            }
+        }
+        return false;
+    }
+</script>
+
+<validator name="formValidator">
+    <div id="H3ToolBar">
+        <a ID="btnSave" data-icon="fa fa-save"  v-on:click="SaveData" data-lang="GlobalButton.Save"></a>
+        <!--<a href="#" data-icon="fa fa-reply" onclick="javascript:parent.H3DialogManger.Close();" data-lang="GlobalButton.Cancel"></a>-->
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.EditSignature.NewSign}}</span>
+
+        <table>
+            <tr>
+                <td>{{LanData.EditSignature.Name}}</td>
+                <td>
+                    <input type="text" id="txtname" v-model="SignatureData.Name"  detect-change="on" detect-blur="on" initial="off" v-validate:item-code="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.itemCode.required">{{LanData.msgGlobalString.EnumValueRequired}}</span>
+                    <input type="checkbox" id="chkdefault" v-model="SignatureData.IsDefault" />
+                    <label for="chkdefault">{{LanData.EditSignature.IsDefault}}</label>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.EditSignature.Description}}</td>
+                <td>
+                    <input type="text" id="txtdescription" v-model="SignatureData.Description" />
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.EditSignature.Icon}}</td>
+                <td>
+                   
+                    <label class="col-md-10 control-label alignLeft">
+                        <input type="file" id="fileimage" name="fileimage" style="display:none" />
+                        <div>
+                            <img id="signature" width="100" height="120" src="../WFRes/images/person.gif" alt="点击图片上传" title="点击图片上传" />
+                        </div>
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.EditSignature.SortKey}}</td>
+                <td>
+                    <input type="text" id="txtsortkey" v-model="SignatureData.SortKey" detect-change="on" detect-blur="on" initial="off" v-validate:sort-key="['number']"/>
+                    <span style="color:Red;" v-if="$formValidator.sortKey.number">{{LanData.msgGlobalString.NumberValidate}}</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

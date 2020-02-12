@@ -1,0 +1,470 @@
+/*弹出框样式*/
+.ui-dialog{
+	/*width: 420px !important;*/
+	padding: 0;
+	border-radius: 3px;
+	overflow: hidden;
+}
+.ui-dialog .ui-dialog-content{
+	overflow: initial;
+	padding: 0 20px;
+	margin:20px 0 0 0;
+}
+.ui-dialog .ui-dialog-titlebar{
+	height: 50px;
+	line-height: 50px;
+	background: #37ABFD;
+	font-size: 16px;
+	color: #fff;
+	border-radius: 0;
+	border: 0;
+	padding: 0 20px;
+}
+.ui-dialog .ui-dialog-titlebar-close:hover{
+	background: initial;
+	border-color: transparent;
+}
+.ui-dialog .ui-dialog-title{
+	margin: 0;
+}
+.ui-dialog .ui-dialog-buttonpane{
+	padding: 0;
+}
+.ui-dialog .ui-dialog-buttonpane .ui-dialog-buttonset{
+	float: none;
+	text-align: center;
+	padding: 10px 0;
+}
+.ui-widget-content{
+	border:0;
+}
+.ui-dialog .ui-dialog-buttonpane button{
+	width: 100px;
+    height: 32px;
+    line-height: 32px;
+    margin:0;
+    border: 1px solid #E0E0F2;
+	border-radius: 3px;
+	font-size: 14px;
+	color: #4997D6;
+	background: #fff;
+}
+.ui-dialog .ui-dialog-buttonpane button:first-of-type:not(:only-child){
+	border: 1px solid #E0E0F2;
+	border-radius: 3px;
+	font-size: 14px;
+	color: #4997D6;
+	background: #E0E0F2;
+	margin-right: 20px;
+}
+.ui-dialog .ui-dialog-buttonpane button:only-child{
+    width: 200px;
+    margin:0;
+}
+.ui-button-text-only .ui-button-text{
+	padding: 0;
+}
+/*tooltip*/
+.ui-tooltip{
+	font-size: 12px;
+	color: #999;
+	border: 1px solid #D8D8D8 !important;
+	border-radius: 2px !important;
+	box-shadow: none;
+	background: #fff;
+	display: block!important;
+    text-align:left;
+}
+/*vue-validator*/
+.formValid{
+    position:absolute;
+    color:red;
+    font-size:12px;
+    line-height:20px;
+}
+.rel{
+    position:relative !important;
+}
+
+
+
+
+
+
+
+
+/*dialog conent 样式*/
+*{
+	padding: 0;
+	margin: 0;
+	box-sizing: border-box;
+	outline: 0;
+}
+ul,li{
+	list-style: none;
+}
+.fl{
+	float: left;
+}
+.fr{
+	float: right;
+}
+.cl:after{
+	display: block;
+	content: '';
+	height: 0;
+	clear: both;
+}
+.dialogContainer{
+	padding: 20px;
+	font-size: 14px;
+	color:#333;
+	display: none;
+}
+.basicSettings input[type="text"],.customButtonSettings input[type="text"],.customButtonSettings select,.SystemParamsBind select,.modifyConditonContainer select,.modifyConditonContainer input{
+	width: 300px;
+	height: 32px;
+	line-height: 32px;
+    border-radius: 3px;
+    border: 0;
+    border: 1px solid #d8d8d8;
+    padding: 0 10px;
+}
+.customButtonSettings textarea{
+    width: 300px;
+	height: 128px;
+	line-height: 32px;
+    border-radius: 3px;
+    border: 0;
+    border: 1px solid #d8d8d8;
+    padding: 0 10px;
+    resize:none;
+}
+.row{
+	margin-bottom: 20px;
+	line-height: 32px;
+}
+.row:last-of-type{
+	margin-bottom: 0;
+}
+.row label{
+	font-size: 13px;
+	color: #666;
+}
+.queryInputSetting table{
+    border-spacing:10px;
+    border-collapse:separate;
+}
+.queryInputSetting table td,.queryInputSetting table th{
+    text-align:left;
+    vertical-align:bottom;
+}
+.queryInputSetting table td input,.queryInputSetting table td select,.queryInputSetting table td span{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    width:100px;
+    display:block;
+}
+.queryInputSetting table tr td:last-of-type input{
+    width:200px;
+}
+
+
+/*可拖动的checkbox*/
+.buttonSettings .deleteItem,.buttonSettings .editItem{
+   position: absolute;
+    right: 0;
+    height: 42px;
+    width: 42px;
+    top: 0;
+    cursor: pointer;
+    z-index: 99;
+    text-align:center;
+    vertical-align:middle;
+}
+.buttonSettings .editItem{
+    right:30px;
+}
+.buttonSettings .deleteItem span,.buttonSettings .editItem span{
+    display: inline-block;
+    vertical-align: middle;
+}
+.dragable{
+	display: block;
+	height: 42px;
+	line-height: 42px;
+	color: #666;
+	padding: 0 5px;
+	font-size: 16px;
+	box-sizing: border-box;
+    border: 1px solid transparent;
+    position:relative;
+}
+.dragable:hover{
+	border:0;
+	background: #E0ECFF;
+	border:1px dashed #e8e8e8;
+	cursor: move;
+}
+.dragable input{
+	margin-right: 5px;
+}
+.dragable.onMove{
+	border: 0;
+	width: 368px;
+	background: #fff;
+	border:1px dashed #e8e8e8;
+}
+.listSettings,.queryInputSetting{
+    height:auto;
+	max-height: 300px;
+}
+.listSettings table{
+	text-align: center;
+	font-size: 13px;
+	table-layout: fixed;
+    empty-cells: hide;
+    line-height:32px;
+}
+.listSettings table td{
+	color: #666;
+    padding-bottom:10px;
+}
+.listSettings table input[type="text"],.queryInputSetting table input[type="text"],.queryInputSetting table select{
+	height: 32px;
+	line-height: 32px;
+	color: #333;
+	border-radius: 3px;
+	box-sizing: border-box;
+    border: 1px solid #d8d8d8;
+    padding: 0 10px;
+}
+.listSettings tr td:nth-of-type(1) label{
+	width: 100px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	display: block;
+	text-align: left;
+}
+.listSettings tr td:nth-of-type(2) input[type='text']{
+	width: 130px;
+}
+.listSettings tr td:nth-of-type(2){
+	padding-right: 10px;
+}
+.listSettings tr td:nth-of-type(3) input[type='text']{
+	width: 200px;
+}
+.changeQueryInputBox label{
+    display:block;
+    height:32px;
+    line-height:32px;
+}
+.changeQueryInputBox{
+    height:300px !important;
+}
+.changeQueryInputBox label{
+    padding:0 5px;
+}
+.changeQueryInputBox label input{
+    margin-right:10px;
+}
+.changeQueryInputBox label:hover{
+    background: #E0ECFF;
+ }
+
+/*可拖拽的两个盒子*/
+.dragBoxes{
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	user-select: none;
+}
+.dragbox{
+}
+.dragbox.focus{
+	border:1px solid #3399FE;
+}
+.dragbox .boxTitle{
+	font-size: 12px;
+	color: #999;
+	line-height: 24px;
+}
+.dragbox .boxContent{
+	width: 180px;
+	height: 266px;
+	border:1px solid #d8d8d8;
+}
+.dragbox .boxContent .item{
+	height: 32px;
+	line-height: 32px;
+	padding: 0 10px;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	font-size: 13px;
+	cursor: move;
+}
+.dragbox .boxContent .item:hover{
+	color: #999;
+	background: rgba(224,236,255,0.4);
+}
+.dragbox .boxContent .item.selected{
+	background: #E0ECFF;
+}
+.dragbox .boxContent .item.isMove{
+	background: #E0ECFF;
+	border:1px dashed #d8d8d8;
+}
+.boxOperation{
+	width: 20px;
+	text-align: center;
+	color: #d8d8d8;
+	cursor: default;
+	font-size: 16px;
+    font-family: serif;
+    font-weight: bolder;
+    margin-top: 100px;
+}
+.boxOperation .ltr{
+	margin-bottom: 20px;
+}
+.boxOperation div.clickable{
+	cursor: pointer;
+	color: #3399FE;
+
+}
+
+
+
+
+/*查询列表改版样式*/
+.dib{
+    display:inline-block;
+}
+.fleft{
+    float:left;
+}
+.fright{
+    float:right;
+}
+.queryListContainer{
+    font-size:14px;
+    font-family:"Microsoft YaHei";
+}
+.queryListContainer .toolBar{
+    height:36px;
+    background:#e0e0f2;
+    line-height:36px;
+}
+.queryListContainer .toolBar li{
+    display:inline-block;
+    padding:0 20px;
+    cursor:pointer;
+    color:#4497d6;
+}
+.queryListContainer .setBar,.queryListContainer .resultBar{
+    height:32px;
+    line-height:32px;
+    padding:0 20px;
+    background:#eee;
+    color:#4497d6;
+    overflow:hidden;
+}
+.queryListContainer .setButton{
+    color:#3399ff;
+    cursor:pointer;
+}
+.setCollapse,.resultCollapse{
+    margin-left:20px;
+}
+.dialogAsk{
+    cursor:pointer;
+}
+.xup,.xdown{
+    display:inline-block;
+    width:10px;
+    height:6px;
+    cursor:pointer;
+    padding: 16px 20px;
+}
+.xup{
+    background:url('/portal/admin/ProcessModel/queryList/images/up.png') no-repeat center center;
+}
+.xdown{
+        background:url('/portal/admin/ProcessModel/queryList/images/down.png') no-repeat center center;
+}
+#tableSearch{
+    padding:0px 20px;
+}
+#tableSearch:after,.conditionRow:after{
+    display:block;
+    height:0;
+    clear:both;
+    content:'';
+}
+.conditionRow{
+    margin:5px 0;
+    margin-right:30px;
+    float:left;
+    width:400px;
+}
+.conditionRow>*{
+    float:left;
+}
+.conditionRow .seperate{
+    width:30px;
+    text-align:center;
+    line-height:28px;
+}
+.conditionRow>label{
+    font-size:14px;
+    color:#333;
+    line-height:28px;
+    width:150px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+.conditionRow>input,.conditionRow>select{
+    line-height:32px;
+    height:28px;
+    box-sizing:border-box;
+    border:1px solid #a8a8a8;
+    border-radius:3px;
+    padding:0 10px;
+    color:#666;
+    width:250px;
+}
+.select2-container{
+    border-radius:3px;
+    width:250px !important;
+}
+.RunQueryToolBar a{
+    display:inline-block;
+    padding:5px;
+}
+.RunQueryToolBar:after{
+    content:'';
+    display:block;
+    height:0;
+    clear:both;
+}
+.RunQueryToolBar{
+    padding:0 20px;
+}
+#RunQueryToolBar>div{
+    display:inline-block;
+}
+#RunQueryToolBar{
+    display:inline-block;
+}
+/*查询列表单选按钮站一整行*/
+.querySet #tableSearch .conditionRow{
+        width: initial;
+}
+.toRight:hover,.toLeft:hover{
+    color: #999;
+	background: rgba(224,236,255,0.4);
+}

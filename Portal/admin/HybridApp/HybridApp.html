@@ -1,0 +1,233 @@
+﻿<script>
+    var AppCode = getUrlParam("code") || "";
+
+    $(function () {
+        var pageData = {
+            HybridApp: {},
+            LanData: $.Languages
+        };
+        var gridDatas = {};
+        //初始化页面数据
+        initPageData();
+
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                SetIsDisplay: function (event) {
+                    SetIsDisplay();
+                }
+            }
+        });
+
+        $("#H3ToolBar").AspLinkToolBar({ IsFixed: false });
+        $("#H3ToolBarApp").AspLinkToolBar({ IsFixed: false });
+        $(".H3Panel").BuildPanel({ excludeIDs: ["functionNodePanel", "slideShowPanel"] });
+
+        //初始化页面数据
+        function initPageData() {
+            var appCode = getUrlParam("code") || "";
+            if (appCode) {
+                $.ajax({
+                    url: $.Controller.HybridApp.GetHybridApp,
+                    type: 'get',
+                    dataType: "json",
+                    data: { appCode: appCode },
+                    async: false,//同步执行
+                    success: function (result) {
+                        if (result.Success) {
+                            pageData.HybridApp = result.Extend;
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        }
+                    }
+                });
+            } else {
+            }
+        };
+        initGrid(pageData.HybridApp);
+
+        var SetIsDisplay = function () {
+            $.ajax({
+                url: $.Controller.HybridApp.SetSlideShowDisplay,
+                type: 'get',
+                dataType: "json",
+                data: { isDisplay: !pageData.HybridApp.SlideShowDisplay },
+                async: false,//同步执行
+                success: function (result) {
+                    $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                }
+            });
+        };
+    });
+
+    //初始化表格
+    var initGrid = function () {
+        var HybridAppLan = $.Languages.HybridApp;
+        $("#SlideShows").ligerGrid({
+            columns: GetSlideShowsColumns(HybridAppLan),
+            width: '100%',
+            height: '235px',
+            url: $.Controller.HybridApp.GetSlideShowsList,
+            checkbox: false,
+            pageParmName: 'PageIndex'
+        });
+        $("#AppFunctionNodes").ligerGrid({
+            columns: GetFunctionNodesColumns(HybridAppLan),
+            width: '100%',
+            height: '270px',
+            url: $.Controller.HybridApp.GetAppFunctionNodesList,
+            checkbox: false,
+            pageParmName:'PageIndex'
+        });
+    };
+
+    function GetSlideShowsColumns(HybridAppLan) {
+        return [
+                    { display: HybridAppLan.Code, name: 'Code', width: '12%', align: 'left' },
+                    {
+                        display: HybridAppLan.Pic, name: '', align: 'center', width: '20%', render: function (row) {
+                            if (row.Image == null || row.Image == "") return "";
+                            return "<a href='" + row.Image + "' target='blank'>" + row.Code + "<a/>";
+                        }
+                    },
+                    { display: HybridAppLan.Url, name: 'Url', width: '25%', align: 'left' },
+                    { display: HybridAppLan.Des, name: 'Description', width: '12%', align: 'left' },
+                    { display: HybridAppLan.IsDisplay, name: 'IsDisplay', width: '10%', align: 'left' },
+                    { display: HybridAppLan.SortKey, name: 'SortKey', width: '5%', align: 'left' },
+                    {
+                        display: HybridAppLan.Edit, width: '12%', name: '', render: function (row) {
+                            return "<div style='float:left;'><a href='#' onclick='EditSlideShow(\"" + row.Code + "\",\"" + AppCode + "\")'>" + $.Languages.GlobalButton.Edit + "</a></div>"
+                            + "<div style='padding-left:5px;float:left;'><a href='#' onclick='DelSlideShow(\"" + row.Code + "\",this)'>" + $.Languages.GlobalButton.Delete + "</a></div>";
+                        }
+                    }
+        ];
+    };
+
+    function GetFunctionNodesColumns(HybridAppLan) {
+        return [
+                    { display: HybridAppLan.Code, name: 'Code', width: '12%', align: 'left' },
+                    { display: HybridAppLan.DisplayName, name: 'DisplayName', width: '10%', align: 'left' },
+                    { display: HybridAppLan.Url, name: 'Url', width: '25%', align: 'left' },
+
+                    { display: HybridAppLan.OpenMethod, name: 'AppOpenMethod', width: '10%', align: 'left' },
+                    { display: HybridAppLan.IsDisplay, name: 'IsDisplay', width: '10%', align: 'left' },
+                   { display: HybridAppLan.SortKey, name: 'SortKey', width: '5%', align: 'left' },
+                    {
+                        display: HybridAppLan.Edit, width: '12%', name: '', render: function (row) {
+                            return "<div style='float:left;'><a href='#' onclick='EditAppFunctionNode(\"" + row.Code + "\")'>" + $.Languages.GlobalButton.Edit + "</a></div>"
+                            + "<div style='padding-left:5px;float:left;'><a href='#' onclick='DelAppFunctionNode(\"" + row.Code + "\",this)'>" + $.Languages.GlobalButton.Delete + "</a></div>";
+                        }
+                    }
+        ];
+    };
+
+    //新增
+    function AddPage(type, url) {
+        var edit = '';
+        if (type == 'SlideShow') {
+            edit = $.Languages.HybridApp.EditSlideShow;
+        } else {
+            edit = $.Languages.HybridApp.EditFunctionNode;
+        }
+        if (AppCode) {
+            ShowDialog(edit, url + '&AppCode=' + AppCode, 630, 700);
+            return;
+        }
+    }
+
+    //编辑轮播图
+    function EditSlideShow(Code, ParentId) {
+        ShowDialog($.Languages.HybridApp.EditSlideShow, _PORTALROOT_GLOBAL + '/admin/TabMaster.html?url=HyBridApp/EditSlideShow.html&SlideShowCode=' + Code + "&AppCode=" + AppCode, 630, 700);
+    }
+
+    //编辑应用节点
+    function EditAppFunctionNode(Code) {
+        ShowDialog($.Languages.HybridApp.EditFunctionNode, _PORTALROOT_GLOBAL + '/admin/TabMaster.html?url=HyBridApp/EditAppFunctionNode.html&AppFunctionNodeCode=' + Code
+     + "&AppCode=" + AppCode, 630, 700);
+    }
+
+    //删除应用节点
+    function DelAppFunctionNode(code, obj) {
+        if (ConfirmDel(obj)) {
+            $.ajax({
+                url: $.Controller.HybridApp.DelAppFunctionNode,
+                type: 'post',
+                dataType: "json",
+                data: { code: code },
+                success: function (result) {
+                    if (result.Success) {
+                        ReloadGridData("AppFunctionNodes");
+                    } else {
+                        $.H3Dialog.Warn({ content: result.Message });
+                    }
+                }
+            });
+        }
+    }
+
+    //删除轮播图
+    function DelSlideShow(code, obj) {
+        if (ConfirmDel(obj)) {
+            $.ajax({
+                url: $.Controller.HybridApp.DelSlideShow,
+                type: 'post',
+                dataType: "json",
+                data: { code: code },
+                success: function (result) {
+                    if (result.Success) {
+                        ReloadGridData("SlideShows");
+                    } else {
+                        $.H3Dialog.Warn({ content: result.Message });
+                    }
+                }
+            });
+        }
+    }
+
+
+    function ReloadGridData(gridId) {
+        var manager = $("#" + gridId).ligerGetGridManager();
+        if (manager) {
+            manager.reload();
+        }
+    }
+</script>
+<validator name="formValidator">
+    <div class="H3Panel">
+        <span>{{LanData.msgGlobalString.BasicProperties}}</span>
+        <table style="table-layout: fixed">
+            <tr>
+                <td>{{LanData.HybridApp.SlideShowIsDisplay}}</td>
+                <td>
+                    <input type="checkbox" v-model="HybridApp.SlideShowDisplay" v-on:click="SetIsDisplay" />
+                </td>
+            </tr>
+            <tr style="display:none">
+                <td style="width: 190px">{{LanData.HybridApp.Preview}}</td>
+                <td>
+                    <a href="http://www.baidu.com">{{LanData.HybridApp.Preview}}</a>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.HybridApp.SlideShows}}</span>
+        <div id="slideShowPanel">
+            <div id="H3ToolBar">
+                <a href="javascript:void(0);" onclick="AddPage('SlideShow', _PORTALROOT_GLOBAL + '/admin/TabMaster.html?url=HybridApp/EditSlideShow.html')" data-lang="GlobalButton.Add"></a>
+            </div>
+            <div id="SlideShows"></div>
+        </div>
+    </div>
+
+    <div class="H3Panel" style="margin-top:20px;">
+        <span>{{LanData.HybridApp.AppFunctionNodes}}</span>
+        <div id="functionNodePanel">
+            <div id="H3ToolBarApp">
+                <a href="javascript:void(0);" onclick="AddPage('FunctionNode', _PORTALROOT_GLOBAL + '/admin/TabMaster.html?url=HybridApp/EditAppFunctionNode.html')" data-lang="GlobalButton.Add"></a>
+            </div>
+            <div id="AppFunctionNodes"></div>
+        </div>
+    </div>
+</validator>

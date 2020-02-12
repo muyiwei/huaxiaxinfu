@@ -1,0 +1,136 @@
+﻿<script>
+    $(function () {
+        var pageData = {
+        };
+        //初始化页面数据
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (type) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData(type);
+                    }
+                }
+            }
+        });
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+        //初始化页面数据
+        function initPageData() {
+            //pageData.LanData = $.Languages;
+            var paramName = getUrlParam("ParamName") || "";
+            var paramType = getUrlParam("ParamType") || "";
+            var bizServiceCode = getUrlParam("BizServiceCode") || "";
+            var parentParamName = getUrlParam("ParentParamName") || "";
+            if (bizServiceCode) {
+                $.ajax({
+                    url: $.Controller.BizService.GetRESTfulParam,
+                    type: 'get',
+                    dataType: "json",
+                    data: { BizServiceCode: bizServiceCode, ParentParamName: parentParamName, ParamName: paramName, ParamType: paramType },
+                    async: false,//同步执行
+                    success: function (result) {
+                        if (result.Success == false) {
+                            pageData.LanData = $.Languages;
+                            var msg = $.Lang(result.Message) + $.Lang("msgGlobalString.SaveFirst");
+                            parent.$.H3Dialog.Warn({ content: msg });
+                            parent.H3DialogManger.Cancel();
+                        } else {
+                            pageData = result.Extend;
+                            pageData.LogicTypes = $.LangArray(pageData.LogicTypes, "Text");
+                            pageData.LanData = $.Languages;
+                        }
+                    }
+                });
+            }
+        };
+        //保存
+        function saveData(type) {
+            pageData.Param.OldParamName = pageData.ParamName;
+            $.ajax({
+                url: $.Controller.BizService.SaveRESTfulParam,
+                type: "post",
+                dataType: "json",
+                data: pageData.Param,
+                success: function (result) {
+                    if (result.Success) {
+                        parent.$.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                        var gridId = "InputParamGrid";
+                        if (pageData.Param.ParamType == 1) {
+                            gridId = "OutputParamGrid";
+                        }
+                        if (type == 0) {
+                            //保存
+                            parent.GridReload(gridId);
+                            parent.H3DialogManger.Cancel();
+                        }
+                        else {
+                            //继续添加
+                            pageData.Param = result.Extend.Param;
+                            parent.GridReload(gridId);
+                        }
+                    } else {
+                        if (result.Extend) {
+                            var msg  = $.Lang(result.Message);
+                            var content = $.format(msg, $.Lang(result.Extend));
+                            $.H3Dialog.Warn({ content: content });
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a v-on:click="saveData(0)" data-icon="fa fa-save" href="javascript:void(0)" data-lang="GlobalButton.Save">保存</a>
+        <a v-on:click="saveData(1)" data-icon="icon-baocunbingjixutianjia" href="javascript:void(0)" data-lang="GlobalButton.SaveAndAdd" v-if="Param.IsNew">保存并继续添加</a>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.msgGlobalString.BasicProperties}}</span>
+        <table>
+            <tr>
+                <td>{{LanData.BizService.Param}}</td>
+                <td>
+                    <input v-model="Param.ParamName" detect-change="off" detect-blur="on" initial="off" v-validate:param-name="{required:true}" type="text" />
+                    <span style="color:Red;" v-if="$formValidator.paramName.required" data-lang="msgGlobalString.DisplayNameNotNull"></span>
+                </td>
+            </tr>
+            <tr  v-if="false">
+                <td>{{LanData.BizService.IsRequired}}</td>
+                <td>
+                    <input v-model="Param.IsRequired" type="checkbox" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.BizService.ParamType}}
+                </td>
+                <td>
+                    <select  v-model="Param.ParamDataType">
+                        <option v-for="option in LogicTypes" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+            </tr>
+            <tr v-if="Param.ParamDataType!='BizObjectArray'&&Param.ParamType!=1&&false">
+                <td>{{LanData.BizService.ParamValidateValue}}</td>
+                <td>
+                    <textarea rows="2" cols="20" v-model="Param.ValidateValue"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.BizService.ParamDesc}}</td>
+                <td>
+                    <textarea rows="2" cols="20" v-model="Param.ParamDesc"></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+    </valiadator>

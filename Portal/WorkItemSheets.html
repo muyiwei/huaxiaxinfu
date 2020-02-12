@@ -1,0 +1,82 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>发起流程</title>
+    <!-- jQuery -->
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script>
+        var params = [];
+        var isWorkItem = true;
+        getUrlVars = function () {
+            var vars = {};
+            var hash;
+            var hashs = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+            for (var i = 0; i < hashs.length; i++) {
+                hash = hashs[i].split('=');
+                vars[hash[0]] = hash[1];
+            }
+            return vars;
+        }
+
+        $(function () {
+
+            //钉钉单点登录开始------------------------------------------------------------
+            //处理单点登录,钉钉PC端跳转表单页面
+            var getUrlParam = function (name) {
+                var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+                var r = window.location.search.substr(1).match(reg);
+                if (r != null) return unescape(r[2]); return null;
+            };
+
+            var loginFrom = getUrlParam("loginfrom");
+            var state = getUrlParam("statepc");
+            var code = getUrlParam("code");
+            var workItemID = getUrlParam("WorkItemID")
+            //根据URL参数判断是否钉钉登录
+            if (loginFrom == "dingtalk") { //TODO
+                debugger;
+                if (code && state && workItemID) {
+                    $.ajax({
+                        url: "Organization/ValidateLoginForDingTalkPC",
+                        data: {
+                            state: state,
+                            code: code
+                        },
+                        async: false,
+                        success: function (result) {
+                        }
+                    });
+                }
+            }
+            //End单点登录-------------------------------------------------------------
+
+            //获取URL参数
+            params = getUrlVars();
+            var paramString = JSON.stringify(params);
+            $.ajax({
+                type: "POST",
+                async: false,
+                url: "WorkItemSheets/WorkItemSheets",
+                data: { paramString: paramString },
+                dataType: "json",
+                success: function (data) {
+                    if (data.Success) {
+                        window.location.href = data.Message;
+                    } else {
+                        //判断pc，app，wechat超时处理
+                        var url = window.location.href;
+                        window.localStorage.setItem("H3.redirectUrl", url);
+                        window.location.href = "index.html#/platform/login";
+                    }
+                },
+                error: function (data) {
+                    var a = data;
+                }
+            });
+        })
+    </script>
+</head>
+<body>
+</body>
+</html>

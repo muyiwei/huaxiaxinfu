@@ -1,0 +1,38 @@
+﻿<link href="../WFRes/_Content/themes/H3Default/H3-ReportTemplate.css" rel="stylesheet" type="text/css" />
+<script src="../WFRes/_Scripts/ReportDesigner/ReportViewManager.js"></script>
+<script>
+    $(function () {
+        $("#H3ToolBar").AspLinkToolBar();
+        var viewType = getUrlParam("ViewType") || "";
+        var sourceCode = getUrlParam("Code") || "";
+        if (viewType == "Source") {
+            $("#H3ToolBar").attr("hidden", "hidden");
+        }
+        ReportViewManager.LoadReport(
+            sourceCode,
+            _PORTALROOT_GLOBAL,
+            $("#ReportView"),
+            $("#ParamContent"),
+            viewType
+            );
+
+        //查询
+        $("#btnSearch").click(function () {
+            ReportViewManager.Reload();
+        });
+
+        //导出
+        $("#btnExport").click(function () {
+            ReportViewManager.ExportReport();
+        });
+    });
+</script>
+<div id="H3ToolBar">
+    <a href="javascript:void(0);" id="btnSearch" data-icon="fa fa-search" data-lang="GlobalButton.Search"></a>
+    <a href="javascript:void(0);" id="btnExport" data-icon="fa fa-download" data-lang="GlobalButton.Export"></a>
+</div>
+<div id="msg"></div>
+<div id="ParamContent">
+</div>
+<div id="ReportView">
+</div>

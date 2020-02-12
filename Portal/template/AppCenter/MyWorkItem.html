@@ -1,0 +1,66 @@
+﻿<div class="hbox hbox-auto-xs hbox-auto-sm" ng-init="
+     app.settings.asideFolded=false;
+     app.settings.asideDock=false;">
+    <!-- main -->
+    <div class="col">
+        <!-- main header -->
+        <div class="bg-light lter b-b wrapper-md">
+            <div class="row" style=" padding-right: 15px; ">
+                <div class="col-sm-6 col-xs-12">
+                    <span class="h3" title-name function-view-models="user.FunctionViewModels"></span>
+                </div>
+            </div>
+        </div>
+
+        <!--表格部分Start-->
+        <div class="wrapper-md paddingbottomNone">
+            <div class="panel panel-default">
+                <div class="table-responsive">
+                    <div class="form-inline">
+                        <div class="input-group searchContainer">
+                            <div class="form-group">
+                                <div ui-jq="SheetWorkflow" ui-options="WorkflowOptions" id="sheetWorkflow"></div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input ng-model="StartTime" ui-jq="wdatePicker" style="width:100px;"
+                                           class="input-sm form-control" onchange=""
+                                           placeholder="{{LanJson.StartTime}}" />
+                                    <span class="input-group-addon" style="border-left:0px;border-right:0px;" translate="QueryTableColumn.To"></span>
+                                    <input ng-model="EndTime" class="input-sm form-control" style="width:100px;"
+                                           ui-jq="wdatePicker" onchange=""
+                                           placeholder="{{LanJson.EndTime}}" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <input ng-model="searchKey" type="text" class="input-sm form-control" style="width:200px;display:none;"
+                                       placeholder="{{LanJson.search}}">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-sm btn-default" type="button" style="height:30px;"><i class="fa fa-search"></i></button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <table ui-jq="dataTable" id="tabWorkItem"
+                           ui-options="options"
+                           class="table table-striped m-b-none" style="width:99%;">
+                        <thead>
+                            <tr>
+                                <th style="width:25%;"> <span translate="QueryTableColumn.ProcessName"></span></th>
+                                <th style="width: 10%;"><span translate="QueryTableColumn.Title"></span></th>
+                                <th style="width: 15%;" class="hide1024"><span translate="QueryTableColumn.ReceiveTime"></span></th>
+                                <th style="width: 15%;" class="hide414"><span translate="QueryTableColumn.FinishTime"></span></th>
+                                <th style="width: 15%;" class="hide414"><span translate="QueryTableColumn.Originator"></span></th>
+                                <th style="width: 20%;" class="hide1024"><span translate="QueryTableColumn.DeptOfOriginator"></span></th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!--表格部分End-->
+    </div>
+    <!-- / main -->
+</div>

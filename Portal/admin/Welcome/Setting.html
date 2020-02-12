@@ -1,0 +1,256 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>H3 BPM</title>
+    <link rel="stylesheet" href="welcome.css" />
+    <script src="../../WFRes/_Scripts/jquery/jquery.js"></script>
+    <script src="../../WFRes/_Scripts/jquery/jquery.lang.js" type="text/javascript"></script>
+    <script src="../../WFRes/_Scripts/vue/vue.min.js" type="text/javascript"></script>
+    <script src="Welcome.js"></script>
+    <script type="text/javascript">
+        var pageInfo = {
+            controls: {
+                divBody: ".body",
+                divSetting: "#divSetting",
+                divSync: "#divSync",
+                divOrg: "#divOrg",
+                divCategory: "#divCategory",
+                divOrgJob: "#divOrgJob",
+                divSearch: "#divSearch"
+            }
+        }
+
+        $(function () {
+            $.each(pageInfo.controls, function (k, v) {
+                pageInfo.controls[k] = $(v);
+            });
+            // $(".activityFoot").hide();
+            // 注册退格事件，回到主页
+            $("body").keydown(function (e) {
+                if (e.keyCode == 8) {
+                    window.location.href = "Home.html";
+                    e.preventDefault();
+                }
+            });
+            var a, b, c;
+        });
+
+        var getSidePoint = function (obj, side) {
+            if (side == "top") {
+                return {
+                    x: obj.position().left + obj.width() / 2,
+                    y: obj.position().top
+                };
+            }
+            else if (side == "left") {
+                return {
+                    x: obj.position().left,
+                    y: obj.position().top + obj.height() / 2
+                };
+            }
+            else if (side == "right") {
+                return {
+                    x: obj.position().left + obj.width(),
+                    y: obj.position().top + obj.height() / 2
+                };
+            }
+            else {
+                return {
+                    x: obj.position().left + obj.width() / 2,
+                    y: obj.position().top + obj.height()
+                };
+            }
+        }
+    </script>
+    <style type="text/css">
+        /*兼容小屏幕样式 屏幕宽度小于1024时*/
+        @media screen and (max-width:1280px) {
+            .body {
+                width: 90%;
+                left: 56px;
+            }
+        }
+
+        @media screen and (max-width:1024px) {
+            .body {
+                width: 100%;
+                left: -16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="head">
+        <div>
+            <div class="title">
+                系统参数
+            </div>
+            <hr class="line" />
+            <div class="description">
+                &nbsp;&nbsp;&nbsp;&nbsp;H3 BPM系统参数集中了所有系统配置选项，供实施人员或系统管理员进行配置管理。
+            </div>
+        </div>
+    </div>
+    <div class="body">
+        <div id="divNormal" class="activity activityPointer" style="top: 10px; left: 10px;" onclick="openUrl('常规设置','../admin/SysParam/Settings.html')">
+            <div class="activityHead">
+                <div>
+                    常规参数
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    设置微信绑定、APP推送、文件存储、系统相关参数等
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#" onclick="openUrl('常规设置','../admin/SysParam/Settings.html')">点击进入>></a>
+                </div>
+            </div>
+        </div>
+
+        <div id="divSystemAcl" class="activity activityPointer" style="top: 10px; left: 235px;" onclick="openUrl('系统管理员','../admin/SysParam/SystemAcl.html')">
+            <div class="activityHead">
+                <div>
+                    系统管理员
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    设置系统超级管理员
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#">点击进入>></a>
+                </div>
+            </div>
+        </div>
+        <div id="divOrgAcl" class="activity activityPointer" style="top: 10px; left: 460px" onclick="openUrl('组织权限','../admin/SysParam/SystemOrgAcl.html')">
+            <div class="activityHead">
+                <div>
+                    组织权限
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    按照组织维度授予管理员权限
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#" onclick="openUrl('组织权限','../admin/SysParam/SystemOrgAcl.html')">点击进入>></a>
+                </div>
+            </div>
+        </div>
+        <div id="divNotice" class="activity activityPointer" style="top: 10px; left: 685px; "
+             onclick="openUrl('消息设置','../admin/SysParam/MessageSettings.html')">
+            <div class="activityHead">
+                <div>
+                    消息设置
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    设置系统消息发送方式，如：短信、邮件、微信等
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#" onclick="openUrl('消息设置','../admin/SysParam/MessageSettings.html')">点击进入>></a>
+                </div>
+            </div>
+        </div>
+        <div id="divCalendar" class="activity activityPointer" style="top: 140px; left: 10px;" onclick="openUrl('工作日历', '../admin/SysParam/WorkingCalendar.html')">
+            <div class="activityHead">
+                <div>
+                    工作日历
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    设置系统工作日历
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#" onclick="openUrl('工作日历', '../admin/SysParam/WorkingCalendar.html')">点击进入>></a>
+                </div>
+            </div>
+        </div>
+        <div id="divData" class="activity activityPointer" style="top: 140px; left: 235px;" onclick="openUrl('数据字典','../admin/SysParam/EditMasterData.html')">
+            <div class="activityHead">
+                <div>
+                    数据字典
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    定义系统数据字典
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#" onclick="openUrl('数据字典','../admin/SysParam/EditMasterData.html')">点击进入>></a>
+                </div>
+            </div>
+        </div>
+        <div id="divEnviroment" class="activity activityPointer" style="top: 140px; left: 460px; " onclick="openUrl('环境变量','../admin/SysParam/EditGlobalData.html')">
+            <div class="activityHead">
+                <div>
+                    全局变量
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    环境变量是系统运行的全局变量
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#" onclick="openUrl('环境变量','../admin/SysParam/EditGlobalData.html')">点击进入>></a>
+                </div>
+            </div>
+        </div>
+        <div id="divDelegant" class="activity activityPointer" style="top: 140px; left: 685px" onclick="openUrl('委托设置','../admin/SysParam/QueryAgent.html')">
+            <div class="activityHead">
+                <div>
+                    委托设置
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    由管理员给用户进行委托任务授权
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#">点击进入>></a>
+                </div>
+            </div>
+        </div>
+        <div id="divCalendar" class="activity activityPointer" style="top: 270px; left: 10px;" onclick="openUrl('单点登录', '../admin/SysParam/SSOManager.html')">
+            <div class="activityHead">
+                <div>
+                    单点登录
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    设置单点登录的系统
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#" onclick="openUrl('单点登录', '../admin/SysParam/SSOManager.html')">点击进入>></a>
+                </div>
+            </div>
+        </div>
+
+        <!--        <div class="poly-line down-right" style="width: 200px; height: 200px; top: 20px; left: 400px"></div>
+        <div class="poly-line top-right" style="width: 200px; height: 200px; top: 20px; left: 700px"></div>-->
+    </div>
+</body>
+</html>

@@ -1,0 +1,41 @@
+﻿<ion-view view-title="{{names.AssociatedSheet}}" hide-nav-bar="{{$root.dingMobile.hideHeader}}" cache-view="false" class="associationQuery">
+    <ion-nav-bar class="bar">
+        <ion-nav-buttons side="left">
+            <button class="button button-icon button-clear ion-ios-arrow-left"
+                    ng-click="goBack()">
+                {{names.Back}}
+            </button>
+        </ion-nav-buttons>
+        <ion-nav-buttons side="right">
+            <button class="button button-icon button-clear" ng-click="conditionLoadQueryData(true)">{{names.Query}}</button>
+        </ion-nav-buttons>
+    </ion-nav-bar>
+
+    <ion-content class="scroll-content ionic-scroll {{$root.dingMobile.dingHeaderClass}} has-footer" overflow-scroll="false">
+        <div id="divFilter">
+
+        </div>
+        <div class="list-showEmpty" ng-if="viewModel.length==0">
+            <img ng-src="{{PortalRoot}}/mobile/img/empty.svg" ng-if="inZnShow">
+            <img ng-src="{{PortalRoot}}/mobile/img/emptyEng.svg" ng-if="!inZnShow">
+        </div>
+        <div class="list" ng-if="viewModel.length>0">
+            <div ng-class="Item.oldItem.ObjectID==choosedObjectId?'item item-custom choosed':'item item-custom'" ng-repeat="Item in viewModel track by $index" ng-click="SetQueryValue(Item)">
+                <div class="queryList">
+                    <pre ng-trim="true" ng-bind-html="Item.summary"></pre>
+                </div>
+            </div>
+            <div class="no-data" ng-if="LoadFinished"><span>没有更多的数据</span></div>
+        </div>
+        <!--加载更多-->
+        <ion-infinite-scroll ng-if="!LoadFinished"
+                             on-infinite="LoadQueryData(true)"
+                             distance="10%">
+        </ion-infinite-scroll>
+    </ion-content>
+    <ion-footer-bar style="padding-top:0px;padding-bottom:0;">
+        <div class="footer-left"></div>
+        <div ng-click="$ionicGoBack()" class="close footer-right">确定</div>
+    </ion-footer-bar>
+</ion-view>
+

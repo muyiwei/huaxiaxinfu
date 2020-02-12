@@ -1,0 +1,261 @@
+﻿/*选人控件*/
+.SheetUser {
+    /*position: relative;*/
+}
+
+.SheetUser-Item {
+    /*margin-top:-3px;
+    margin-bottom:-3px;
+    height: 24px;
+    cursor: pointer;
+    float: left;*/
+    margin-top: 0px;
+    margin-bottom: 3px;
+    height: 24px;
+    line-height: 24px;
+    cursor: pointer;
+    padding: 0 18px 0 6px;
+    font-size: 12px;
+    float: left;
+    border-radius: 3px;
+    color: #666;
+    background-color: #e2f0ff;
+    /*border: 1px solid #ddd;*/
+    margin-right: 5px;
+    position:relative;
+}
+.SheetUser-Item:after {
+            position: absolute;
+            height: 12px;
+            width: 12px;
+            right: 5px;
+            top: 50%;
+            margin-top: -6px;
+            content: "\f00d";
+            color: #666666;
+            font-family: FontAwesome;
+            font-style: normal;
+            font-weight: normal;
+            line-height: 1;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+    .SheetUser-Item > i {
+        margin-right: 6px;
+    }
+
+.SheetUser-Input {
+    border: none;
+    padding:0;
+    outline:none;
+    overflow:hidden;
+}
+
+.SheetUser-SelectorPanel {
+    display: none;
+    position: absolute;
+    z-index:1100;
+    overflow: hidden;
+    height: 300px;
+    background-color: rgb(255, 255, 255);
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-width:500px;
+    margin-top:-1px;
+}
+
+
+.SheetUser_DataPanel {
+    overflow: auto;
+    height: 250px;
+    display: none;
+    margin: 0px;
+    padding:0;
+}
+
+.SheetUser_TreePanel {
+    /*border: 1px solid #ddd;*/
+    overflow-y: auto;
+    border-top: none;
+    padding:0;
+}
+
+    .SheetUser_TreePanel li > a {
+        border-bottom: 1px solid #ddd;
+    }
+
+        .SheetUser_TreePanel li > a > i {
+            margin-right: 10px;
+        }
+
+        li > a > i.icon-department,li > a > i.icon-company{
+                color: #4b9bed;
+    font-size: 16px;
+    position: relative;
+    top: 2px;
+    margin-right: 10px;
+        }
+
+        li > a > i.glyphicon{
+    margin-right: 10px;
+        }
+
+.SheetUser_SubTreePanel {
+    padding-left: 15px;
+    overflow:auto;
+    height:100%;
+}
+
+.SheetUser_tab_Users .SheetUser-LiItem {
+    border-bottom: 1px solid #ddd;
+}
+
+.SheetUser-LiItem a{
+    min-height:40px;
+}
+
+    .SheetUser-LiItem > a > label {
+        padding-left: 5px;
+        cursor: pointer;
+        padding-top:0;
+        padding-bottom:0;
+        margin-bottom:0!important;
+    }
+
+    .SheetUser-LiItem > a > i:last-child {
+        position: absolute;
+    top: 50%;
+    margin-top: -8px;
+    right: 3px;
+    margin-right: 0;
+    }
+
+
+.SheetUser_tab_Tags li > a, .SheetUser_tab_Deps li > a {
+    border-bottom: 1px solid #ddd;
+}
+
+    .SheetUser_tab_Tags li > a > i, .SheetUser_tab_Deps li > a > i {
+        margin-right: 10px;
+    }
+
+        .SheetUser_tab_Tags li > a > i:last-child, .SheetUser_tab_Deps li > a > i:last-child {
+            float: right;
+        }
+
+
+.SheetUser-ClosePanel {
+    float: right;
+    cursor: pointer;
+    margin-right: 2px;
+    line-height: 1.42857143;
+}
+
+.SheetUser-SelectorPanel label{
+    font-weight:normal;
+    padding-top:0 !important;
+    padding-bottom:0 !important;
+}
+
+
+.user-tabs{
+        border-bottom: 1px solid #ddd;
+    padding: 0px 15px;
+}
+.nav-tabs.user-tabs > li > a{
+    width: 100px;
+    text-align: center;
+}
+.nav-tabs.user-tabs > li.active > a, .nav-tabs.user-tabs > li.active > a:hover, .nav-tabs.user-tabs > li.active > a:focus {
+    border:0;
+    border-bottom: 2px solid #4b9bed;
+}
+
+.SheetUser-LiItem input[type="checkbox"] + label.label-all{
+        margin: 7px 0 0 13px;
+    width: 92%;
+    padding-left: 30px !important;
+}
+
+.SheetUser_DataPanel .fa,.SheetUser_DataPanel .glyphicon{
+    color:#4b9bed;
+}
+
+.SheetUser_DataPanel a{
+    color: #4a535e;
+}
+
+.SheetUser-LiItem input[type="checkbox"]:not([name^="btSelect"]) {
+    display: none;
+}
+
+.SheetUser-LiItem input[type="checkbox"] + label {
+    display: inline-block;
+    float: left;
+    position: relative;
+    text-align: left;
+    width: auto;
+    margin-right: 10px;
+    padding-left: 26px;
+    font-weight: normal;
+    padding-top: 8px;
+    line-height: 26px;
+    min-height: 26px;
+    cursor: pointer;
+    padding: 0 0 0 1.2em !important;
+}
+
+    .SheetUser-LiItem input[type="checkbox"] + label:before {
+        background-color: #fafafa;
+        border: 1px solid #cacece;
+        left: 0;
+        width: 12px;
+        height: 12px;
+        float: left;
+        content: "";
+        cursor: pointer;
+        margin-right: 0;
+        top: 50%;
+        margin-top: -6px;
+        position: absolute;
+    }
+
+input[type="checkbox"]:checked + label:before {
+    background-color: #4b9bed;
+    border: 0;
+    color: #fff;
+    content: '\e954';
+    font-size: 16px;
+    font-family: 'icomoon' !important;
+    text-indent: -0.5px;
+    speak: none;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 0.7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.SheetUser-SelectorPanel li > a {
+    line-height: 1.42857143;
+}
+
+
+div[data-controlkey="FormMultiUser"]>div>.form-control,div[data-controlkey="FormUser"]>div>.form-control{
+        padding: 3px 6px 0 6px !important;
+        min-height:32px;
+}
+
+.sheet-angel{
+    float: left;
+    width: 20px;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.form-control{
+    box-shadow:none;
+}

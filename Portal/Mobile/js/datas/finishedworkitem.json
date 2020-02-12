@@ -1,0 +1,58 @@
+{
+    "LastTime": "\/Date(1502077728000)\/",
+    "WorkItems": [
+        {
+            "ObjectID": "d5268b77-987f-4807-aab5-488f3f822277",
+            "InstanceName": "A123",
+            "Priority": "1",
+            "OrigiantorName": "系统管理员",
+            "OrigiantorOUName": "我的公司",
+            "CreatorName": null,
+            "ReceiveTime": "2017-07-26 19:25",
+            "FinishTime": "2017-08-07 11:48",
+            "ItemType": 2,
+             "UserAvatar": "img/adam.jpg",
+                "Urged": true,
+                 "Agree": false,
+                  "Agreetext": "不同意"
+        },
+        {
+            "ObjectID": "4472ec06-3089-4575-9358-2e4e0f0a8f42",
+            "InstanceName": "123",
+                   "UserAvatar": "img/adam.jpg",
+            "Priority": "1",
+            "OrigiantorName": "系统管理员",
+            "OrigiantorOUName": "我的公司",
+            "CreatorName": "LII",
+            "ReceiveTime": "2017-08-04 18:35",
+            "FinishTime": "2017-08-07 11:48",
+            "ItemType": 0,
+               "Urged": true,
+                 "Agree": true,
+                  "Agreetext": "同意"
+        }
+    ],
+    "TotalCount": 0,
+    "ExistsIds": [
+        "d5268b77-987f-4807-aab5-488f3f822277",
+        "4472ec06-3089-4575-9358-2e4e0f0a8f42",
+        "b3238678-d130-4eb1-b7dd-9e54d7e2e6ca",
+        "9193dad7-86d4-45ac-a3fc-fc23487abdd1",
+        "ce5d1d4c-3b1a-4657-9fc1-ed9a0c1b0ac8",
+        "e5aa3a99-45db-44d1-8cad-23c7d7e5946d",
+        "edf00c34-8bb8-4246-9397-aafd063e692e",
+        "fff432bf-3fc8-4dcf-916c-30e9b7de2e03",
+        "dd8e22ce-f14d-4f06-aef8-ec70dd43f100",
+        "dd8b1f8d-f7c2-4a98-a422-f886cba1c8e4",
+        "f68b623d-60bc-4d1a-b1de-3940f4b8eb89",
+        "516e5674-2837-4dc5-a192-e4c0c92ac4ed",
+        "f4050b6f-36e3-4342-b17b-5e5dfcd451ba",
+        "a3c8dd6e-ad4a-44dc-8411-1c2c97142f68",
+        "8f12a636-21e2-47fa-b83c-2eaf6acb8cda",
+        "09b5fb7f-5580-48d7-81fe-6dde69da1090",
+        "4c7546f8-c1a7-4272-a20f-efa39a84f711",
+        "ee6752ac-024f-4925-aca5-d5f6c837c80c",
+        "85129117-3d06-40cd-a0c6-b3651c569977",
+        "fe75f346-58e9-4f41-88d8-acb4c65c3016"
+    ]
+}

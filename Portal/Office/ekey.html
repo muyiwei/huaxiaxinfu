@@ -1,0 +1,377 @@
+<html>
+<head>
+    <title>NTKO印章管理控件</title>
+    <meta http-equiv="content-type" content="text/html; charset=gb2312">
+    <style type="text/css">
+	body {
+    background-color: #E3DFDF;
+    margin: 0;
+    border:0px;
+    font-size:12px;
+    line-height:20px;
+}
+a
+{
+    color: #f00;
+    text-decoration: none;
+}
+table
+{
+    width="800px";
+    font-size:12px;
+    background-color:#F1F5F6;
+}
+input:focus
+{
+    border-color:red;
+}
+input
+{
+    border: 1px solid #a5b6d2;
+    text-align: left;
+    left: 0px;
+    width: 225px;
+    height: 20px;
+}
+.radio
+{
+    width:20px;
+}
+#SignFile
+{
+     width:410px;
+}
+.button
+{
+    border:1px outset #a5b6d2;
+    padding:5px 2px;
+    text-decoration:none;
+    text-align:center;
+    vertical-align:middle;
+    color:#343333;
+    cursor: pointer;
+    background-color:#CAEAFF;
+}
+.style2
+{
+    width: 39%;
+}
+	</style>
+    <script language="JavaScript">
+
+        //如果成功状态，显示当前印章信息
+        function ShowSignInfo() {
+            if (ntkosignctl == null) return;
+            if (document.getElementById("SignName") != null) document.getElementById("SignName").value = ntkosignctl.SignName;
+            if (document.getElementById("SignUser") != null) document.getElementById("SignUser").value = ntkosignctl.SignUser;
+            if (document.getElementById("Password") != null) document.getElementById("Password").value = ntkosignctl.Password;
+            if (document.getElementById("SignSN") != null) document.getElementById("SignSN").value = ntkosignctl.SignSN;
+            if (document.getElementById("SignWidth") != null) document.getElementById("SignWidth").value = ntkosignctl.SignWidth;
+            if (document.getElementById("SignHeight") != null) document.getElementById("SignHeight").value = ntkosignctl.SignHeight;
+            try {
+                GetEkeyUserName();
+            }
+            catch (e) { }
+        }
+        //检查用户输入。参数IsNewSign标志是新建还是修改印章。新建的时候需要
+        //检查用户是否选择了印章原始文件。
+        function CheckInput(IsNewSign) {
+            var signname = document.getElementById("SignName").value;
+            if ((signname == '') || (undefined == typeof (signname))) {
+                alert('请输入印章名称');
+                return false;
+            }
+
+            var signuser = document.getElementById("SignUser").value;
+            if ((signuser == '') || (undefined == typeof (signuser))) {
+                alert('请输入印章使用人');
+                return false;
+            }
+            if ((signuser.length > 16)) {
+                alert('请输入印章使用人不能超过16个字符.');
+                return false;
+            }
+
+            var password = document.getElementById("Password").value;
+            if ((password == '') || (undefined == typeof (password))) {
+                alert('请输入印章口令');
+                return false;
+            }
+            if ((password.length < 6) || (password.length > 32)) {
+                alert('印章口令必须是6-32位.');
+                return false;
+            }
+            if (IsNewSign == true) //如果是创建印章，需要用户选择原始印章文件
+            {
+                var signfile = document.getElementById("SignFile").value;
+                if ((signfile == '') || (undefined == typeof (signfile))) {
+                    alert('请选择用来创建印章的原始文件(bmp,gif,jpg.');
+                    return false;
+                }
+                if ((-1 == signfile.toUpperCase().lastIndexOf("BMP")) &&
+	    	(-1 == signfile.toUpperCase().lastIndexOf("GIF")) &&
+	    	(-1 == signfile.toUpperCase().lastIndexOf("JPG"))) {
+                    alert('请选择一个正确的印章原始文件(bmp,gif,jpg.');
+                    return false;
+                }
+            }
+            ntkosignctl.SignName = document.getElementById("SignName").value;
+            if (0 != ntkosignctl.StatusCode) {
+                alert("设置印章名称错误");
+                return false;
+            }
+            ntkosignctl.SignUser = document.getElementById("SignUser").value;
+            if (0 != ntkosignctl.StatusCode) {
+                alert("设置印章使用者错误");
+                return false;
+            }
+            ntkosignctl.Password = document.getElementById("Password").value;
+            if (0 != ntkosignctl.StatusCode) {
+                alert("设置印章口令错误");
+                return false;
+            }
+            return true;
+        }
+        //生成新印章文件
+        function CreateNew() {
+            if (!CheckInput(true)) return;
+
+
+            ntkosignctl.CreateNew(
+    			document.getElementById("SignName").value,
+    			document.getElementById("SignUser").value,
+    			document.getElementById("Password").value,
+    			document.getElementById("SignFile").value
+            );
+            if (0 != ntkosignctl.StatusCode) {
+                alert("创建印章文件错误.");
+                return;
+            }
+            alert("创建印章成功.您现在可以插入EKEY,并点击'保存印章到EKEY'将创建的印章保存到EKEY.");
+        }
+        //对话框方式生成新的印章文件
+        function CreateNewWithDialog() {
+            ntkosignctl.CreateNew();
+            if (0 != ntkosignctl.StatusCode) {
+                alert("创建印章文件错误.");
+                return;
+            }
+            //正确，显示印章信息
+            ShowSignInfo();
+            alert("创建印章成功.您现在可以插入EKEY,并点击'保存印章到EKEY'将创建的印章保存到EKEY.");
+        }
+        function OpenFromEkey(pass) {
+            var ifCont = window.confirm("请插入EKEY到您的计算机.然后继续。");
+            if (!ifCont) return;
+            ntkosignctl.OpenFromEkey(pass);
+            if (0 != ntkosignctl.StatusCode) {
+                alert("从EKEY打开印章错误.");
+                return;
+            }
+            //正确，显示印章信息
+            ShowSignInfo();
+            alert("从EKEY打开印章成功！您现在可以修改印章的相关信息并重新保存到EKEY.此时选择印章原始文件无效.");
+        }
+
+        function SaveToEkey() {
+            if (!CheckInput(false)) return;
+            var ifCont = window.confirm("请插入EKEY到您的计算机.然后继续。");
+            if (!ifCont) return;
+            SetEkeyUserName(document.getElementById("SignUser").value);
+            var index = ntkosignctl.SaveToEkey();
+            if (0 == ntkosignctl.StatusCode) {
+                alert("保存印章到EKEY成功!保存位置:" + index);
+            }
+            else {
+                alert("保存印章到EKEY失败！！");
+            }
+        }
+        function OpenFromLocal() {
+            ntkosignctl.OpenFromLocal('', true);
+            ShowSignInfo();
+        }
+        function SaveToLocal() {
+            if (!CheckInput(false)) return;
+            ntkosignctl.SaveToLocal('', true);
+            if (0 == ntkosignctl.StatusCode) {
+                alert("保存印章到本地文件成功!");
+            }
+            else {
+                alert("保存印章到本地文件失败！！");
+            }
+        }
+        function SetEkeyUserName(value) {
+            if ((value.length > 24)) {
+                alert('KEY用户名称不能超过24个字符.');
+                return false;
+            }
+            ntkosignctl.SetEkeyUser(value);
+        }
+        function GetEkeyUserName() {
+            var EkeyUser = "";
+            EkeyUser = ntkosignctl.GetEkeyUser();
+            if (0 == ntkosignctl.StatusCode) {
+                document.all("EkeyUser").value = EkeyUser;
+                // alert("读取EKEY用户成功！此EKEY用户是：" + EkeyUser);
+            }
+            else {
+                // alert("读取EKEY用户失败！！");
+            }
+        }
+
+        function ChangeEkeyPin() {
+            var flags = document.all("forWho");
+            var oldpass = document.all("oldPassword").value;
+            var newpass1 = document.all("newPassword1").value;
+            var newpass2 = document.all("newPassword2").value;
+            if ((newpass1.length < 4) || (newpass1.length > 16)) {
+                alert('EKEY访问口令必须是4-16位.');
+                return false;
+            }
+            if (newpass1 != newpass2) {
+                alert('两次新口令不符合，请重新输入.');
+                return false;
+            }
+            var isAdmin = true;
+            if (flags[0].checked) {
+                isAdmin = false;
+            }
+            else {
+                isAdmin = true;
+            }
+            ntkosignctl.ChangeEkeyPassword(oldpass, newpass1, isAdmin);
+            if (0 == ntkosignctl.StatusCode) {
+                if (isAdmin) {
+                    alert("改变EKEY管理员口令成功!");
+                }
+                else {
+                    alert("改变EKEY用户口令成功!");
+                }
+            }
+            else {
+                if (isAdmin) {
+                    alert("改变EKEY管理员口令失败!");
+                }
+                else {
+                    alert("改变EKEY用户口令失败!");
+                }
+            }
+        }
+        function ResetEkeyUserPin() {
+            var adminPassword = document.all("adminPassword").value;
+            var newUserPassword1 = document.all("newUserPassword1").value;
+            var newUserPassword2 = document.all("newUserPassword2").value;
+            if ((newUserPassword1.length < 4) || (newUserPassword1.length > 16)) {
+                alert('EKEY访问口令必须是4-16位.');
+                return false;
+            }
+            if (newUserPassword1 != newUserPassword2) {
+                alert('两次新口令不符合，请重新输入.');
+                return false;
+            }
+            ntkosignctl.ResetEkeyUserPassword(adminPassword, newUserPassword1);
+            if (0 == ntkosignctl.StatusCode) {
+                alert("重设EKEY用户口令成功!");
+            }
+            else {
+                alert("重设EKEY用户口令失败!");
+            }
+        }
+        function ResetEkeySigns() {
+            ntkosignctl.ResetEkeySigns();
+            if (0 == ntkosignctl.StatusCode) {
+                alert("重设EKEY所有印章成功!");
+            }
+            else {
+                alert("用户取消,或者重设EKEY所有印章失败!");
+            }
+        }
+        function EnableEkeyButtons(isEnabled) {
+            var isDisable = !isEnabled;
+            if (document.getElementById("OpenFromEkey") != null) document.getElementById("OpenFromEkey").disabled = isDisable;
+            if (document.getElementById("SaveToEkey") != null) document.getElementById("SaveToEkey").disabled = isDisable;
+            if (document.getElementById("ResetEkey") != null) document.getElementById("ResetEkey").disabled = isDisable;
+            if (document.getElementById("EkeyFreeSize") != null) document.getElementById("EkeyFreeSize").disabled = isDisable;
+            if (document.getElementById("EkeySN") != null) document.getElementById("EkeySN").disabled = isDisable;
+            if (document.getElementById("SetEkeyUserName") != null) document.getElementById("SetEkeyUserName").disabled = isDisable;
+            if (document.getElementById("GetEkeyUserName") != null) document.getElementById("GetEkeyUserName").disabled = isDisable;
+            if (document.getElementById("ChangeEkeyPin") != null) document.getElementById("ChangeEkeyPin").disabled = isDisable;
+            if (document.getElementById("ResetEkeyUserPin") != null) document.getElementById("ResetEkeyUserPin").disabled = isDisable;
+        }
+        //定位整个页面距中
+        function init() {
+            document.body.style.marginLeft = document.body.clientWidth / 2 - 400;
+            if (ntkosignctl.IsEkeyConnected) {
+                EnableEkeyButtons(true);
+            }
+        }
+    </script>
+</head>
+<body onload="init();">
+    <font color="red">提示：EKEY相关功能需要首先安装EKEY驱动程序。</font><br />
+    <b>修改印章密码</b><span>:<br />
+        &nbsp;1. 首先插入EKEY；<br />
+        &nbsp;2. 点击“打开EKEY印章修改”按钮；<br />
+        &nbsp;3. 设置印章名称、使用者、和印章密码；<br />
+        &nbsp;4. 点击“保存印章到EKEY”按钮，即完成操作。<br />
+        <br />
+    </span>
+    <table>
+        <tr>
+            <td style="background-color: #666; font-size: 14px; height: 20px; color: #ccc;" colspan="2">
+                印章操作部分:
+            </td>
+        </tr>
+        <tr>
+            <td valign="top" style="width: 300px">
+                <!-- 以下为了适应微软新的ActiveX机制,将<object代阿放到外部,避免点击激活 -->
+                <script type="text/javascript" src="ntkoGenOcxObj.js"></script>
+                <br>
+                <script language="JScript" for="ntkosignctl" event="OnEkeyInserted()">
+			        //alert("EkeyInserted!");
+			        EnableEkeyButtons(true);
+                </script>
+                <script language="JScript" for="ntkosignctl" event="OnEkeyRemoved()">
+			        //alert("EkeyRemoved!");
+			        EnableEkeyButtons(false);
+                </script>
+                <span id="infomes" style="color: red"></span>
+                <button class="button" onclick="ntkosignctl.IsShowStatus = !ntkosignctl.IsShowStatus;">
+                    显示/不显示状态</button>&nbsp;&nbsp;
+                <button class="button" onclick="ntkosignctl.IsShowRect = !ntkosignctl.IsShowRect;">
+                    显示/不显示矩形</button>&nbsp;&nbsp;
+            </td>
+            <td valign="top" style="width: 510px">
+                <font color="red">注意：创建新印章时,以下所有信息必须输入。</font><br />
+                <br />
+                印章信息：宽度:<span id="SignWidth">0</span>&nbsp;&nbsp;高度:<span id="SignHeight">0</span><br />
+                印&nbsp; 章&nbsp; 名&nbsp; 称：&nbsp;&nbsp;
+                <input id="SignName" value="测试印章Sign01" checked="checked" tabindex="1"><br />
+                印 章 使 用 者:&nbsp;&nbsp;&nbsp;
+                <input id="SignUser" value="测试用户User01" tabindex="2"><br />
+                印章口令[6-32位]:&nbsp;
+                <input id="Password" value="" tabindex="3"><br />
+                印章序列号[只读]:&nbsp;
+                <input id="SignSN" disabled value="" size="43"><br />
+                <button id="OpenFromEkey" disabled class="button" onclick="OpenFromEkey();" tabindex="8">
+                    打开EKEY印章修改</button>
+                <button id="SaveToEkey" disabled class="button" onclick="SaveToEkey();" tabindex="10">
+                    保存印章到EKEY</button>&nbsp;<br />
+                <br />
+                <div style="display: none">
+                    <hr />
+                    EKEY用户名：<input id="EkeyUser" value="请输入您的姓名"><br>
+                    <br>
+                    请先设置 EKEY 用户名后再点击读取按钮
+                    <br />
+                    <button id="SetEkeyUserName" disabled class="button" onclick="SetEkeyUserName()">
+                        写入EKEY用户名</button>&nbsp;&nbsp;
+                    <button id="GetEkeyUserName" disabled class="button" onclick="GetEkeyUserName()">
+                        读取EKEY用户名</button><br />
+                    <br />
+                </div>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

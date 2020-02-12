@@ -1,0 +1,382 @@
+﻿<style>
+    .tblFilter input[type=text],
+    .tblFilter select {
+        width: 144px !important;
+    }
+</style>
+<script type="text/javascript" src="../WFRes/_Scripts/designer/misc.js"></script>
+<script type="text/javascript" src="../WFRes/_Scripts/designer/FormulaEditable.js?20150422"></script>
+<script>
+    $(function () {
+        var pageData = {
+            ScheduleInvoker: {},
+            LanData: $.Languages
+        };
+        //初始化页面数据
+        initPageData();
+        //构造vue对象
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                },
+                addItem: function () {
+                    var item = { Property: pageData.Columns[0].Value, Operator: pageData.Operators[0].Value, Value: "" };
+                    addItem(item);
+                },
+                delItem: function (item) {
+                    pageData.ConditionsList.$remove(item);
+                },
+                addSortBy: function () {
+                    var sortBy = { Property: pageData.Columns[0].Value, Order: pageData.Orders[0].Value, Value: "" };
+                    addSortBy(sortBy);
+                },
+                delSortBy: function (item) {
+                    pageData.OrdersList.$remove(item);
+                }
+            }
+        });
+
+        //初始化页面数据
+        function initPageData() {
+            var schemaCode = getUrlParam("SchemaCode") || "";
+            var id = getUrlParam("Id") || "";
+            var parentID = getUrlParam("ParentID") || "";
+            if (schemaCode) {
+                $.ajax({
+                    url: $.Controller.ScheduleInvoker.GetScheduleInvoker,
+                    type: 'get',
+                    dataType: "json",
+                    data: { schemaCode: schemaCode, id: id },
+                    async: false,//同步执行
+                    success: function (result) {
+                        if (result.Success) {
+                            pageData = $.LangArray(result.Extend, "Text");
+                            pageData.ConditionsList = [];
+                            pageData.OrdersList = [];
+                            loadFilter(pageData.ScheduleInvoker.FilterDefinition);
+                            pageData.LanData = $.Languages;
+                            pageData.ParentId = parentID;
+                            setControlUsable(result.Extend.IsLocked, $("a"));
+                        } else {
+                            parent.$.H3Dialog.Error({ content: $.Lang(result.Message) });
+                            parent.H3DialogManger.Cancel();
+                        }
+                    }
+                });
+            }
+        };
+
+
+        var _text = $("input[type=text][id*=txtCondition]");
+        _text.FormulaEditable("line-height: 24px;height:26px; border: 1px solid rgb(168, 168, 168);min-height: 24px;margin-left: 1px;width: 246px;padding-left: 4px;padding-right: 4px;");
+
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+
+        //保存
+        function saveData() {
+            buildFilter();
+            $.ajax({
+                url: $.Controller.ScheduleInvoker.SaveScheduleInvoker,
+                type: "post",
+                dataType: "json",
+                traditional: true,
+                data: pageData.ScheduleInvoker,
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                        top.ReloadNode(pageData.ParentId);
+                        setTimeout(function () {
+                            parent.H3DialogManger.Close();
+                        }, 1000)
+                    } else {
+                        if (result.Extend) {
+                            $.H3Dialog.Warn({ content: $.format($.Lang(result.Message), result.Extend) });
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+
+                        }
+                    }
+                }
+            });
+        }
+
+        function addItem(item) {
+            pageData.ConditionsList.push(item);
+        }
+
+        function addSortBy(item) {
+            pageData.OrdersList.push(item);
+        }
+
+        //加载
+        function loadFilter(filter) {
+            var filter = $(filter);
+            //匹配符
+            if (filter.children("And").length > 0) {
+                pageData.ScheduleInvoker.Matcher = "And";
+            }
+            else if (filter.children("Or").length > 0) {
+                pageData.ScheduleInvoker.Matcher = "Or";
+            }
+            //过滤字段
+            filter.children("And").children("item").each(function () {
+                addItem({
+                    Property: $(this).children("Name").text(),
+                    Operator: $(this).children("Operator").text(),
+                    Value: $(this).children("Value").text()
+                });
+            });
+            //过滤字段
+            filter.children("Or").children("item").each(function () {
+                addItem({
+                    Property: $(this).children("Name").text(),
+                    Operator: $(this).children("Operator").text(),
+                    Value: $(this).children("Value").text()
+                });
+            });
+            //排序字段
+            filter.children("SortByCollection").children("SortBy").each(function () {
+                addSortBy({
+                    Property: $(this).children("ItemName").text(),
+                    Order: $(this).children("Direction").text()
+                });
+            });
+        }
+
+        //生成
+        var buildFilter = function () {
+            debugger
+            var matcher = pageData.ScheduleInvoker.Matcher
+            var items = pageData.ConditionsList;
+
+            SortByCollection = pageData.OrdersList || "";
+            RequireCount = "True";
+            //生成Filter XML
+            var _Xml = "<Filter>";
+            if (matcher) {
+                _Xml += "<" + matcher + ">";
+
+                if (items.length > 0) {
+                    $(items).each(function () {
+                        _Xml += "<Item><Name>" + this.Property + "</Name><Operator>" + this.Operator + "</Operator><Value>" + this.Value + "</Value></Item>";
+                    });
+                }
+
+                _Xml += "</" + matcher + ">";
+            }
+
+            //排序
+            _Xml += "<SortByCollection>"
+            if (SortByCollection.length > 0) {
+                $(SortByCollection).each(function () {
+                    _Xml += "<SortBy>";
+                    _Xml += "<ItemName>" + this.Property + "</ItemName>";
+                    _Xml += "<Direction>" + this.Order + "</Direction>";
+                    _Xml += "</SortBy>";
+                });
+            }
+            _Xml += "</SortByCollection>";
+
+            _Xml += "<RequireCount>" + RequireCount + "</RequireCount>";
+
+            _Xml += "</Filter>";
+            pageData.ScheduleInvoker.FilterDefinition = _Xml;
+        }
+    });
+
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a id="lnkOK" v-on:click="saveData" data-icon="fa fa-save" href="javascript:void(0)" data-lang="GlobalButton.Save">保存</a>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.ScheduleInvoker.Name}}</span>
+        <table>
+            <tr>
+                <td>{{LanData.ScheduleInvoker.DisplayName}}</td>
+                <td>
+                    <input type="text" v-model="ScheduleInvoker.DisplayName" />
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.ScheduleInvoker.Description}}</td>
+                <td>
+                    <textarea rows="2" cols="20" v-model="ScheduleInvoker.Description"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.ScheduleInvoker.Status}}</td>
+                <td colspan="2" class="tableNoCss">
+                    <table border="0">
+                        <tr>
+                            <td v-for="item in States">
+                                <input type="radio" value="{{item.Value}}" v-model="ScheduleInvoker.State" />
+                                <label>{{item.Text}}</label>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="H3Panel">
+        <span>{{LanData.ScheduleInvoker.ValidRange}}</span>
+        <table>
+
+            <tr>
+                <td>{{LanData.ScheduleInvoker.StartTime}}</td>
+                <td>
+                    <input name="startTime" type="text" id="startTime" onclick="InitWdatePicker(this)" style="width:100px;" v-model="ScheduleInvoker.StartTime">
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.ScheduleInvoker.EndTime}}</td>
+                <td>
+                    <input name="endTime" type="text" id="endTime" onclick="InitWdatePicker(this)" style="width:100px;" v-model="ScheduleInvoker.EndTime">
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.ScheduleInvoker.PollingTimes}}</td>
+                <td colspan="2" class="tableNoCss">
+                    <table border="0">
+                        <tr>
+                            <td v-for="item in RecurrencyTypes">
+                                <input type="radio" value="{{item.Value}}" v-model="ScheduleInvoker.RecurrencyType" />
+                                <label>{{item.Text}}</label>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.ScheduleInvoker.PollPer}}
+                </td>
+                <td>
+                    <input type="text" v-model="ScheduleInvoker.IntervalSecond" detect-change="on" detect-blur="on" initial="off" v-validate:interval-second="['number']" />
+                    <span v-show="$formValidator.intervalSecond.number" style="color:Red;">{{LanData.msgGlobalString.NumberValidate}}</span>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="H3Panel">
+        <span>{{LanData.ScheduleInvoker.FilterCondition}}</span>
+        <table style="table-layout: fixed">
+            <tr>
+                <td>
+                    {{LanData.ScheduleInvoker.FilterMethod}}
+                </td>
+                <td>
+                    <select v-model="ScheduleInvoker.FilterMethod">
+                        <option v-for="option in FilterMethods" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.ScheduleInvoker.FindObject}}
+                </td>
+                <td>
+                    <table style="width: 100%" class="tblFilter">
+                        <tr style="border-top: 10px solid transparent">
+                            <td>{{LanData.ScheduleInvoker.Matcher}}</td>
+                            <td>
+                                <select v-model="ScheduleInvoker.Matcher">
+                                    <option v-for="option in Matchers" v-bind:value="option.Value">{{option.Text}}</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr style="border-top: 10px solid transparent">
+                            <td>{{LanData.ScheduleInvoker.ItemConditions}}</td>
+                            <td>
+                                <table>
+                                    <tr v-for="item in ConditionsList">
+                                        <td>
+                                            <select v-model="item.Property">
+                                                <option v-for="option in Columns" v-bind:value="option.Value">{{option.Text}}</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select v-model="item.Operator">
+                                                <option v-for="option in Operators" v-bind:value="option.Value">{{option.Text}}</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input v-model="item.Value" type="text" />
+                                        </td>
+                                        <td>
+                                            <a href="#" v-on:click="delItem(item)">{{LanData.GlobalButton.Delete}}</a>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <a href="#" v-on:click="addItem">{{LanData.GlobalButton.Add}}</a>
+                            </td>
+                        </tr>
+                        <tr style="border-top: 10px solid transparent">
+                            <td>
+                                {{LanData.ScheduleInvoker.Sort}}
+                            </td>
+                            <td>
+                                <table>
+                                    <tr v-for="item in OrdersList">
+                                        <td>
+                                            <select v-model="item.Property">
+                                                <option v-for="option in Columns" v-bind:value="option.Value">{{option.Text}}</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select v-model="item.Order">
+                                                <option v-for="option in Orders" v-bind:value="option.Value">{{option.Text}}</option>
+                                            </select>
+                                        </td>
+                                        <td></td>
+                                        <td>
+                                            <a href="#" v-on:click="delSortBy(item)">{{LanData.GlobalButton.Delete}}</a>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <a href="#" v-on:click="addSortBy">{{LanData.GlobalButton.Add}}</a>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="H3Panel">
+        <span>{{LanData.ScheduleInvoker.Exec}}</span>
+        <table>
+            <tr>
+                <td>
+                    {{LanData.ScheduleInvoker.ExecCondition}}
+                </td>
+                <td>
+                    <input type="text" id="txtCondition" v-model="ScheduleInvoker.ExeCondition" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.ScheduleInvoker.MethodExec}}
+                </td>
+                <td>
+                    <select v-model="ScheduleInvoker.MethodExec">
+                        <option v-for="option in MethodExecs" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

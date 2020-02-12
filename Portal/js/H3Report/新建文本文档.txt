@@ -1,0 +1,22 @@
+hxc
+
+$.ReportDesigner
+$.ReportDesigner.ReportPage
+$.ReportDesigner.ReportPage.ReportSources//array
+$.ReportDesigner.ReportSourceManager.EditingSource.ObjectID
+SchemaCode
+that.OriginalReportPage = JSON.stringify(that.ReportPage);
+SaveReport
+that.OriginalReportPage = JSON.stringify(that.ReportPage);
+sql_ReturnToSchemaSel
+
+
+
+h3_head_tools
+h3edit
+$widget_head_edit
+$.ReportDesigner.ReportPage.ReportWidgets[0].Columns
+$.ReportDesigner.ReportPage.ReportWidgets[0].SortColumns
+_DefaultOptions.ColumnType
+sort-add iconReport-new
+//需求如何未知

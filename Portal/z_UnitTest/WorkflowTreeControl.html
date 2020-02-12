@@ -1,0 +1,28 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+    <link href="../WFRes/_Content/themes/ligerUI/Aqua/css/ligerui-tree.css" rel="stylesheet" />
+    <link href="../WFRes/assets/stylesheets/pixel-admin.min.css" rel="stylesheet" />
+    <!--<link href="../WFRes/_Content/themes/H3Default/H3-All.css" rel="stylesheet" />-->
+    <script src="../WFRes/_Scripts/jquery/jquery.js"></script>
+    <script src="../WFRes/_Scripts/jquery/jquery.lang.js"></script>
+    <script src="../WFRes/_Scripts/ligerUI/ligerui.all.js"></script>
+    <script src="../WFRes/Scripts/WorkflowSelector.js"></script>
+    <script>
+        $(function(){
+            $("#workflowselecter").WorkflowSelector({
+                 UserID: "", ContainDraft: "false", IsBizObjectMode: "true", IsDispalyCode:"true"})
+        });
+           
+    </script>
+</head>
+<body>
+    <div class="WorkflowSelectorWapper" style="position:relative;float:left">
+        <input id="workflowselecter" style="position:relative; float:left" />
+         <a class="btn-clean" style="position:absolute;right:4px;z-index:2;width:14px;height:14px;" >x</a>
+    </div>
+    
+</body>
+</html>

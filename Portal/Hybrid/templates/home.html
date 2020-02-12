@@ -1,0 +1,91 @@
+﻿<ion-side-menus>
+    <style>
+        .platform-ios .bannerLogo {
+            margin-top: 0px;
+        }
+    </style>
+    <!--主体内容区-->
+    <ion-side-menu-content ng-controller="homeCtrl">
+        <!--header 头部， 子视图显示时会替换头部内容-->
+        <ion-nav-bar class="bar bar-header bar-stable">
+            <ion-nav-back-button class="button-clear">
+                <i class="button button-icon button-clear ion-ios-arrow-left"></i>
+            </ion-nav-back-button>
+            <ion-nav-buttons side="left">
+                <button class="button button-icon button-clear ion-navicon" menu-toggle="left"></button>
+            </ion-nav-buttons>
+        </ion-nav-bar>
+        <!--Tabs-->
+        <ion-tabs class="tabs-icon-top tabs-color-active-positive">
+            <!-- 首页  -->
+            <ion-tab title="首页" on-select="tabSelected(this);"
+                     icon-off="icon-home-outline" icon-on="icon-home"
+                     href="#/home/index">
+                <ion-nav-view name="home-index" animation="slide-left-right"></ion-nav-view>
+            </ion-tab>
+            <!-- 待办 -->
+            <ion-tab title="待办" on-select="tabSelected(this);" icon-off="icon-daiban-outline" icon-on="icon-daiban" href="#/home/unfinishedworkitem" badge="badge.unfinishedworkitem">
+                <ion-nav-view name="home-unfinishedworkitem" animation="slide-left-right"></ion-nav-view>
+            </ion-tab>
+            <!-- 待阅 -->
+            <ion-tab title="待阅" on-select="tabSelected(this);" icon-off="icon-daiyue-outline"
+                     icon-on="icon-daiyue" href="#/home/unreadworkitem" badge="badge.unreadworkitem">
+                <ion-nav-view name="home-unreadworkitem" animation="slide-left-right"></ion-nav-view>
+            </ion-tab>
+            <!-- 我的流程 -->
+            <ion-tab title="我的流程" icon-off="icon-flow-outline" icon-on="icon-flow" href="#/home/myinstance">
+                <ion-nav-view name="home-myinstance" animation="slide-left-right"></ion-nav-view>
+            </ion-tab>
+        </ion-tabs>
+
+        <!--视图模板占位-->
+        <ion-nav-view name="home" animation="slide-left-right">
+        </ion-nav-view>
+    </ion-side-menu-content>
+
+    <!--侧边栏菜单-->
+    <ion-side-menu side="left" ng-controller="homeCtrl" width="190">
+        <!--侧边栏头部-->
+        <ion-header-bar class="bar-stable">
+            <img src="img/logo.png" class="bannerLogo" style="height:30px;" />
+        </ion-header-bar>
+        <!--侧边栏内容-->
+        <ion-content class="side-content">
+            <div class="list">
+                <div class="item item-divider">
+                </div>
+                <a ng-href="#/user/{{user.ObjectID}}" class="item" style="text-align:center;">
+                    <div class="user-item" style="margin-left:35%;margin-bottom:10px;">
+                        <div ng-if="user.ImageUrl==''"
+                             class="normal user-avatar" style="background-color: rgb(77, 169, 235);width: 55px;height: 55px;">
+                            <div class="avatar-text" style="width: 55px;height: 55px;">
+                                {{user.Name|limitTo :-2}}
+                            </div>
+                        </div>
+                        <div ng-if="user.ImageUrl!=''" class="normal user-avatar" style="width: 55px;height: 55px;">
+                            <img class="ion-image user-img" style="width: 55px;height: 55px;"
+                                 ng-src="{{user.ImageUrl}}" />
+                        </div>
+                    </div>
+                    <div>
+                        欢迎：{{user.Name}}
+                    </div>
+                </a>
+                <div class="item item-divider">
+                </div>
+                <a class="item" style="padding-left:25px;" href="#/organization/">
+                    <i class="icon icon-tongxunlu-outline"></i> 通讯录
+                </a>
+                <!--<a class="item" style="padding-left:25px;" href="#/setpassword">
+                    <i class="icon ion-ios-settings"></i> 密码重设
+                </a>-->
+            </div>
+        </ion-content>
+        <!--侧边栏底部栏-->
+        <ion-footer-bar class="bar-stable">
+            <div style="padding-top:3px;text-align:center;width:100%;font-size:16px;cursor:pointer;" ng-click="loginOut();">
+                <i class="icon ion-log-out"></i><a style="padding-left:6px;">退出登录</a>
+            </div>
+        </ion-footer-bar>
+    </ion-side-menu>
+</ion-side-menus>

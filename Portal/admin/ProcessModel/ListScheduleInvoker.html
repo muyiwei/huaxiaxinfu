@@ -1,0 +1,75 @@
+﻿<script>
+    var SchemaCode = "";
+    $(function () {
+        SchemaCode = getUrlParam("SchemaCode") || "";
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel({ excludeIDs: ["InvokerGrid"] });
+        CreateLigerGrid(
+            $("#InvokerGrid"),
+            GetInvokerGridColumns(),
+            $.Controller.ScheduleInvoker.GetScheduleInvokerList,
+            true,
+             null,
+             null, null, null,
+             {
+                 schemaCode: SchemaCode
+             }
+            );
+
+
+    })
+    function GetInvokerGridColumns() {
+        var DisplayName = $.Lang("ScheduleInvoker.DisplayName");
+        var CreatedTime = $.Lang("ScheduleInvoker.CreatedTime");
+        var ModifiedTime = $.Lang("ScheduleInvoker.ModifiedTime");
+        var State = $.Lang("ScheduleInvoker.State");
+        var edit = $.Lang("GlobalButton.Edit");
+        var open = $.Lang("GlobalButton.Open");
+        return [
+            { display: "ObjectID", name: "ObjectID", hide: true },
+    { display: DisplayName, name: "DisplayName" },
+    { display: CreatedTime, name: "CreatedTime" },
+    { display: ModifiedTime, name: "ModifiedTime" },
+    { display: State, name: "State" },
+    {display: "", name: "open",render: function (row) { return "<a href='#' invokerId='" + row.ObjectID + "' onclick='ShowScheduleInvoker(this)'>" + edit + "</a>"; }
+    }];
+    }
+    function ShowScheduleInvoker(obj) {
+        var invokerId = $(obj).attr("invokerId") == null ? "" : $(obj).attr("invokerId");
+        ShowDialog($(obj).text(), _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/EditScheduleInvoker.html&SchemaCode=" + SchemaCode + "&Id=" + invokerId);
+    }
+    function DeleteFun(obj) {
+        var SelectItemName = $.Lang("msgGlobalString.SelectItem");
+        var rows = H3GridManager.getSelectedRows();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: SelectItemName });
+            return false;
+        }
+        var ids = "";
+        for (var i = 0; i < rows.length; i++) {
+            ids = ids + rows[i].ObjectID + ";";
+        }
+        if (ConfirmDel(obj)) {
+            $.ajax({
+                url: $.Controller.ScheduleInvoker.DelScheduleInvoker,
+                type: 'post',
+                dataType: "json",
+                data: { ids: ids },
+                success: function (result) {
+                    if (result.Success) {
+                        top.workTab.reload(top.workTab.getSelectedTabItemID());
+                    } else {
+                        $.H3Dialog.Warn({ content: result.Message });
+                    }
+                }
+            });
+        }
+    };
+</script>
+<div id="ToolBar">
+    <a href="javascript:void(0)" id="lnkAdd" data-icon="fa fa-plus" onclick="ShowScheduleInvoker(this)" data-lang="GlobalButton.Add">添加</a>
+    <a onclick="return DeleteFun(this);" id="" data-icon="fa fa-minus" href="javascript:void(0)" data-lang="GlobalButton.Delete">删除</a>
+</div>
+<div class="H3Panel">
+    <div id="InvokerGrid"></div>
+</div>

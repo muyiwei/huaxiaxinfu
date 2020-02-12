@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="38px" height="42px" viewBox="0 0 38 42" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 44.1 (41455) - http://www.bohemiancoding.com/sketch -->
+    <title>liuc</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="10.控件-选人控件-参与者（多人）3" transform="translate(-42.000000, -287.000000)">
+            <g id="Group-4" transform="translate(0.000000, 250.000000)">
+                <g id="liuc" transform="translate(61.000000, 58.000000) rotate(-90.000000) translate(-61.000000, -58.000000) translate(40.000000, 39.000000)">
+                    <rect id="Rectangle-3" stroke="#77BCFA" stroke-width="2" x="15" y="1" width="12" height="12" rx="3"></rect>
+                    <rect id="Rectangle-4" stroke="#77BCFA" stroke-width="2" x="6" y="19" width="30" height="17" rx="3"></rect>
+                    <rect id="Rectangle-6" fill="#FFFFFF" x="5" y="27.5" width="32" height="10.5"></rect>
+                    <rect id="Rectangle-5" fill="#77BCFA" x="20" y="13" width="2" height="14.5"></rect>
+                    <rect id="Rectangle-3-Copy" stroke="#77BCFA" stroke-width="2" x="1" y="27" width="10" height="10" rx="2"></rect>
+                    <rect id="Rectangle-3-Copy-2" stroke="#77BCFA" stroke-width="2" x="16" y="27" width="10" height="10" rx="2"></rect>
+                    <rect id="Rectangle-3-Copy-3" stroke="#77BCFA" stroke-width="2" x="31" y="27" width="10" height="10" rx="2"></rect>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

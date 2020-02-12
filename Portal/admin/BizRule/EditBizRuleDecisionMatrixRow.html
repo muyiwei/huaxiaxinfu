@@ -1,0 +1,158 @@
+﻿<script type="text/javascript" src="../WFRes/_Scripts/designer/misc.js"></script>
+<script type="text/javascript" src="../WFRes/_Scripts/designer/FormulaEditable.js?20150422"></script>
+<script type="text/javascript">
+
+    var pageData = {
+        BizRuleDecisionMatrixRow: {},//行
+        LanData: $.Languages
+    }
+
+    $(function () {
+        var RuleCode = getUrlParam("RuleCode");
+        var DecisionMatrixCode = getUrlParam("DecisionMatrixCode");
+        var Index = getUrlParam("Index");
+        var ParentIndexes = getUrlParam("ParentIndexes");
+        //debugger;
+        pageData.BizRuleDecisionMatrixRow.SortKey = 0;//Sortkey赋默认值
+        
+        if (Index > -1) {
+            //加载行信息
+            $.ajax({
+                url: $.Controller.BizRuleDecisionMatrixRow.Load,
+                type: "get",
+                data: { ruleCode: RuleCode, matrixCode: DecisionMatrixCode, rowIndex: Index, parentIndexes: ParentIndexes },
+                async: false,
+                success: function (data) {
+                    pageData.BizRuleDecisionMatrixRow = data;
+                }
+            });
+        } 
+        pageData.BizRuleDecisionMatrixRow.RuleCode = RuleCode;
+        pageData.BizRuleDecisionMatrixRow.MatrixCode = DecisionMatrixCode;
+        pageData.BizRuleDecisionMatrixRow.ParentStrIndexs = ParentIndexes;
+        pageData.BizRuleDecisionMatrixRow.Index = Index;
+
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    //debugger;
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        SaveData();
+                    }
+                },
+                saveDataAndAdd: function (event) {
+                    //debugger;
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        SaveData(true);
+                    }
+                }
+            }
+        });
+
+        $("#H3Toolbar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+
+        var _text = $("input[type=text][id*=txtEffectiveCondition]");
+        var textWidth = _text.width();
+        _text.FormulaEditable("line-height: 24px;border: 1px solid #a8a8a8;min-height: 24px;margin-left: 1px;");
+        FormulaEditableStack.GetDisplayControl(_text).width(textWidth);
+    });
+
+    function SaveData(isContinueAdd) {
+        $.ajax({
+            url: $.Controller.BizRuleDecisionMatrixRow.Save,
+            type: "post",
+            data: pageData.BizRuleDecisionMatrixRow,
+            async: false,
+            success: function (data) {
+                //debugger;
+                if (data && data.Success) {
+                    //判断是否继续添加
+                    if (isContinueAdd) {
+                        pageData.BizRuleDecisionMatrixRow.ObjectID = "";
+                        //pageData.BizRuleDecisionMatrixRow.DisplayName = "";
+                        //此处这么处理是为了避免保存并继续后 直接弹出了必填验证信息
+                        $("#txtDisplayName").val("");
+                        pageData.BizRuleDecisionMatrixRow.EffectiveCondition = "";
+                        pageData.BizRuleDecisionMatrixRow.Description = "";
+                        pageData.BizRuleDecisionMatrixRow.IsDefault = false;
+                        pageData.BizRuleDecisionMatrixRow.SortKey = pageData.BizRuleDecisionMatrixRow.SortKey + 1;
+                        FormulaEditableStack.Clear("#txtEffectiveCondition");
+                        parent.ReloadRowGridData();
+                    } else {
+                        parent.H3DialogManger.Close();
+                    }
+                } else {
+                    $.H3Dialog.Warn({ content: $.Lang(data.Message) });
+                }
+            }
+        });
+    }
+
+
+</script>
+<style>
+    .l-dialog-tc-inner {
+        width: 98% !important;
+    }
+</style>
+<validator id="formValidators" name="formValidator">
+    <div id="H3Toolbar">
+        <a id="btnSave" v-on:click="saveData" data-icon="fa fa-save" data-lang="GlobalButton.Save"></a>
+        <a id="btnSaveAndAdd" v-on:click="saveDataAndAdd" data-icon="icon-baocunbingjixutianjia" data-lang="GlobalButton.SaveAndAdd"></a>
+    </div>
+    <div class="H3Panel">
+        <span data-lang="msgGlobalString.BasicProperties"></span>
+        <table>
+            <tr>
+                <td>
+                    {{LanData.BizRule.DisplayName}}
+                </td>
+                <td>
+                    <input type="text" id="txtDisplayName" maxlength="64" v-model="BizRuleDecisionMatrixRow.DisplayName" detect-change="on" detect-blur="on" initial="off" v-validate:item-code="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.itemCode.required">{{LanData.msgGlobalString.EnumValueRequired}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.BizRule.IsDefaultRow}}
+                </td>
+                <td>
+                    <input type="checkbox" id="chkIsDefault" v-model="BizRuleDecisionMatrixRow.IsDefault" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.BizRule.EffectiveCondition}}
+                </td>
+                <td>
+                    <input type="text" id="txtEffectiveCondition" maxlength="64" v-model="BizRuleDecisionMatrixRow.EffectiveCondition" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.BizRule.Description}}
+                </td>
+                <td>
+                    <textarea id="txtDescription" v-model="BizRuleDecisionMatrixRow.Description" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.BizRule.SortKey}}
+                </td>
+                <td>
+                    <input type="text" id="txtSortKey" v-model="BizRuleDecisionMatrixRow.SortKey" number />
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

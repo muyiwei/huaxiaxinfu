@@ -1,0 +1,70 @@
+﻿<!-- 视图内容，title会替换主页中的Header信息-->
+<ion-view view-title="首页" hide-nav-bar="{{$root.dingMobile.hideHeader}}" class="bpm-index">
+    <!--header中的按钮显示-->
+    <ion-nav-bar class="bar-calm ">
+        <!--左边按钮-->
+        <ion-nav-buttons side="left">
+            <button class="button button-icon button-clear ion-navicon" menu-toggle="left"></button>
+        </ion-nav-buttons>
+    </ion-nav-bar>
+    <ion-content class="scroll-content ionic-scroll has-tabs">
+        <ion-slide-box auto-play="true" does-continue="true" ng-if="SlideShows && SlideShowDisplay"
+                       slide-interval=2000 show-pager="false" active-slide="model.activeIndex">
+            <ion-slide ng-repeat="slide in SlideShows track by $index">
+                <div class="box" style="" ng-if="slide.Image">
+                    <img ng-src="{{url+slide.Image}}" style="width: 100%; background:url(../H3Report/img/loading.gif) no-repeat;">
+                </div>
+            </ion-slide>
+        </ion-slide-box>
+        <div class="float-row float-left" style="text-align:center; vertical-align:middle"
+             ng-repeat="menu in AppFunctionNodes">
+            <a class="function" href="{{menu.Url}}">
+                <span class="badge" ng-show="{{'badge.'+menu.EdgeCode}}!='0'"
+                      ng-bind="{{'badge.'+menu.EdgeCode}}">
+                </span>
+                <img ng-show="{{menu.IconUrl.indexOf('.')>0}}"
+                     ng-src="{{url+menu.IconUrl}}"
+                     style="height: 35px;" />
+                <i ng-show="{{menu.IconUrl.indexOf('.')==-1}}" class="icon {{menu.IconUrl}}"></i>
+                <div style="margin-top:5px;">{{menu.DisplayName}}</div>
+            </a>
+        </div>
+    </ion-content>
+</ion-view>
+
+<style>
+    .bpm-index .float-row {
+        float: left;
+        width: 33.3%;
+        /*height: 80px;*/
+        height: 90px;
+        padding: 15px;
+        border-bottom: solid 1px #f2e8e8;
+    }
+
+        .bpm-index .float-row i {
+            /*font-size: 28px;*/
+            font-size: 45px;
+        }
+
+        .bpm-index .float-row .badge {
+            background-color: #CF0808;
+            color: #FFFFFF;
+        }
+
+    .bpm-index .function {
+        position: relative;
+        text-decoration: none;
+        color: black;
+    }
+
+        .bpm-index .function .badge {
+            position: absolute;
+            right: 33%;
+            right: calc(50% - 26px);
+            padding: 1px 6px;
+            height: auto;
+            font-size: 12px;
+            line-height: 16px;
+        }
+</style>

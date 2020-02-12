@@ -1,0 +1,112 @@
+{
+    "ExceptionCode": -1,
+    "Success": true,
+    "Message": "",
+    "Extend": {
+        "unfinished": {
+            "moredata": false,
+            "lastReloadTime": "\/Date(1501067810000)\/",
+            "lastRefreshTime": "\/Date(1501842922000)\/",
+            "list": [
+                {
+                    "ObjectID": "232324",
+                    "InstanceName": "t(进行中数据)",
+                        "UserAvatar": "img/adam.jpg",
+                    "CreatedTime": "08-04 18:35",
+                    "FinishedTime": "12-31 23:59",
+                    "Orginator": "小张",
+                    "OrgUnit": "研发部"
+                },
+                {
+                    "ObjectID": "5t64654654",
+                    "InstanceName": "丽丽t(进行中数据)",
+                    "CreatedTime": "08-04 18:34",
+                        "UserAvatar": "img/adam.jpg",
+                    "FinishedTime": "12-31 23:59",
+                      "Orginator": "小张1",
+                    "OrgUnit": "研发部1"
+                },
+                {
+                    "ObjectID": "fergergtr",
+                    "InstanceName": "TLLt(进行中数据)",
+                    "CreatedTime": "07-28 16:23",
+                        "UserAvatar": "img/adam.jpg",
+                    "FinishedTime": "12-31 23:59",
+                     "Orginator": "小张",
+                    "OrgUnit": "研发部"
+                }
+            ],
+            "InstanceState": 2
+        },
+        "finished": {
+            "moredata": true,
+            "lastReloadTime": "\/Date(1498204637000)\/",
+            "lastRefreshTime": "\/Date(1501068306000)\/",
+           "list": [
+                {
+                    "ObjectID": "232324",
+                    "InstanceName": "t(完成数据)",
+                        "UserAvatar": "img/adam.jpg",
+                    "CreatedTime": "08-04 18:35",
+                    "FinishedTime": "12-31 23:59",
+                    "Orginator": "小张",
+                    "OrgUnit": "研发部"
+                },
+                {
+                    "ObjectID": "5t64654654",
+                    "InstanceName": "t(完成数据)",
+                    "CreatedTime": "08-04 18:34",
+                        "UserAvatar": "img/adam.jpg",
+                    "FinishedTime": "12-31 23:59",
+                      "Orginator": "小张1",
+                    "OrgUnit": "研发部1"
+                },
+                {
+                    "ObjectID": "fergergtr",
+                    "InstanceName": "t(完成数据)",
+                    "CreatedTime": "07-28 16:23",
+                        "UserAvatar": "img/adam.jpg",
+                    "FinishedTime": "12-31 23:59",
+                     "Orginator": "小张",
+                    "OrgUnit": "研发部"
+                }
+            ],
+            "InstanceState": 4
+        },
+        "cancel": {
+            "moredata": true,
+            "lastReloadTime": "\/Date(1502094026228)\/",
+            "lastRefreshTime": "\/Date(1502094026228)\/",
+           "list": [
+                {
+                    "ObjectID": "232324",
+                    "InstanceName": "t(删除数据)",
+                        "UserAvatar": "img/adam.jpg",
+                    "CreatedTime": "08-04 18:35",
+                    "FinishedTime": "12-31 23:59",
+                    "Orginator": "小张",
+                    "OrgUnit": "研发部"
+                },
+                {
+                    "ObjectID": "5t64654654",
+                    "InstanceName": "丽丽(删除数据)",
+                    "CreatedTime": "08-04 18:34",
+                        "UserAvatar": "img/adam.jpg",
+                    "FinishedTime": "12-31 23:59",
+                      "Orginator": "小张1",
+                    "OrgUnit": "研发部1"
+                },
+                {
+                    "ObjectID": "fergergtr",
+                    "InstanceName": "TLL(删除数据)",
+                    "CreatedTime": "07-28 16:23",
+                        "UserAvatar": "img/adam.jpg",
+                    "FinishedTime": "12-31 23:59",
+                     "Orginator": "小张",
+                    "OrgUnit": "研发部"
+                }
+            ],
+            "InstanceState": 5
+        }
+    }
+}

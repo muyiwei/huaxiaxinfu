@@ -1,0 +1,36 @@
+{
+    "rules": {
+        "semi": [
+            "error",
+            "always"
+        ],
+        "quotes": [
+            "error",
+            "single"
+        ],
+        "no-unreachable": [
+            "warn"
+        ],
+        "default-case": [
+            "warn"
+        ],
+        "no-dupe-args": [
+            "error"
+        ],
+        "no-duplicate-case": [
+            "error"
+        ],
+        "no-empty": [
+            "warn"
+        ],
+        "no-sparse-arrays": [
+            "warn"
+        ],
+        "no-multi-spaces": [
+            "warn"
+        ],
+        "no-unused-vars": [
+            "warn"
+        ]
+    }
+}

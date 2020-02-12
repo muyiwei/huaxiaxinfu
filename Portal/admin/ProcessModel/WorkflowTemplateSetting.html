@@ -1,0 +1,274 @@
+﻿<script src="../WFRes/_Scripts/jquery/ajaxfileupload.js"></script>
+<script src="../WFRes/_Scripts/jquery/plugin/imagepreview/jquery.imagepreview.js"></script>
+<script>
+    var pageData = {
+        IsControlUsable: true,//是否可编辑
+        WorkflowVersions: [], //流程版本
+        SeqNoResetTypes: [],//流水号重置策略
+        CalendarList: [],//工作日历
+        WorkflowClause: {}, //运行参数
+        LanData: $.Languages
+    }
+    //URL传递参数
+    var WorkflowCode = getUrlParam("WorkflowCode");
+
+    //初始化工具栏
+    function DocumentReady() {
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel({ excludeIDs: ["divWorkflowACLGrid", "WorkflowOrgAcl", "divMapGrid"] });
+    }
+    $(function () {
+        LoadPageData();
+        //VUE
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                getText: function (key) { try { return $.Lang(key); } catch (e) { return ""; } },
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        SaveData();
+                    }
+                }
+            }
+        });
+
+        DocumentReady();
+
+        //debugger;
+        //选人控件初始化
+        $("#txtExceptionManager").SheetUser({ Editable: true, Visiable: true });
+        if (pageData.WorkflowClause.ExceptionManager) {
+            $("#txtExceptionManager").SheetUIManager().SetValue(pageData.WorkflowClause.ExceptionManager);
+        }
+
+        //图片预览初始化
+        $("#fileIcon").uploadPreview({ Img: "imgicon" });
+        $("#imgicon").attr("src", pageData.WorkflowClause.ImageUrl);
+        //debugger;
+        CreateLigerGrid($("#divWorkflowACLGrid"),
+            GetAclColumns(),
+            _PORTALROOT_GLOBAL + $.Controller.WorkflowTemplateSetting.GetWorkflowAcl,
+            false, "260px",
+            null, null, null,
+            { WorkflowCode: WorkflowCode });
+
+
+        setControlUsable(pageData.IsControlUsable, $("a"));
+    });
+
+    function LoadPageData() {
+        var loadUrl = _PORTALROOT_GLOBAL + $.Controller.WorkflowTemplateSetting.Load;
+        $.ajax({
+            url: loadUrl,
+            type: "post",
+            dataType: "json",
+            async: false,
+            data: { WorkflowCode: WorkflowCode },
+            success: function (result) {
+                //debugger;
+                if (result) {
+                    pageData.IsControlUsable = result.IsControlUsable,//是否可编辑
+                    pageData.WorkflowVersions = result.WorkflowVersions, //流程版本
+                    pageData.SeqNoResetTypes = result.SeqNoResetTypes,//流水号重置策略
+                    pageData.CalendarList = result.CalendarList,//工作日历
+                    pageData.WorkflowClause = result.WorkflowClause //运行参数
+
+                }
+            }
+        });
+    }
+
+    function GetAclColumns() {
+        //
+        return [
+                  { display: $.Lang("WorkflowSetting.WorkflowSetting_Acl_Userid"), name: "UserID" },
+                  { display: $.Lang("WorkflowSetting.WorkflowSetting_Acl_CreateInstance"), name: "CreateInstance", render: BuildBoolCoum },
+                  {
+                      display: $.Lang("GlobalButton.Operation"), name: "",
+                      render: function (rowdata, index, value) {
+                          var edit = "<a href='javascript:void(0);' Objectid='" + rowdata.ObjectID + "' onclick='AddWorkflowAcl_Click(this)'>" + $.Lang("GlobalButton.Edit") + "</a>";
+                          var remove = "<a href='javascript:void(0);' Objectid='" + rowdata.ObjectID + "' onclick='RemoveWorkflowAcl_Click(this)'>" + $.Lang("GlobalButton.Remove") + "</a>";
+                          return edit + "&nbsp" + remove;
+                      }
+                  }
+        ];
+
+    }
+
+    function GetSPSColumns() {
+        var columns = [
+            { display: "SpsSite", name: "SpsSite" },
+            { display: "SpsWebName", name: "SpsWebName" },
+            { display: "SpsList", name: "SpsList" }
+        ];
+        return columns;
+    }
+
+    function AddWorkflowAcl_Click(obj) {
+        var aclid = $(obj).attr("Objectid") == null ? "" : $(obj).attr("Objectid");
+        var url = _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/UpdateWorkflowAcl.html&";
+        url += "WorkflowCode=" + WorkflowCode;
+        url += "&AclId=" + aclid;
+        ShowDialog($(obj).text(), url);
+        return false;
+    }
+
+    function RemoveWorkflowAcl_Click(obj) {
+        //debugger;
+        var aclid = $(obj).attr("Objectid") == null ? "" : $(obj).attr("Objectid");
+        if (ConfirmDel(obj)) {
+            $.ajax({
+                url: _PORTALROOT_GLOBAL + $.Controller.WorkflowTemplateSetting.DeleteWorkflowAcl,
+                data: { AclID: aclid },
+                type: "post",
+                success: function (data) {
+                    if (data.Success) {
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.DeleteSucced") });
+                        GridReload();
+                    }
+                }
+            });
+        }
+    }
+
+    function GridReload() {
+        var manager = $("#divWorkflowACLGrid").ligerGetGridManager();
+        manager.reload();
+    }
+
+
+    function SaveData() {
+        var ExceptionManager = $("#txtExceptionManager").SheetUIManager().GetValue();
+        pageData.WorkflowClause.ExceptionManager = ExceptionManager;
+        $.ajaxFileUpload({
+            url: _PORTALROOT_GLOBAL + $.Controller.WorkflowTemplateSetting.Save,
+            fileElementId: "fileIcon",
+            secureuri: false,
+            type: "post",
+            dataType: "json",
+            data: pageData.WorkflowClause,
+            success: function (data) {
+                if (data.Success) {
+                    $.H3Dialog.Success({ content: $.Lang(data.Message) });
+                } else {
+                    $.H3Dialog.Warn({ content: data.Message });
+                }
+            }
+        });
+
+    }
+
+</script>
+<validator name="formValidator">
+
+    <div id="H3ToolBar">
+        <a id="btnSubmit" href="javscript:void(0)" data-icon="fa fa-save" v-on:click="saveData" data-lang="GlobalButton.Save"></a>
+        <a id="btnAdd" href="javscript:void(0)" enabled="False" data-icon="icon-quanxianshezhi" onclick="return AddWorkflowAcl_Click(this)" data-lang="GlobalButton.SetAcl"></a>
+    </div>
+    <div class="H3Panel">
+        <span data-lang="WorkflowSetting.WorkflowSetting_Setting"></span>
+        <table>
+            <tr>
+                <td data-lang="WorkflowSetting.WorkflowSetting_DisplayName"></td>
+                <td>
+                    <input type="text" id="txtDisplayName" v-model="WorkflowClause.DisplayName" maxlength="32" />
+                </td>
+            </tr>
+            <tr>
+                <td data-lang="WorkflowSetting.WorkflowSetting_DefaultVersion"></td>
+                <td>
+                    <select id="lstWorkflowVersion" v-model="WorkflowClause.WorkflowVersion">
+                        <option v-for="option in WorkflowVersions" v-bind:value="option.Value">
+                            {{option.Text}}
+                        </option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td data-lang="WorkflowSetting.WorkflowSetting_SortKey"></td>
+                <td>
+
+                    <input type="text" id="txtSortKey" v-model="WorkflowClause.SortKey" maxlength="5" detect-change="on" detect-blur="on" initial="off" v-validate:sort-key="['number']" type="text" />
+                    <span style="color:Red;" v-if="$formValidator.sortKey.number">{{LanData.msgGlobalString.NumberValidate}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td data-lang="GlobalButton.Enabled"></td>
+                <td>
+                    <input type="checkbox" id="chkActive" v-model="WorkflowClause.IsActive" /><label for="chkActive" data-lang="WorkflowSetting.WorkflowSetting_State"></label>
+                    <input type="checkbox" id="chkMobileStart" v-model="WorkflowClause.MobileStart" /><label for="chkMobileStart" data-lang="WorkflowSetting.WorkflowSetting_MobileStart"></label>
+                </td>
+            </tr>
+            <tr v-show="WorkflowClause.MobileStart">
+                <td data-lang="WorkflowSetting.WorkflowSetting_Icon"></td>
+                <td>
+                    <div>
+                        <label class="col-md-10 control-label alignLeft">
+                            <input type="file" id="fileIcon" name="fileIcon" style="display:none" />
+                            <div class="col-md-12">
+                                <img id="imgicon" style="cursor:pointer" width="40" height="40" src="../WFRes/images/person.gif" alt="点击图片上传" title="点击图片上传" />
+                            </div>
+                        </label>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td data-lang="WorkflowSetting.WorkflowSetting_Calendar"></td>
+                <td>
+                    <select id="lstCalendar" v-model="WorkflowClause.WorkflowCalendar">
+                        <option v-for="option in CalendarList" v-bind:value="option.Value">
+                            {{option.Text}}
+                        </option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="H3Panel">
+        <span data-lang="WorkflowSetting.WorkflowTemplateSetting_Advance"></span>
+        <table>
+            <tr>
+                <td data-lang="WorkflowSetting.WorkflowSetting_ExceptionManager"></td>
+                <td>
+                    <div class="tableNoCss">
+                        <div id="txtExceptionManager" style="width:255px">
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td data-lang="WorkflowSetting.WorkflowSetting_SeqNoCode"></td>
+                <td>
+                    <input type="text" id="txtCode" v-model="WorkflowClause.SequenceCode" maxlength="32" />
+                </td>
+            </tr>
+            <tr>
+                <td data-lang="WorkflowSetting.WorkflowSetting_SeqNoResetType"></td>
+                <td>
+                    <select id="lstSequenceNoResetType" v-model="WorkflowClause.SeqNoResetType">
+                        <option v-for="option in SeqNoResetTypes" v-bind:value="option.Value">
+                            {{ getText(option.Text)}}
+                        </option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="H3Panel">
+        <span data-lang="WorkflowSetting.WorkflowSetting_CreateAcl"></span>
+        <div id="divWorkflowACLGrid">
+        </div>
+    </div>
+
+    <div class="H3Panel" style="display: none;">
+        <span data-lang="WorkflowSetting.Function_SysSetting_WorkflowOrgAcl"></span>
+        <div id="WorkflowOrgAcl">
+        </div>
+    </div>
+</validator>

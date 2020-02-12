@@ -1,0 +1,143 @@
+﻿<script src="../WFRes/_Scripts/jquery/ajaxfileupload.js"></script>
+<script src="../WFRes/_Scripts/jquery/plugin/imagepreview/jquery.imagepreview.js"></script>
+<script>
+    var pageData = {
+        SlideShow: {},
+        LanData: $.Languages
+    };
+    $(function () {
+        //初始化页面数据
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                }
+            }
+        });
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+
+        $("#fileSlideShowPic").uploadPreview({ Img: "slideShowPic" });
+        //初始化页面数据
+        function initPageData() {
+            var slideShowCode = getUrlParam("SlideShowCode");
+            var parentCode = getUrlParam("AppCode");
+            pageData.SlideShow.ParentCode = parentCode;
+            if (parentCode && slideShowCode) {
+                $.ajax({
+                    url: $.Controller.HybridApp.GetSlideShow,
+                    type: 'get',
+                    dataType: "json",
+                    data: { code: slideShowCode, parentCode: parentCode },
+                    async: false,//同步执行
+                    success: function (result) {
+                        if (result.Success) {
+                            pageData.SlideShow = result.Extend;
+                            if (pageData.SlideShow.Image) $("#slideShowPic").attr("src", pageData.SlideShow.Image);
+                        }
+                    }
+                });
+            }
+        };
+
+        //保存轮播图信息
+        function saveData() {
+            $.ajaxFileUpload({
+                url: $.Controller.HybridApp.SaveSlideShow,
+                fileElementId: "fileSlideShowPic",
+                secureuri: false,
+                type: "post",
+                dataType: "json",
+                data: pageData.SlideShow,
+                success: function (result) {
+                    if (result.Success) {
+                        parent.ReloadGridData("SlideShows");
+                        parent.$.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                        //parent.H3DialogManger.Cancel();
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SaveFailed") });
+                    }
+                    $("#fileSlideShowPic").uploadPreview({ Img: "slideShowPic" });
+                }
+            });
+        }
+    });
+
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a v-on:click="saveData" data-icon="fa fa-save">{{LanData.GlobalButton.Save}}</a>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.msgGlobalString.Msg_BasciInfor}}</span>
+        <input v-model="SlideShow.ObjectID" hidden="hidden" />
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.HybridApp.Pic}}
+                </td>
+                <td style="padding-left: 0px">
+                    <table>
+                        <tr>
+                            <td width="120px">
+                                <label class="col-md-10 control-label alignLeft">
+                                    <input type="file" id="fileSlideShowPic" name="fileSlideShowPic" style="display:none" />
+                                    <div>
+                                        <img id="slideShowPic" style="cursor:pointer" width="400" height="140" src="../WFRes/images/person.gif" alt="点击图片上传" title="点击图片上传" />
+                                    </div>
+                                </label>
+                            </td>
+                            <td class="tableDesCol">
+                                (图片大小400*140px)
+                            </td>
+                        </tr>
+                    </table>
+
+                </td>
+
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.HybridApp.Code}}</td>
+                <td>
+                    <input v-model="SlideShow.Code" detect-change="on" detect-blur="on" initial="off" v-validate:code="['space','required']" type="text" v-bind:disabled="SlideShow.ObjectID" />
+                    <span style="color:Red;" v-if="$formValidator.code.invalid">{{LanData.msgGlobalString.NotSpace}}</span>
+                </td>
+            </tr>
+            <!--<tr>
+                <td class="tableLeft">{{LanData.HybridApp.Url}}</td>
+                <td>
+                    <input v-model="SlideShow.Url" type="text" />
+                </td>
+            </tr>-->
+            <tr>
+                <td class="tableLeft">{{LanData.HybridApp.SortKey}}</td>
+                <td>
+                    <input v-model="SlideShow.SortKey" type="text" detect-change="on" detect-blur="on" initial="off" v-validate:sort-key="['number']" />
+                    <span style="color:Red;" v-if="$formValidator.sortKey.number">{{LanData.msgGlobalString.NumberValidate}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.HybridApp.IsDisplay}}
+                </td>
+                <td>
+                    <input v-model="SlideShow.IsDisplay" type="checkbox" />
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.HybridApp.Des}}</td>
+                <td>
+                    <textarea v-model="SlideShow.Description" rows="2" cols="20"></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

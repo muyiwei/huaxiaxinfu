@@ -1,0 +1,285 @@
+﻿
+<script>
+    var id = getUrlParam("ID");
+    var userName = decodeURI(getUrlParam("Name"));
+    var orgPost = "";
+    var RoleList = {};
+    var firstFlag = true;
+    var UserRoleLists = { Rows: [], Total: 0 };
+
+    $(function () {
+        debugger;
+        QueryFun(SetRoleListVal);
+        $("#H3ToolBar").AspLinkToolBar();
+
+        $("#hdSelectedRoleList").val(orgPost);
+        $("#spUserName").text(userName);
+        if (UserRoleLists && UserRoleLists.Rows && UserRoleLists.Rows.length <= 0) {
+            BindRoleList();
+        }
+        $("#iRoleSearch").change(function () {
+            //查询用户角色列表
+            BindRoleList();
+        })
+    });
+
+    function SetRoleListVal() {
+        BindUserRoleList();
+        var SelectedRoles = "";
+        //从查询的grid数据中获取需要选中的角色
+        if (UserRoleLists && UserRoleLists.Rows && UserRoleLists.Rows.length > 0) {
+            $.each(UserRoleLists.Rows, function () {
+                SelectedRoles += ";" + this.RoleID;
+            })
+        }
+
+        if (SelectedRoles.length == 0) { SelectedRoles = "-1"; }//默认不要选中
+
+        $("#dvRoleList").ligerListBox({
+            isShowCheckBox: true, isMultiSelect: true,
+            data: RoleList,
+            width: "100%",
+            value: SelectedRoles
+        })
+    }
+
+    function BindRoleList() {
+        //角色列表
+        var roleSourceUrl = $.Controller.ListOrgJob.GetRoleListSelect;
+        var data = {};
+        var keyword = $("#iRoleSearch").val();
+        if (keyword) {
+            roleSourceUrl = $.Controller.ListOrgJob.GetRoleListSelectByName;
+            data = { roleName: keyword };
+        }
+
+        $.ajax({
+            url: roleSourceUrl,
+            type: 'get',
+            dataType: "json",
+            data: data,
+            async: false,//同步执行
+            success: function (result) {
+                RoleList = result;//所有角色
+                InitRoleList();
+            }
+        });
+    }
+    function BindUserRoleList() {
+        var userid = getUrlParam("ID");
+        var data = { userID: userid };
+        $.ajax({
+            url: $.Controller.OrgUser.GetUserRoleList,
+            type: 'get',
+            dataType: "json",
+            data: data,
+            async: false,//同步执行
+            success: function (result) {
+                UserRoleLists = result;//所有角色
+            }
+        });
+    }
+    //角色下拉框初始化
+    function InitRoleList() {
+        BindUserRoleList();
+        var SelectedRoles = "";
+        //从查询的grid数据中获取需要选中的角色
+        if (UserRoleLists && UserRoleLists.Rows && UserRoleLists.Rows.length > 0) {
+            $.each(UserRoleLists.Rows, function () {
+                SelectedRoles += ";" + this.RoleID;
+            })
+        }
+
+        if (SelectedRoles.length == 0) { SelectedRoles = "-1"; }//默认不要选中
+        //需要保存的数据
+        orgPost = SelectedRoles;
+
+        if (RoleList.length == 0) {
+            $("#dvRoleList").children().hide();//加载空数据还是会显示原来的  所以没数据时隐藏选项
+        } else {
+            $("#dvRoleList").children().show();
+            $("#dvRoleList").ligerListBox({
+                isShowCheckBox: false, isMultiSelect: true,
+                data: RoleList,
+                onSelected: function (newvalue) {
+                    orgPost = this.selectedValue;
+                    if (this.selectedValue.indexOf(newvalue) > -1) {
+                        SaveData();
+                    } else {
+                        if (UserRoleLists && UserRoleLists.Rows) {
+                            $.each(UserRoleLists.Rows, function () {
+                                if (this.RoleID == newvalue) {
+                                    deleteOrgJob(newvalue, this.ObjectID);
+                                }
+                            })
+                        }
+                    }
+                },
+                width: "100%",
+                onSuccess: function () {
+                },
+                value: SelectedRoles
+
+            })
+        }
+
+
+
+    }
+
+    //查询用户角色列表
+    function QueryFun(fn) {
+        var userid = getUrlParam("ID");
+        CreateLigerGrid(
+         $("#UserRolelist"),
+         GetRoleViewColumns(),
+         $.Controller.OrgUser.GetUserRoleList,
+         false, "97%",
+         null, null, fn,
+         {
+             userID: userid
+         }
+        );
+
+    }
+
+    //角色用户列表列
+    function GetRoleViewColumns() {
+        var primaryKey = $.Lang("ListOrgJob.PrimaryKey");
+        var userAccount = $.Lang("ListOrgJob.UserAccount");
+        var userName = $.Lang("ListOrgJob.UserName");
+        var roleName = $.Lang("ListOrgJob.DisplayName");
+        var managerScope = $.Lang("ListOrgJob.ManagerScope");
+        var operation = $.Lang("ListOrgJob.Operation");
+
+        var edit = $.Lang("GlobalButton.Edit");
+        var del = $.Lang("GlobalButton.Delete");
+
+        return [
+            { display: primaryKey, name: "ObjectID", hide: true },
+            { display: userAccount, name: "UserCode" },
+            { display: userName, name: "UserName" },
+            { display: roleName, name: "RoleName" },
+            { display: managerScope, name: "ManagerScope" },
+            {
+                display: operation, name: '', render: function (row) {
+                    return "<div style='float:left;'><a href='javascript:void(0)' onclick=\"EditRoleUser('" + row.RoleID + "','" + row.ObjectID + "')\">" + edit + "</div>";
+                    //+ "<div style='padding-left:5px;float:left;'><a href='javascript:void(0)' onclick=\"deleteOrgJob('" + row.RoleID + "','" + row.ObjectID + "')\">" + del + "</a></div>"
+                }
+            }];
+    }
+
+    //删除用户角色
+    function deleteOrgJob(roleid, id) {
+        var ajaxUrl = $.Controller.ListOrgJob.DelRoleUser
+        var deleteConfirm = $.Lang("msgGlobalString.AppMenuList_Msg0");
+
+        $.ligerDialog.confirm(deleteConfirm, function (result) {
+            if (result) {
+                $.ajax({
+                    url: ajaxUrl,
+                    data: { roleUserId: id, roleId: roleid },
+                    success: function (result) {
+                        QueryFun(null);
+                        //InitRoleList(RoleList);
+                        //刷新页面
+                        var userid = getUrlParam("ID");
+                        parent.InitRoleList(userid);
+
+                    }
+                });
+            } else {
+                SetRoleListVal();
+            }
+        });
+    }
+
+    //编辑角色用户
+    function EditRoleUser(roleid, roleuserid) {
+        //debugger;
+        var editOrgJob = $.Lang("ListOrgJob.RoleUserEidt");
+        ShowDialog(editOrgJob, _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=Organization/EditRoleUser.html&roleid=" + roleid + "&id=" + roleuserid);
+    }
+
+    function SaveData() {
+        debugger;
+        var ajaxUrl = $.Controller.OrgUser.SaveUserRoles
+        $.ajax({
+            url: ajaxUrl,
+            data: { UserID: id, OrgPostIDS: orgPost },
+            success: function (result) {
+                if (result.Success) {
+                    $.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                }
+                // top.workTab.reload(top.workTab.getSelectedTabItemID());
+                QueryFun(function () { });
+                //$("#UserRolelist").ligerGetGridManager().reload({ onAfterShowData: function () { } });
+                //刷新页面
+                var userid = getUrlParam("ID");
+                parent.InitRoleList(userid);
+            }
+        });
+    }
+
+    function dropDownchange() {
+        if ($(this).val() == "") {
+            var manager = $(this).ligerGetComboBoxManager();
+            $(manager.selectBox).find("input[type='checkbox']").each(function () {
+                $(this).removeAttr("checked");
+            });
+            $(manager.selectBox.table).find(".l-checkbox-checked").each(function () {
+                $(this).removeClass("l-checkbox-checked");
+            });
+        }
+    }
+</script>
+<style>
+    .l-listbox tr.l-selected td {
+        background-color: #39f;
+    }
+</style>
+<div class="H3Panel">
+    <table style="width:100%">
+        <!--所属角色-->
+        <tr>
+            <td style="height:45px;" colspan="2">
+                <table class="tableList" style="width:100%">
+                    <tr>
+                        <td style="width:20%;text-align:right">用户名</td>
+                        <td style="width: 20%; text-align: center">
+                            <span id="spUserName"></span>
+                        </td>
+                        <td style="width:20%;text-align:center"></td>
+                        <td style="width:40%">
+                            <!--<input type="text" id="selectRoleList"  />-->
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+
+            <td valign="top" id="tdLeft">
+                <table style="width:98%;height:100%;min-height:300px;word-break:break-all;word-wrap:break-word;">
+                    <tr>
+                        <td height="40px" style="padding-left:10px;">
+                            <input id="iRoleSearch" type="text" style="width:98%" placeholder="搜索" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td valign="top" style="padding-left:10px;">
+                            <div id="dvRoleList" style="width:98%;min-height:360px;">
+
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td colspan="3" rowspan="2">
+                <div id="UserRolelist"></div>
+            </td>
+        </tr>
+
+    </table>
+</div>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="15px" height="9px" viewBox="0 0 15 9" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 44 (41411) - http://www.bohemiancoding.com/sketch -->
+    <title>up</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="6流程详情页_进行中_展开" transform="translate(-693.000000, -217.000000)" fill="#77BCFA">
+            <g id="1" transform="translate(0.000000, 129.000000)">
+                <g id="Group-3" transform="translate(164.000000, 47.000000)">
+                    <g id="查看全部" transform="translate(472.000000, 25.000000)">
+                        <g id="Group-4">
+                            <path d="M67.3912216,18.9290487 L62.0367156,13.5745427 L61.501265,13.0390921 C61.5037227,12.9869693 61.1679499,12.9869693 60.9658144,13.0390921 L60.4303638,13.5745427 C60.3786452,13.7824425 60.3786452,14.1208393 60.4303638,14.1099933 L60.9658144,14.6454439 L66.3203204,19.9999499 L60.4303638,25.8899065 C60.3786452,25.8786595 60.3786452,26.2175909 60.4303638,26.4253571 L60.9658144,26.9608077 C61.1679499,27.0130641 61.5037227,27.0130641 61.501265,26.9608077 L68.4621228,19.9999499 L67.3912216,18.9290487 Z" id="up" transform="translate(64.426849, 20.000000) scale(1, -1) rotate(90.000000) translate(-64.426849, -20.000000) "></path>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,247 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>H3 BPM</title>
+    <link rel="stylesheet" href="welcome.css" />
+    <script src="../../WFRes/_Scripts/jquery/jquery.js"></script>
+    <script src="../../WFRes/_Scripts/jquery/jquery.lang.js" type="text/javascript"></script>
+    <script src="../../WFRes/_Scripts/vue/vue.min.js" type="text/javascript"></script>
+    <script src="Welcome.js"></script>
+    <script type="text/javascript">
+        var pageInfo = {
+            controls: {
+                divBody: ".body",
+                // divSetting: "#divSetting",
+                divSync: "#divSync",
+                divOrg: "#divOrg",
+                divCategory: "#divCategory",
+                divOrgJob: "#divOrgJob",
+                divSearch: "#divSearch"
+            }
+        }
+
+        $(function () {
+            $.each(pageInfo.controls, function (k, v) {
+                pageInfo.controls[k] = $(v);
+            });
+            // 注册退格事件，回到主页
+            $("body").keydown(function (e) {
+                if (e.keyCode == 8) {
+                    window.location.href = "Home.html";
+                    e.preventDefault();
+                }
+            });
+            var a, b, c;
+
+            //// 线条连接同步设置到组织同步
+            //a = getSidePoint(pageInfo.controls.divSetting, "bottom");
+            //c = getSidePoint(pageInfo.controls.divSync, "top");
+            //$("<div></div>")
+            //   .addClass("poly-line")
+            //   .addClass("pointLine-down")
+            //   .css("width", 1)
+            //   .css("height", c.y - a.y)
+            //   .css("left", a.x)
+            //   .css("top", a.y)
+            //   .appendTo(pageInfo.controls.divBody);
+            // 线条连接组织同步到组织架构
+            a = getSidePoint(pageInfo.controls.divSync, "bottom");
+            c = getSidePoint(pageInfo.controls.divOrg, "top");
+            $("<div></div>")
+               .addClass("poly-line")
+               .addClass("pointLine-down")
+               .css("width", 1)
+               .css("height", c.y - a.y)
+               .css("left", a.x)
+               .css("top", a.y)
+               .appendTo(pageInfo.controls.divBody);
+
+            // 线条连接组织架构到组织搜索
+            a = getSidePoint(pageInfo.controls.divOrg, "right");
+            c = getSidePoint(pageInfo.controls.divSearch, "left");
+            $("<div></div>")
+               .addClass("poly-line")
+               .addClass("pointLine-right")
+               .css("width", c.x - a.x)
+               .css("height", 1)
+               .css("left", a.x)
+               .css("top", a.y)
+               .appendTo(pageInfo.controls.divBody);
+
+            // 线条连接组织类型到组织架构
+            a = getSidePoint(pageInfo.controls.divCategory, "right");
+            c = getSidePoint(pageInfo.controls.divOrg, "left");
+            b = { x: (c.x - a.x) / 2 + a.x, y: c.y };
+            $("<div></div>")
+              .addClass("poly-line")
+              .addClass("line-top-right")
+              .css("width", b.x - a.x)
+              .css("height", b.y - a.y)
+              .css("top", a.y)
+              .css("left", a.x)
+              .appendTo(pageInfo.controls.divBody);
+            $("<div></div>")
+               .addClass("poly-line")
+               .addClass("line-right")
+               .css("width", b.x - a.x)
+               .css("height", b.y - a.y)
+               .css("top", b.y)
+               .css("left", b.x)
+               .appendTo(pageInfo.controls.divBody);
+            // 线条连接定义职务到组织架构
+            a = getSidePoint(pageInfo.controls.divOrgJob, "right");
+            c = getSidePoint(pageInfo.controls.divOrg, "left");
+            b = { x: (c.x - a.x) / 2 + a.x, y: c.y };
+            $("<div></div>")
+              .addClass("poly-line")
+              .addClass("line-bottom-right")
+              .css("width", b.x - a.x)
+              .css("height", a.y - b.y)
+              .css("top", b.y)
+              .css("left", a.x)
+              .appendTo(pageInfo.controls.divBody);
+        });
+
+        var getSidePoint = function (obj, side) {
+            if (side == "top") {
+                return {
+                    x: obj.position().left + obj.width() / 2,
+                    y: obj.position().top
+                };
+            }
+            else if (side == "left") {
+                return {
+                    x: obj.position().left,
+                    y: obj.position().top + obj.height() / 2
+                };
+            }
+            else if (side == "right") {
+                return {
+                    x: obj.position().left + obj.width(),
+                    y: obj.position().top + obj.height() / 2
+                };
+            }
+            else {
+                return {
+                    x: obj.position().left + obj.width() / 2,
+                    y: obj.position().top + obj.height()
+                };
+            }
+        }
+    </script>
+    <style type="text/css">
+        /*兼容小屏幕样式 屏幕宽度小于1024时*/
+        @media screen and (max-width:1024px) {
+
+            .body {
+                width: 100%;
+                left: -40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="head">
+        <div>
+            <div class="title">
+                组织机构
+            </div>
+            <hr class="line" />
+            <div class="description">
+                &nbsp;&nbsp;&nbsp;&nbsp;H3 BPM组织模型含有组织、人员、组、角色等丰富的组织元素，通过这些元素的灵活运用，可以满足包括树形管理、矩阵管理、虚拟团队管理、多条线汇报等各种管理架构。
+            </div>
+        </div>
+    </div>
+    <div class="body">
+        <div id="divCategory" class="activity activityPointer" style="top: 120px; left: 40px" onclick="openUrl('组织类型','../admin/Organization/EditCategory.html');">
+            <div class="activityHead">
+                <div>
+                    组织类型
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    定义组织的所属类型
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#" onclick="openUrl('组织类型','../admin/Organization/EditCategory.html')">点击进入>></a>
+                </div>
+            </div>
+        </div>
+        <div id="divOrgJob" class="activity activityPointer" style="top: 260px; left: 40px;" onclick="openUrl('组织角色','../admin/Organization/ListOrgJob.html');">
+            <div class="activityHead">
+                <div>
+                    组织角色
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    定义企业的用户角色
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#" onclick="openUrl('组织角色', '../admin/Organization/ListOrgJob.html')">点击进入>></a>
+                </div>
+            </div>
+        </div>
+       
+
+        <div id="divSync" class="activity activityPointer" style="top: 40px; left: 350px" onclick="openUrl('组织同步','../admin/Organization/SyncAD.html');">
+            <div class="activityHead">
+                <div>
+                    组织同步
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    执行H3 BPM的组织同步
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#" onclick="openUrl('组织同步','../admin/Organization/SyncAD.html')">点击进入>></a>
+                </div>
+            </div>
+        </div>
+
+        <div id="divOrg" class="activity activityPointer" style="top: 180px; left: 350px">
+            <div class="activityHead">
+                <div>
+                    组织架构
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    树形结构管理企业的组织、用户、群组以及组织之间关系等
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#" onclick="openUrl('组织架构','../admin/Organization/EditCompany.html')">点击进入>></a>
+                </div>
+            </div>
+        </div>
+        <div id="divSearch" class="activity activityPointer" style="top: 180px; left: 650px" onclick="openUrl('用户搜索','../admin/Organization/QueryOrg.html')">
+            <div class="activityHead">
+                <div>
+                    用户搜索
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    搜索用户信息
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#" onclick="openUrl('用户搜索','../admin/Organization/QueryOrg.html')">点击进入>></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

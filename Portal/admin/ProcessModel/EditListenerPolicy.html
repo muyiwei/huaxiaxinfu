@@ -1,0 +1,325 @@
+﻿<style>
+    #div_Condition div {
+        float: left;
+    }
+
+    #div_Condition select, #div_Condition input[type='text'] {
+        width: 100px;
+        float: left;
+    }
+
+    #div_Condition select {
+        height: 26px;
+    }
+
+
+    #div_Condition table {
+        width: 100%;
+    }
+
+    #filterTable a:link, a:visited {
+        display: block;
+        float: left;
+        font-weight: bold;
+        font-family: Verdana,Arial;
+        text-align: center;
+        margin-left: 10px;
+        width: 50px;
+        height: 23px;
+        line-height: 23px;
+        color: #333333;
+        border: 1px solid #d3d3d3;
+        text-decoration: none;
+    }
+
+    .conditionTable {
+    }
+
+        .conditionTable a:link, a:visited {
+            display: block;
+            float: right;
+            font-weight: bold;
+            font-family: Verdana,Arial;
+            text-align: center;
+            margin-right: 23px;
+            width: 24px;
+            height: 11px;
+            line-height: 11px;
+            color: #333333;
+            border: 1px solid #d3d3d3;
+            text-decoration: none;
+        }
+
+    #div_Condition a:hover, a:active {
+    }
+</style>
+
+<script>
+    $(function () {
+        var pageData = {
+            LanData: $.Languages
+        };
+        var opreatorTemp = "";
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function () {
+                    saveData();
+                },
+                addCondition: function () {
+                    this.$validate(true);//表单验证
+                    var validateCondition;
+                    validateCondition = this.$formValidator.conditionValue.invalid;
+                    if (validateCondition) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else if (pageData.Conditions.length != 0 && opreatorTemp != pageData.ListenerPolicy.Filter) {
+                        $.H3Dialog.Warn({ content: $.Lang("ListenerPolicy.MutipleOprerteNotSupport") });
+                    } else {
+                        opreatorTemp = pageData.ListenerPolicy.Filter;
+                        addCondition();
+                    }
+                },
+                removeCondition: function (item) {
+                    if (!item) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SelectItem") });
+                    } else {
+                        removeCondition(item);
+                    }
+                },
+            }
+        });
+        // 获取页面初始化数据
+        function initPageData() {
+            var SchemaCode = getUrlParam("SchemaCode") || "";
+            var OwnSchemaCode = getUrlParam("OwnSchemaCode") || "";
+            $.ajax({
+                url: $.Controller.ListenerPolicy.GetListenerPolicy,
+                type: "GET",
+                cache: false,
+                async: false,//同步执行
+                data: { schemaCode: SchemaCode, ownSchemaCode: OwnSchemaCode },
+                dataType: "JSON",
+                success: function (data) {
+                    if (data.Success) {
+                        setControlUsable(data.Extend.IsLocked, $("a"));
+                        pageData = $.LangArray(data.Extend, "Text");
+                        $.each(pageData.Conditions, function (n, v) {
+                            pageData.Conditions[n].Text = $.format(v.Text, $.Lang(v.Extend[0]), v.Extend[1], $.Lang(v.Extend[2]), v.Extend[3]);
+                        });
+                        opreatorTemp = pageData.ListenerPolicy.Filter;
+                        pageData.LanData = $.Languages;
+                    } else {
+                        setControlUsable(0, $("a"));
+                        $.H3Dialog.Warn({ content: $.Lang(data.Message) });
+                    }
+                }
+            });
+        };
+        //删除条件
+        function removeCondition(item) {
+            pageData.Conditions.$remove(item);
+            pageData.ListenerPolicy.Conditions.$remove(item.Value);
+        };
+
+        //增加条件
+        function addCondition() {
+            $.ajax({
+                url: $.Controller.ListenerPolicy.AddCondition,
+                type: "post",
+                dataType: "json",
+                data: pageData.ListenerPolicy,
+                success: function (result) {
+                    if (result.Success) {
+                        $.each(result.Extend.Values, function (i, n) {
+                            if (i % 2 == 0)
+                                result.Extend.Values[i] = $.Lang("ListenerPolicy." + n);
+                        });
+                        var text = $.format(result.Extend.Text, result.Extend.Values[0], result.Extend.Values[1], result.Extend.Values[2], result.Extend.Values[3]);
+                        pageData.Conditions.push({ 'Text': text, 'Value': result.Extend.Val });
+                        pageData.ListenerPolicy.Conditions.push(result.Extend.Val);
+                    } else {
+                        if (result.Message) {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SaveFailed") });
+                        }
+                    }
+                }
+            });
+        };
+
+        //保存
+        function saveData() {
+            $.ajax({
+                url: $.Controller.ListenerPolicy.SaveListenerPolicy,
+                type: "post",
+                dataType: "json",
+                data: pageData.ListenerPolicy,
+                traditional: true,
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                        setTimeout(function () {
+                            top.ReloadNode(pageData.ListenerPolicy.SchemaCode);
+                        }, 1000);
+                    } else {
+                        if (result.Message) {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SaveFailed") });
+                        }
+                    }
+                }
+            });
+        };
+
+
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel({ excludeIDs: ["ListeneerPolicy"] });
+
+        CreateLigerGrid(
+            $("#ListeneerPolicy"),
+            GetColumns(),
+            $.Controller.ListenerPolicy.GetListenerPolicyList,
+            false,
+            "98%",
+            null, null, null,
+            {
+                schemaCode: pageData.ListenerPolicy.SchemaCode
+            }
+           );
+
+    });
+
+    function GetColumns() {
+        var instanceName = $.Lang("ListenerPolicy.InstanceName");
+        var nodeCode = $.Lang("ListenerPolicy.NodeCode");
+        var condition = $.Lang("ListenerPolicy.Condition");
+        var CreateTime = $.Lang("ListenerPolicy.CreateTime");
+        return [
+    { display: "BizObjectID", name: "ObjectID" },
+    { display: instanceName, name: "InstanceID" },
+    { display: nodeCode, name: "ActivityCode" },
+    { display: condition, name: "Condition" },
+    { display: CreateTime, name: "CreatedTime" }
+        ]
+    }
+</script>
+
+<div id="H3ToolBar">
+    <a v-on:click="saveData" data-icon="fa fa-save" href="javascript:void(0)">保存</a>
+</div>
+<validator name="formValidator" v-bind:groups="['intervalSecond','conditionValue']">
+
+    <div class="H3Panel">
+        <span>{{LanData.ListenerPolicy.BasicSet}}</span>
+        <table style="width: 100%">
+            <tr>
+                <td>{{LanData.ListenerPolicy.Stategy}}</td>
+                <td colspan="2" class="tableNoCss">
+                    <table border="0">
+                        <tr>
+                            <td v-for="item in PolicyTypes">
+                                <label style="margin-right:10px">
+                                    <input type="radio" name="mapType" value="{{item.Value}}" v-model="ListenerPolicy.PolicyType" />
+                                    {{item.Text}}
+                                </label>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.ListenerPolicy.PollInterval}}({{LanData.ListenerPolicy.Unit}})</td>
+                <td style="width: 320px;">
+                    <input type="text" group="intervalSecond" v-model="ListenerPolicy.IntervalSecond" detect-change="on" detect-blur="on" initial="off" v-validate:interval-second="['number']" />
+                </td>
+                <td class="tableDesCol">
+                    {{LanData.ListenerPolicy.Support}}
+                </td>
+            </tr>
+            <tr v-show="$formValidator.intervalSecond.number">
+                <td></td>
+                <td>
+                    <span style="color:Red;">{{LanData.msgGlobalString.NumberValidate}}</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="divFilter" class="H3Panel" v-show="ListenerPolicy.PolicyType=='Batch'||ListenerPolicy.PolicyType=='EventDrivenAndBatch'">
+        <span>{{LanData.ListenerPolicy.FilterCon}}</span>
+        <table>
+            <tr>
+                <td>{{LanData.ListenerPolicy.FilterMethod}}</td>
+                <td>
+                    <select v-model="ListenerPolicy.FilterMethod">
+                        <option v-for="option in FilterMethods" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+            </tr>
+
+            <tr>
+                <td>{{LanData.ListenerPolicy.FindMost}}</td>
+                <td>
+                    <div id="div_Condition" class="tableNoCss">
+                        <div id="UpdatePanel" style="width: 100%;">
+                            <table style="width: 100%;">
+                                <tr>
+                                    <td style="width: 250px; height: 100px;">
+                                        <table class="conditionTable">
+                                            <tr v-for="option in Conditions">
+                                                <td>
+                                                    {{option.Text}}
+                                                    <a v-on:click="removeCondition(option)" href="javascript:void(0)" title="{{LanData.GlobalButton.Delete}}">-</a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table id="filterTable">
+                                            <tr>
+                                                <td>
+                                                    <div>
+                                                        <select v-model="ListenerPolicy.Filter" style="width:50px;">
+                                                            <option v-for="option in Filters" v-bind:value="option.Value">{{option.Text}}</option>
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <select v-model="ListenerPolicy.Field">
+                                                            <option v-for="option in Fields" v-bind:value="option.Value">{{option.Text}}</option>
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <select v-model="ListenerPolicy.Operator" style="width:60px;">
+                                                            <option v-for="option in Operators" v-bind:value="option.Value">{{option.Text}}</option>
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <input style="height:24px;" type="text" group="conditionValue" v-model="ListenerPolicy.ConditionValue" detect-change="on" detect-blur="on" initial="off" v-validate:condition-value="{required:true}" />
+                                                        <span style="color:Red;" v-if="$formValidator.conditionValue.invalid">{{LanData.msgGlobalString.EnumValueRequired}} </span>
+
+                                                    </div>
+                                                    <div>
+                                                        <a id="AddCondition" v-on:click="addCondition" href="javascript:void(0)">+</a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>
+<div class="H3Panel">
+    <span>{{LanData.ListenerPolicy.Listener}}</span>
+    <div id="ListeneerPolicy"></div>
+</div>

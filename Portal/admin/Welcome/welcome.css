@@ -1,0 +1,516 @@
+﻿body {
+    background-color: #F5F5F5;
+}
+
+a:link {
+    text-decoration: none;
+    color: #7B7474;
+}
+
+a:visited {
+    font-weight: bold;
+    color: #631717;
+}
+
+a:hover {
+    font-weight: bold;
+    text-decoration: none;
+    color: #4563c4;
+}
+
+a:active {
+    text-decoration: none;
+    color: #ccc2c2;
+}
+
+.head {
+    width: 100%;
+    padding-bottom: 20px;
+}
+
+    .head div {
+        width: 80%;
+        margin: 0px auto;
+    }
+
+    .head .title {
+        padding-top: 5px;
+        font-size: 32px;
+        padding-left: 0px;
+        padding-bottom: 6px;
+        width: 100%;
+        margin: 0px auto;
+    }
+
+    .head .line {
+        width: 100%;
+        border: 2px solid;
+        border-color: #00b0ff;
+        margin: 0px auto;
+    }
+
+    .head .description {
+        width: 100%;
+        padding-top: 5px;
+        font-size: 13px;
+        line-height: 20px;
+        text-align: left;
+    }
+
+.body {
+    width: 80%;
+    margin: 0px auto;
+    border: 0px solid black;
+    position: relative;
+}
+
+    .body > * {
+        position: absolute;
+    }
+
+/*节点样式Start*/
+.activityPointer {
+    cursor: pointer;
+}
+
+.activity {
+    width: 180px;
+    line-height: 16px;
+    border-radius: 5px;
+    border: 1px solid #b6b5b5;
+    /*cursor: pointer;*/
+}
+
+    .activity .activityHead {
+        width: 100%;
+        border: 0px solid #b6b5b5;
+        background-color: #68B9CB;
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
+    }
+
+        .activity .activityHead div {
+            text-align: center;
+            padding-top: 5px;
+            padding-bottom: 5px;
+            width: 100%;
+            font-size: 16px;
+            border: 0px solid #b6b5b5;
+            color: #FFFFFF;
+            font-weight: bold;
+        }
+
+    .activity .activityBody {
+        width: 100%;
+        border: 0px solid #b6b5b5;
+        background-color: #FFFFFF;
+        border-bottom-right-radius: 5px;
+        border-bottom-left-radius: 5px;
+    }
+
+        .activity .activityBody div {
+            padding: 5px;
+            line-height: 20px;
+            border: 0px solid #b6b5b5;
+            /*background-color: #EFF0F2;*/
+            min-height: 50px;
+            font-size: 11px;
+        }
+
+    .activity:hover {
+        border-color: #851212;
+        color: #923a1d;
+    }
+
+
+    .activity .activityFoot {
+        text-align: right;
+        padding-right: 6px;
+        font-size: 10px;
+    }
+
+.activityFoot {
+    display: none;
+}
+/*节点样式End*/
+
+/*线条样式Start*/
+.poly-line {
+    background-color: transparent;
+    border: 1px solid #00b0ff;
+}
+
+.left-bottom {
+    border-top: none;
+    border-right: none;
+    border-bottom-left-radius: 20px;
+}
+
+    .left-bottom:before {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border: 4px solid #00b0ff;
+        border-radius: 4px;
+        top: 0px;
+        left: -5px;
+    }
+
+    .left-bottom:after {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border-style: solid;
+        border-width: 5px 10px 5px 10px;
+        border-color: transparent transparent transparent #00b0ff;
+        bottom: -6px;
+        right: 0;
+        margin-right: -20px;
+    }
+
+.left-top {
+    border-bottom: none;
+    border-right: none;
+    border-top-left-radius: 20px;
+}
+
+    .left-top:before {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border: 4px solid #00b0ff;
+        border-radius: 4px;
+        bottom: 0px;
+        top: -5px;
+    }
+
+    .left-top:after {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border-style: solid;
+        border-width: 5px 10px 5px 10px;
+        border-color: transparent transparent transparent #00b0ff;
+        top: -6px;
+        right: 0;
+        margin-right: -20px;
+    }
+
+.line-top-left {
+    border-bottom: none;
+    border-right: none;
+    border-top-left-radius: 20px;
+}
+
+    .line-top-left:before {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border: 4px solid #00b0ff;
+        border-radius: 4px;
+        right: 0px;
+        top: -5px;
+    }
+
+.line-bottom-left {
+    border-top: none;
+    border-right: none;
+    border-bottom-left-radius: 20px;
+}
+
+    .line-bottom-left:before {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border: 4px solid #00b0ff;
+        border-radius: 4px;
+        right: 0px;
+        bottom: -5px;
+    }
+
+.line-top-right {
+    border-bottom: none;
+    border-left: none;
+    border-top-right-radius: 20px;
+}
+
+    .line-top-right:before {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border: 4px solid #00b0ff;
+        border-radius: 4px;
+        top: -5px;
+    }
+
+.line-bottom-right {
+    border-top: none;
+    border-left: none;
+    border-bottom-right-radius: 20px;
+}
+
+    .line-bottom-right:before {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border: 4px solid #00b0ff;
+        border-radius: 4px;
+        bottom: -5px;
+        left: 0px;
+    }
+
+.line-left-bottom {
+    border-top: none;
+    border-right: none;
+    border-bottom-left-radius: 20px;
+}
+
+    .line-left-bottom:before {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border: 4px solid #00b0ff;
+        border-radius: 4px;
+        left: -5px;
+        top: -3px;
+    }
+
+.line-right-bottom {
+    border-top: none;
+    border-left: none;
+    border-bottom-right-radius: 20px;
+}
+
+    .line-right-bottom:before {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border: 4px solid #00b0ff;
+        border-radius: 4px;
+        right: -5px;
+        top: -3px;
+    }
+
+.line-down {
+    border-bottom: none;
+    border-left: none;
+    border-top: none;
+}
+
+    .line-down:after {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border-style: solid;
+        border-width: 10px 5px 10px 5px;
+        border-color: #00b0ff transparent transparent transparent;
+        bottom: -12px;
+        right: -6px;
+    }
+
+.line-right {
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+}
+
+    .line-right:after {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border-style: solid;
+        border-width: 5px 10px 5px 10px;
+        border-color: transparent transparent transparent #00b0ff;
+        top: -6px;
+        right: -12px;
+    }
+
+.line-left {
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+}
+
+    .line-left:after {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border-style: solid;
+        border-width: 5px 10px 5px 10px;
+        border-color: transparent #00b0ff transparent transparent;
+        top: -6px;
+        left: -12px;
+    }
+
+.pointLine-right {
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+}
+
+    .pointLine-right:before {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border: 4px solid #00b0ff;
+        border-radius: 4px;
+        top: -5px;
+    }
+
+    .pointLine-right:after {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border-style: solid;
+        border-width: 5px 10px 5px 10px;
+        border-color: transparent transparent transparent #00b0ff;
+        top: -6px;
+        right: -12px;
+    }
+
+.pointLine-left {
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+}
+
+    .pointLine-left:before {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border: 4px solid #00b0ff;
+        border-radius: 4px;
+        top: -5px;
+        right: -5px;
+    }
+
+    .pointLine-left:after {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border-style: solid;
+        border-width: 5px 10px 5px 10px;
+        border-color: transparent #00b0ff transparent transparent;
+        top: -6px;
+        left: -12px;
+    }
+
+.pointLine-down {
+    border-bottom: none;
+    border-top: none;
+    border-right: none;
+}
+
+    .pointLine-down:before {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border: 4px solid #00b0ff;
+        border-radius: 4px;
+        top: -3px;
+        left: -5px;
+    }
+
+    .pointLine-down:after {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border-style: solid;
+        border-width: 10px 5px 10px 5px;
+        border-color: #00b0ff transparent transparent transparent;
+        bottom: -12px;
+        left: -6px;
+    }
+
+.top-right {
+    border-bottom: none;
+    border-left: none;
+    border-top-right-radius: 20px;
+}
+
+    .top-right:before {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border: 4px solid #00b0ff;
+        border-radius: 4px;
+        top: -5px;
+    }
+
+    .top-right:after {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border-style: solid;
+        border-width: 10px 5px 10px 5px;
+        border-color: #00b0ff transparent transparent transparent;
+        bottom: -12px;
+        right: -6px;
+    }
+
+.right-bottom {
+    border-top: none;
+    border-left: none;
+    border-bottom-right-radius: 20px;
+}
+
+    .right-bottom:before {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border: 4px solid #00b0ff;
+        border-radius: 4px;
+        right: -5px;
+        top: -5px;
+    }
+
+    .right-bottom:after {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border-style: solid;
+        border-width: 5px 10px 5px 10px;
+        border-color: transparent #00b0ff transparent transparent;
+        bottom: -6px;
+        left: -12px;
+    }
+
+.bottom-left {
+    border-top: none;
+    border-right: none;
+    border-bottom-left-radius: 20px;
+}
+
+    .bottom-left:before {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border: 4px solid #00b0ff;
+        border-radius: 4px;
+        right: -5px;
+        bottom: -5px;
+    }
+
+    .bottom-left:after {
+        content: "";
+        font-size: 0px;
+        position: absolute;
+        border-style: solid;
+        border-width: 10px 5px 10px 5px;
+        border-color: transparent transparent #00b0ff transparent;
+        top: -12px;
+        left: -6px;
+    }
+/*线条样式End*/
+
+/*兼容小屏幕样式 屏幕宽度小于1024时*/
+@media screen and (max-width:1024px) {
+    .head div {
+        width: 100%;
+    }
+
+    .body {
+        width: 100%;
+        left: -16px;
+    }
+}

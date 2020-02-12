@@ -1,0 +1,77 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>脚本加载方法</title>
+    <script type="text/javascript" src="../WFRes/_Scripts/jquery/jquery.js"></script>
+    <script type="text/javascript" src="../WFRes/_Scripts/jquery/plugin/dynamicLoading/dynamicLoading.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            console.log("Loaded....");
+        });
+
+        $.dynamicLoading([
+            "/JS/WFRes/_Scripts/RSA.js",
+            "/JS/css/app.css",
+            "/JS/css/appExtend.css",
+            "/JS/css/app.css",
+        ], function () {
+            console.log("OK");
+        });
+
+        var x = {
+            data: {
+                code: "<input/>",
+                value: "<span>xx</span>"
+            },
+            abc: ["a", "b"],
+            arr: [{
+                code: "<input/>",
+                value: "<span>aa</span>"
+            }, {
+                code: "<input/>",
+                value: "<span>bb</span>"
+            }],
+            test: "<span>hello</span>",
+            num: 5
+        };
+
+        var encodeJson = function (obj) {
+            for (var k in obj) {
+                if (obj[k] instanceof Object) {
+                    encodeJson(obj[k]);
+                }
+                else if (obj[k] instanceof Array) {
+                    for (var index in obj[k]) {
+                        encodeJson(obj[k][index]);
+                    }
+                }
+                else if (typeof (obj[k]) == "string") {
+                    obj[k] = encodeURI(obj[k]);
+                }
+            }
+        }
+
+        var newObj = x;
+
+        var str = JSON.stringify(x);
+        console.log(str);
+
+        newObj = JSON.parse(JSON.stringify(x));
+        encodeJson(newObj);
+
+
+        var str1 = JSON.stringify(x);
+        console.log(str1);
+
+        var str2 = JSON.stringify(newObj);
+        console.log(str2);
+
+
+
+    </script>
+</head>
+<body>
+
+</body>
+</html>

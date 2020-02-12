@@ -1,0 +1,307 @@
+﻿<style type="text/css">
+    i {
+        padding-right: 6px;
+    }
+
+    .l-grid-tree-space.l-grid-tree-link.l-grid-tree-link-close {
+        padding-top: 6px;
+    }
+
+    .l-grid-tree-space.l-grid-tree-link.l-grid-tree-link-open {
+        padding-top: 6px;
+    }
+</style>
+<script type="text/javascript">
+    $(function () {
+        var pageData = {
+            LanData: $.Languages
+        };
+        //初始化页面数据
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+
+            }
+        });
+
+        function initPageData() {
+            $.ajax({
+                url: $.Controller.SysDeployment.GetSysDeploymentData,
+                type: 'get',
+                dataType: 'json',
+                async: false,//同步执行
+                success: function (result) {
+                    if (result.Success) {
+                        pageData.SysDeployment = result.Extend;
+                    }
+                }
+            });
+        }
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel({ excludeIDs: ["maingrid"] });
+        //部署
+        $("#lbtnDeployment").click(function () {
+            if ($(this).hasClass("l-toolbar-item-disable")) return false;
+
+            var rows = manager.getSelectedRows();
+            if (!rows || rows.length == 0) {
+                $.H3Dialog.Warn({ content: "请选择部署内容" });
+                return false;
+            }
+            //保存部署服务器信息
+            ShowLoading();
+            $.post($.Controller.SysDeployment.SaveDeployment,
+                //{
+                //    Action: "SaveEngineInfo",
+                //    ServerHost: $("#txtServerIP").val(),
+                //    Port: $("#txtPort").val(),
+                //    EngineName: $("#txtEngineName").val(),
+                //    LoginName: $("#txtUserName").val(),
+                //    Password: $("#txtPassword").val()
+                //},
+                pageData.SysDeployment,
+                function (result) {
+                    HideLoading();
+                    if (result.Success) {
+                        //服务器信息保存成功，执行一键部署任务
+                        disablePage();
+                        DoingCount = rows.length;
+                        $.each(rows, function (index, srow) {
+                            doDelpoyment(srow);
+                        });
+                    }
+                    else {
+                        var content = $.Lang(result.Message);
+                         
+                        $.H3Dialog.Error({ content: content });
+                    }
+                }, "json");
+
+            return false;
+        });
+
+        //连接检查
+        $("#lbtnCheck").click(function () {
+            if ($(this).hasClass("l-toolbar-item-disable")) return false;
+            ShowLoading();
+            $.post($.Controller.SysDeployment.CheckConnection,
+                //{
+                //    IPAddr: $("#txtServerIP").val(),
+                //    Port: $("#txtPort").val(),
+                //    EngineName: encodeURIComponent($("#txtEngineName").val()),
+                //    UserName: $("#txtUserName").val(),
+                //    Password: $("#txtPassword").val()
+                //},
+                pageData.SysDeployment,
+                function (result) {
+                    HideLoading();
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.CheckConnectionSucced") });
+                    }
+                    else {
+                        var content = $.Lang(result.Message);
+                        if (result.Extend) {
+                            content += $.Lang(result.Extend);
+                        }
+                        $.H3Dialog.Error({ content: content });
+                    }
+                }, "json");
+            return false;
+        });
+
+        loadTree();
+    });
+
+    var DoingCount = 0;
+    function CheckIsDone() {
+        DoingCount--;
+        if (DoingCount == 0) {
+            enablePage();
+        }
+    }
+
+    //禁用界面元素
+    function disablePage() {
+        $("#lbtnDeployment").addClass("l-toolbar-item-disable");
+        $("#lbtnCheck").addClass("l-toolbar-item-disable");
+        $("input[type='text']").prop("disabled", true);
+        $("input[type='password']").prop("disabled", true);
+    }
+
+    //激活界面元素
+    function enablePage() {
+        $("#lbtnDeployment").removeClass("l-toolbar-item-disable");
+        $("#lbtnCheck").removeClass("l-toolbar-item-disable");
+        $("input[type='text']").prop("disabled", false);
+        $("input[type='password']").prop("disabled", false);
+    }
+
+    //递归部署树的每一个节点
+    function doDelpoyment(row) {
+        if (row) {
+            //某些节点不用部署
+            if (row.Code == "ServiceMoniter"
+                || row.Code == "BizBus" || row.Code == "BizBus_BizService"
+                || row.Code == "BizRule" || row.Code == "BizRule_ListRuleTable"
+                || row.Code == "ProcessModel" || row.Code == "ProcessModel_BizMasterData"
+                || row.Code == "Apps"
+                || row.Code == "BPA" || row.Code == "BPA_ReportSource" || row.Code == "BPA_ReportTemplate"
+                || row.Code == "SysParam") {
+                $("#" + row.Code).css({ "color": "green" }).text("部署成功");
+                CheckIsDone();
+            }
+            else {
+                $("#" + row.Code).css({ "color": "orange" }).text("部署中");
+                $.get($.Controller.SysDeployment.ExecuteDeploy, { code: row.Code, node: row.NodeType },
+                    function (json) { 
+                        if (json.State) {
+                            recordDeloyTime();
+                            var html = "<span style='color:green;'>" + $.Lang("SysDeployment.DepolymentSucced") + "。</span>";
+                            if (json.Info && json.Info.length != 0) {
+                                var infoMsg = "";
+                                $.each(json.Info, function () {
+                                    infoMsg += $.format($.Lang(this.ErrorCode), this.ErrorMsgs[0], this.ErrorMsgs[1], this.ErrorMsgs[2]);
+                                });
+                                html += "<a href=\"javascript:;\" style=\"color:gray;\" onclick=\"return showWarnInfo(\'"
+                                    + escape(infoMsg) + "\');\">WARN</a>";
+                            }
+                            $("#" + row.Code).html(html);
+                        }
+                        else {
+                            var errorMsg = "";
+                            if (json.ErrorMsgs) {
+                                errorMsg = $.format($.Lang(json.ErrorCode), json.ErrorMsgs[0], json.ErrorMsgs[1], json.ErrorMsgs[2]);
+                            }
+                            if (json.ErrorMsg) {
+                                errorMsg = $.format($.Lang(json.ErrorCode), json.ErrorMsg);
+                            }
+                            if (json.ExtendMsg) {
+                                errorMsg += json.ExtendMsg;
+                            } 
+                            $("#" + row.Code).css({ "color": "red" }).text($.Lang("SysDeployment.Mssg5") + "," + $.Lang(errorMsg));
+                        }
+                        CheckIsDone();
+                    },
+                "json");
+            }
+        }
+    }
+
+    function showWarnInfo(info) {
+        $.ligerDialog.warn(unescape(info));
+        return false;
+    }
+
+    //记录部署时间
+    var successCount = 0;
+    function recordDeloyTime() {
+        successCount++;
+        if (successCount == 1) {
+            $.get($.Controller.SysDeployment.RecordDeloyTime);
+        }
+    }
+
+    var manager;
+    //加载树
+    function loadTree() {
+        var SysDeploymentNode = $.Lang("SysDeployment.Node");
+        var SysDeploymentState = $.Lang("SysDeployment.State");
+        manager = $("#maingrid").ligerGrid({
+            columns: [
+            { display: SysDeploymentNode, name: 'Text', width: 250, type: 'string', align: 'left', render: f_renderNode },
+            { display: SysDeploymentState, name: '', width: 250, type: 'string', align: 'left', render: f_renderStatus }],
+            width: '100%', height: '97%', usePager: false,
+            url: $.Controller.SysDeployment.GetDepolyTree,
+            //url: "../Ajax/DeploymentHandler.ashx?Action=GetData",
+            alternatingRow: false, checkbox: true, tree: { columnName: 'Text' },
+            enabledEdit: false,
+            isChecked: function (data) {
+                //系统参数默认不勾选
+                if (data.Code.indexOf("SysParam") == 0) {
+                    return false;
+                }
+                else {
+                    return data.NeedDeploy;
+                }
+            },
+            //autoCheckChildren:false
+        });
+    }
+
+    function f_renderNode(rowdata, index, value) {
+        var node = rowdata;
+        
+        node.TextCode = node.Text;
+        if (node.Text == $.Lang(node.Text)) {
+            if (node.ExtendObject) {
+                if (node.ExtendObject.Text) {
+                    value = node.ExtendObject.Text;
+                }
+                else { value = node.ExtendObject; }
+            }
+            else value = node.Code
+        } else {
+            value = $.Lang(node.Text);
+        }
+
+        var icon = rowdata.Icon;
+        if (icon && icon != "") {
+            return "<i class='" + icon + "' style='width:16px;height:16px;'/>" + value;
+        }
+        else {
+            return value;
+        }
+    }
+
+    function f_renderStatus(rowdata, index, value) {
+        return "<span id='" + rowdata.Code + "'></span>";
+    }
+</script>
+<div id="ToolBar">
+    <a id="lbtnCheck" data-icon="fa fa-check" href="javascript:void(0)" data-lang="SysDeployment.Connection"></a>
+    <a id="lbtnDeployment" data-icon="fa fa-angle-double-right" href="jsvascript:void(0)" data-lang="SysDeployment.Deployment"></a>
+</div>
+<div class="H3Panel">
+    <span>{{LanData.SysDeployment.Mssg}}</span>
+    <table>
+        <tr>
+            <td>{{LanData.SysDeployment.IPAddr}}</td>
+            <td style="width: 250px;">
+                <input name="txtServerIP" type="text" id="txtServerIP" v-model="SysDeployment.IPAddr" />
+            </td>
+            <td class="tableDesCol">127.0.0.1</td>
+            <td>{{LanData.SysDeployment.Port}}</td>
+            <td style="width: 250px;">
+                <input name="txtPort" type="text" id="txtPort" v-model="SysDeployment.Port" />
+            </td>
+            <td class="tableDesCol">0～65535</td>
+        </tr>
+        <tr>
+            <td>{{LanData.SysDeployment.Engine}}</td>
+            <td>
+                <input name="txtEngineName" type="text" id="txtEngineName" v-model="SysDeployment.EngineName" />
+            </td>
+            <td class="tableDesCol">DefaultEngine</td>
+            <td colspan="3"></td>
+        </tr>
+        <tr>
+            <td>{{LanData.SysDeployment.Account}}</td>
+            <td>
+                <input name="txtUserName" type="text" maxlength="32" id="txtUserName" v-model="SysDeployment.UserName" />
+            </td>
+            <td></td>
+            <td>{{LanData.SysDeployment.Password}}</td>
+            <td>
+                <input name="txtPassword" type="password" maxlength="32" id="txtPassword" v-model="SysDeployment.Password" />
+            </td>
+            <td></td>
+        </tr>
+    </table>
+</div>
+<div class="H3Panel">
+    <span>{{LanData.SysDeployment.Content}}</span>
+    <div id="maingrid"></div>
+    <input type="hidden" name="hfSelected" id="hfSelected" />
+</div>

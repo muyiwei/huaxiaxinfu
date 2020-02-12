@@ -1,0 +1,136 @@
+﻿<div ng-controller="MyWorkItemDefaultController">
+    <div class="table-responsive">
+        <table id="tabUnfinishWorkitem"
+               ui-jq="dataTable" ui-options="dtOptions()"
+               class="table table-striped m-b-none" style="width:99%;">
+            <thead>
+                <tr>
+                    <th style="width:7%;" class="hide1024"><span translate="QueryTableColumn.Flag"></span></th>
+                    <th style="width:30%;"><span translate="QueryTableColumn.ProcessName"></span></th>
+                    <th style="width: 15%;"><span translate="QueryTableColumn.Title"></span></th>
+                    <th style="width: 15%;" class="hide414"><span translate="QueryTableColumn.ReceiveTime"></span></th>
+                    <th style="width: 10%;" class="hide414"><span translate="QueryTableColumn.Originator"></span></th>
+                    <th style="width: 15%;" class="hide1024"><span translate="QueryTableColumn.DeptOfOriginator"></span></th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+<script type="text/javascript">
+    app.controller('MyWorkItemDefaultController', ['$scope', '$rootScope', '$compile', '$translate', 'ControllerConfig', 'jq.datables',
+    function ($scope, $rootScope, $compile, $translate, ControllerConfig, jqdatables) {
+        // 获取语言
+        $rootScope.$on('$translateChangeEnd', function () {
+            $scope.getLanguage();
+            $state.go($state.$current.self.name, {}, { reload: true });
+        });
+        $scope.getLanguage = function () {
+            $scope.LanJson = {
+                search: $translate.instant("uidataTable.search"),
+                sLengthMenu: $translate.instant("uidataTable.sLengthMenu"),
+                sZeroRecords: $translate.instant("uidataTable.sZeroRecords_UnfinishedWorkItem"),
+                sInfo: $translate.instant("uidataTable.sInfo"),
+                sProcessing: $translate.instant("uidataTable.sProcessing")
+            }
+        }
+        $scope.getLanguage();
+        // 获取列定义
+        $scope.getColumns = function () {
+            var columns = [];
+            columns.push({
+                "mData": "Priority",
+                "sClass": "hide1024",
+                "mRender": function (data, type, full) {
+                    var rtnstring = "";
+                    //紧急程度
+                    if (full.Priority == "0") {
+                        rtnstring = "<i class=\"glyphicon glyphicon-bell\" ></i>";
+                    } else if (full.Priority == "1") {
+                        rtnstring = "<i class=\"glyphicon glyphicon-bell\" style=\"color:green;\"></i>";
+                    } else {
+                        rtnstring = "<i class=\"glyphicon glyphicon-bell\" style=\"color:red;\"></i>";
+                    }
+                    //是否催办
+                    if (full.Urged == false) {
+                        rtnstring = rtnstring + "<a> <i class=\"glyphicon glyphicon-bullhorn\"></i></a>";
+                    } else {
+                        rtnstring = rtnstring + "<a ng-click=\"showUrgeWorkItemInfoModal('" + full.ObjectID + "')\"> <i class=\"glyphicon glyphicon-bullhorn\" style=\"color:orangered;\"></i></a>";
+                    }
+                    return rtnstring;
+                }
+            });
+            columns.push({
+                "mData": "InstanceName",
+                "mRender": function (data, type, full) {
+                    return "<a ui-toggle-class='show' target='.app-aside-right' targeturl='WorkItemSheets.html?WorkItemID=" + full.ObjectID + "'>" + data + "</a>";
+                }
+            });
+            columns.push({ "mData": "DisplayName" });
+
+            columns.push({ "mData": "ReceiveTime", "sClass": "center hide414" });
+
+            columns.push({
+                "mData": "OriginatorName",
+                "sClass": "center hide414",
+                "mRender": function (data, type, full) {
+                    return "<a ng-click=\"showUserInfoModal('" + full.Originator + "');\" new-Bindcompiledhtml>" + data + "</a>";
+                }
+            });
+
+            columns.push({ "mData": "OriginatorOUName", "sClass": "hide1024", });
+
+            return columns;
+        }
+        $scope.dtOptions = function () {
+            var options = {
+                "bServerSide": true,    // 是否读取服务器分页
+                "paging": false,         // 是否启用分页
+                "bLengthChange": false, // 每页显示多少数据
+                "bFilter": false,        // 是否显示搜索栏
+                "iDisplayLength": 10,   // 每页显示行数
+                "bSort": false,         // 排序
+                "bInfo": false,          // Showing 1 to 10 of 23 entries 总记录数没也显示多少等信息
+                "language": {           // 语言设置
+                    "sLengthMenu": $scope.LanJson.sLengthMenu,
+                    "sZeroRecords": "<i class=\"icon-emoticon-smile\"></i>" + $scope.LanJson.sZeroRecords,
+                    "sInfo": $scope.LanJson.sInfo,
+                    "infoEmpty": "",
+                    "sProcessing": $scope.LanJson.sProcessing,
+                    "paginate": {
+                        "first": "<<",
+                        "last": ">>",
+                        "previous": "<",
+                        "next": ">"
+                    }
+                },
+                "sAjaxSource": ControllerConfig.WorkItem.GetDefaultUnfinishWorkItems,//待办
+                "sAjaxDataProp": 'Rows',
+                "sDom": "<'row'<'col-sm-6'l><'col-sm-6'f>r>t<'row'<'col-sm-6'i><'col-sm-6'p>>",
+                "sPaginationType": "full_numbers",
+                "fnServerParams": function (aoData) {  // 增加自定义查询条件
+                    aoData.push(
+                        { "name": "startIndex", "value": 0 },
+                        { "name": "endIndex", "value": 7 })
+                },
+                "aoColumns": $scope.getColumns(), // 字段定义
+                //创建行，未绘画到屏幕上时调用
+                "fnRowCallback": function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    //将添加的angular事件添加到作用域中
+                    $compile(nRow)($scope);
+                    $(nRow).find("td").each(function (i, e) {
+                        $(e).attr("title", $(e).text());
+                    })
+                },
+                //datables被draw完后调用
+                "fnDrawCallback": function () {
+                    jqdatables.trcss();
+                    this.find("th").each(function (i, e) {
+                        $(e).attr("title", $(e).text());
+                    })
+                }
+            }
+            return options;
+        }
+    }]);
+</script>

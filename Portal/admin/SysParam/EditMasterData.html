@@ -1,0 +1,191 @@
+﻿<script>
+    var sltCategoryComBox;
+    $(function () {
+        var pageData = {};
+        //初始化页面数据
+        initPageData();
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel({ excludeIDs: ["DataSourceList"] });
+        var initId = "";
+        var initValue = "";
+        if (pageData.category.length != 0) {
+            initId = pageData.category[0].id;
+            initValue = pageData.category[0].text;
+        }
+        //表格初始化
+        CreateLigerGrid(
+            $("#DataSourceList"),
+            GetCategoryColumns(),
+            $.Controller.MasterData.GetMasterDataList,
+             true, null, null, null, null,
+            {
+                id: initId
+            }
+            );
+
+        //下拉框初始化
+        sltCategoryComBox = $("#sltCategory").ligerComboBox({
+            initValue: initId,
+            initText: initValue,
+            data: pageData.category,
+            valueFieldID: 'category',
+        });
+
+        $("#sltCategory").change(function () {
+            var id = $("#category").val();
+            H3GridManager.set("parms", { Action: "GetData", id: id });
+            H3GridManager.loadData();
+        });
+
+        function initPageData() { 
+            //获取页面数据
+            $.ajax({
+                url: $.Controller.MasterData.GetMasterPageData,
+                type: 'get',
+                dataType: "json",
+                async: false,//同步执行
+                success: function (result) {
+                    pageData = result;
+                }
+            });
+        }
+        //获取grid列信息
+        function GetCategoryColumns() {
+            var edit = $.Lang("EditMasterData.Edit");
+            var category = $.Lang("EditMasterData.Category");
+            var code = $.Lang("EditMasterData.Code");
+            var displayText = $.Lang("EditMasterData.DisplayText");
+            var sortkey = $.Lang("EditMasterData.SortKey");
+            var defaultValue = $.Lang("EditMasterData.DefaultValue");
+
+            return [
+                { display: 'ObjectID', name: 'ObjectID', hide: true },
+                { display: category, name: 'Category', width: '20%' },
+                { display: code, name: 'Code', width: '20%' },
+                { display: displayText, name: 'DisplayText', width: '20%' },
+                { display: sortkey, name: 'SortKey', width: '20%' },
+                {
+                    display: defaultValue, name: 'IsDefault', width: '10%', render: SetIsDefault
+                },
+                {
+                    display: edit, name: '', width: '5%', render: function (row) {
+                        return "<a href='#' id='" + row.ObjectID + "'  onclick='RowEditClick(this)'>" + edit + "</a>";
+                    }
+                }
+            ];
+
+        }
+    })
+
+    //行编辑
+    function RowEditClick(obj) {
+        var name = $.Lang("EditMasterData.EditMasterData");
+        ShowDialog(name, _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=SysParam/EditMasterDataDetail.html&id=" + obj.id);
+    }
+    //删除
+    function DeleteFun(obj) {
+        var SelectItemName = $.Lang("msgGlobalString.SelectItem");
+        var rows = H3GridManager.getSelectedRows();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: SelectItemName });
+            return false;
+        }
+        var ids = "";
+        for (var i = 0; i < rows.length; i++) {
+            ids = ids + rows[i].ObjectID + ",";
+        }
+        if (ConfirmDel(obj)) {
+            $.ajax({
+                url: $.Controller.MasterData.DelMasterData,
+                type: 'post',
+                dataType: "json",
+                data: { ids: ids },
+                success: function (result) {
+                    if (result.Success) {
+                        ReloadGrid(result.Extend);
+                    } else {
+                        $.H3Dialog.Warn({ content: result.Message });
+                    }
+                }
+            });
+        }
+    };
+    //新增
+    function AddFun() {
+        var name = $.Lang("EditMasterData.EditMasterData");
+        var sltCategory = $("#sltCategory").val();
+        ShowDialog(name, _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=SysParam/EditMasterDataDetail.html&sltCategory=" + sltCategory);
+    };
+    //导入
+    function BatchImportData(obj) {
+        ShowDialog($(obj).text(), _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=SysParam/ImportMasterData.html");
+    };
+    //初始化图标
+    function SetIsDefault(rowdata, index, value) {
+        if (value) {
+            return "<img id='" + rowdata.ObjectID + "' name='DefaultImg' value='true' src='" + _PORTALROOT_GLOBAL + "/WFRes/images/checked.gif' value='true' onclick='SetDefault(this)'  style='cursor:pointer;'/>";
+        }
+        else {
+            return "<img id='" + rowdata.ObjectID + "' name='DefaultImg' value='false' src='" + _PORTALROOT_GLOBAL + "/WFRes/images/unChecked.gif' value='false' onclick='SetDefault(this)' style='cursor:pointer;'/>";
+        }
+    };
+    //修改默认值
+    function SetDefault(obj) {
+        if ($(obj).attr("value") == "false") {
+            $("img[name='DefaultImg']").attr("src", _PORTALROOT_GLOBAL + "/WFRes/images/unChecked.gif");
+            $("img[name='DefaultImg']").attr("value", "false");
+            $(obj).attr("src", _PORTALROOT_GLOBAL + "/WFRes/images/checked.gif");
+            $(obj).attr("value", "true");
+        }
+        else {
+            $(obj).attr("src", _PORTALROOT_GLOBAL + "/WFRes/images/unChecked.gif");
+            $(obj).attr("value", "false");
+        }
+        var setSuccess = $.Lang("EditMasterData.Success");
+        var cancelSuccess = $.Lang("EditMasterData.Cancel");
+        $.ajax({
+            url: $.Controller.MasterData.ChangeMasterDataDefault,
+            data: { id: encodeURI($(obj).attr("id")), isDefault: $(obj).attr("value") },
+            type: "post",
+            success: function (result) {
+                if (result.stat == "0") {
+                    if ($(obj).attr("value") == "true")
+                        $.H3Dialog.Success({ content: setSuccess });
+                    else
+                        $.H3Dialog.Success({ content: cancelSuccess });
+                } else {
+                    $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SaveFailed") });
+                }
+            }
+        });
+    };
+
+    //重新加载页面数据
+    function ReloadGrid(data) {
+        if (data) {
+            sltCategoryComBox.set(data);
+            sltCategoryComBox.reload();
+        }
+        var manager = $("#DataSourceList").ligerGetGridManager();
+        manager.reload();
+    }
+</script>
+<div id="ToolBar">
+    <a id="lnkAdd" onclick="AddFun()" data-icon="fa fa-plus" data-lang="EditMasterData.Add">添加</a>
+    <a onclick="DeleteFun(this);" id="lnkDelete" data-icon="fa fa-minus" href="javascript:void(0)" data-lang="EditMasterData.Delete">删除</a>
+    <a href="javascript:void(0)" onclick="BatchImportData(this)" data-icon="fa fa-upload" data-lang="EditMasterData.Import">导入</a>
+</div>
+
+<div class="H3Panel">
+    <table class="tableList">
+        <tr>
+            <td data-lang="EditMasterData.Category">类别</td>
+            <td>
+                <input id="sltCategory" style="width:98%;height:100%" />
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="H3Panel">
+    <div id="DataSourceList"></div>
+</div>

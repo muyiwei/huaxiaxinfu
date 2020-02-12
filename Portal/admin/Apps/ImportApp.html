@@ -1,0 +1,164 @@
+﻿<script src="../WFRes/_Scripts/jquery/ajaxfileupload.js"></script>
+<script>
+    var ImportAppParentID = getUrlParam("ParentID") || "";
+    $(function () {
+        $("#ImportAppTool").BuildPanel();
+    });
+
+    var UpLoadData = function () {
+        debugger
+        var flag = CheckFile();
+        if (!flag) {
+            return
+        };
+        $.ajaxFileUpload({
+            url: $.Controller.Apps.UpLoadFile,
+            fileElementId: 'uploadfile',
+            type:"post",
+            dataType: 'json',
+            success: function (data) {
+                
+                if (data.Success) {
+                    $.H3Dialog.Success({ content: $.Lang("msgGlobalString.ImportSucced") });
+                    var ImportAppPageData = data.Extend;
+                    ImportAppPageData.LanData = $.Languages;
+                    $("#ImportAppDetails").show();
+                    $("#H3ToolBar").show();
+                    $("#ImportAppTool").hide();
+                    //$("#H3ToolBar").AspLinkToolBar();
+                    ImportAppModel(ImportAppPageData);
+                    $("#H3ToolBar").AspLinkToolBar();
+                    $(".H3Panel").BuildPanel();
+                }
+                else {
+                    if (data.Extend && data.Extend.length != 0) {
+                        var content = "";
+                        for (var i = 0; i < data.Extend.length; i++) {
+                            if (data.Extend[i].Seq != 0) {
+                                content += $.format($.Lang(data.Extend[i].Error), data.Extend[i].Seq);
+                            } else {
+                                content = $.Lang(data.Extend[i].Error);
+                            }
+                        }
+                        $.H3Dialog.Warn({ content: content });
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(data.Message) });
+                    }
+                }
+            }
+        });
+    };
+
+    var CheckFile = function () {
+        debugger
+        var fileVal = $("#uploadfile").val();
+        if (fileVal == null || fileVal == "") {
+            $.H3Dialog.Warn({ content: "请选择上传文件" });
+            return false;
+        }
+        if (fileVal.toLowerCase().indexOf(".xml") < 0) {
+            $.H3Dialog.Warn({ content: "上传文件必须为xml" });
+            return false;
+        }
+        return true
+    };
+
+    var ImportAppModel = function (ImportAppPageData) {
+        var model = new Vue({
+            el: "#content",
+            data: ImportAppPageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                }
+            }
+        });
+
+        function saveData() {
+            $.ajax({
+                url: $.Controller.Apps.ImportApp,
+                type: "post",
+                dataType: "json",
+                data: { appImportSettingsStr: JSON.stringify(ImportAppPageData.AppImportSettings) },
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang("Apps.ImportSuccess") });
+                        top.ReloadNode(ImportAppParentID);
+                        parent.H3DialogManger.Close();
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        };
+    }
+
+
+    function Reload() {
+        window.location.reload();
+    }
+
+</script>
+<validator name="formValidator">
+    <div id="H3ToolBar" hidden="hidden">
+        <a id="btnImport" v-on:click="saveData" data-icon="fa fa-upload" href="javascript:void(0)">导入</a>
+        <a id="btnReset" onclick="Reload()" data-icon="fa fa-refresh" href="javascript:void(0)">重新上传应用程序</a>
+    </div>
+    <div id="ImportAppTool">
+        <div class="H3Panel">
+            <table>
+                <tr>
+                    <td>
+                        <input type="file" name="uploadfile" id="uploadfile" />
+                        <a onclick="UpLoadData()" href="javascript:void(0)">上传文件</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div id="ImportAppDetails" hidden="hidden">
+        <div class="H3Panel">
+            <span>{{LanData.Apps.AppInfo}}</span>
+            <table>
+                <tr>
+                    <td>
+                        <label><input type="checkbox" v-model="AppImportSettings.IsCover" style="margin-right:10px;" />{{LanData.Apps.IsCover}}</label>
+                    </td>
+                    <td>{{LanData.Apps.Msg2}}</td>
+                </tr>
+                <tr>
+                    <td>{{LanData.Apps.AppCode}}</td>
+                    <td>
+                        <input type="text" v-model="AppImportSettings.AppCode" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>{{LanData.Apps.AppName}}</td>
+                    <td>
+                        <input type="text" v-model="AppImportSettings.AppName" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="H3Panel">
+            <span>{{LanData.Apps.AppMenuInfo}}</span>
+            <table>
+                <tr v-for="item in AppImportSettings.FunctionNodeList">
+                    <td>{{LanData.Apps.MenuCode}}</td>
+                    <td>
+                        <input type="text" v-model="item.Code" />
+                    </td>
+                    <td>{{LanData.Apps.MenuName}}</td>
+                    <td>
+                        <input type="text" v-model="item.DisplayName" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</validator>

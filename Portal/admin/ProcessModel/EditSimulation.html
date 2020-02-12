@@ -1,0 +1,370 @@
+﻿<script>
+    var SimulationID = getUrlParam("SimulationID");
+    var WorkflowCode =getUrlParam("WorkflowCode");
+    var isImport = getUrlParam("isImport");
+
+    var DataItems;
+    var Activitys;
+
+    var pageData = {
+        EditSimulation: {}
+    };
+    //debugger;
+    var ItemDialog;
+    var SetItemValue = function (_ItemName, _ItemValues, _DisplayText) {
+        if (typeof (DataItems) != "undefined" && DataItems.Rows) {
+            $(DataItems.Rows).each(function () {
+                if (this.ItemName == _ItemName) {
+                    this.ItemValues = _ItemValues;
+                    this.DisplayValueString = _DisplayText || "";
+                }
+            });
+
+            closeDialog();
+
+            //重新显示数据
+            LoadData();
+        }
+    }
+
+    var SetActivityValue = function (_ActivityCode, _ItemValues, _DisplayText) {
+        if (typeof (Activitys) != "undefined" && Activitys.Rows) {
+            $(Activitys.Rows).each(function () {
+                if (this.ActivityCode == _ActivityCode) {
+                    this.Participants = _ItemValues;
+                    this.DisplayValueString = _DisplayText || "";
+                }
+            });
+
+            closeDialog();
+
+            //重新显示数据
+            LoadData();
+        }
+    }
+
+    var closeDialog = function () {
+        if (ItemDialog && ItemDialog.close) {
+            ItemDialog.close();
+        }
+    }
+
+    var LoadData = function () {
+        //设置数据项
+        if (typeof (DataItems) != "undefined") {
+            $("#DataItemGrid").ligerGrid({
+                columns: GetPropertyColums(),
+                width: '100%',
+                height: '200px',
+                data: DataItems,
+                rownumbers: true,
+                usePager: false,
+                tree: { columnId: 'ParentID' },
+                allowAdjustColWidth: true
+            });
+        }
+        //设置活动节点参与者
+        if (typeof (Activitys) != "undefined") {
+            $("#ActivityGrid").ligerGrid({
+                columns: GetActivityColums(),
+                width: '100%',
+                height: '200px',
+                data: Activitys,
+                rownumbers: true,
+                usePager: false,
+                tree: { columnId: 'ParentID' },
+                allowAdjustColWidth: true
+            });
+        }
+    }
+
+    $(function () {
+        //debugger;
+        pageData.EditSimulation.ObjectID = SimulationID;
+        pageData.EditSimulation.WorkflowCode = WorkflowCode;
+        //选人控件初始化
+        $("#txtCreator").SheetUser({ Editable: true, Visiable: true, UserVisible: true, OrgUnitVisible: false, IsMultiple: true });
+        //
+        $.ajax({
+            url: _PORTALROOT_GLOBAL + $.Controller.Simulation.LoadSimulation,
+            type: "post",
+            dataType: "json",
+            async:false,
+            data: {simulationID:SimulationID,workflowCode:WorkflowCode},
+            success: function (result) {
+                //debugger;
+                if (result.Success) {
+                    DataItems = result.Extend.DataItems;
+                    Activitys = result.Extend.Activitys;
+                    var Creator = eval(result.Extend.Creator);
+
+                    $("#ltlWorkflowName").val(result.Extend.WorkflowName);
+                    $("#txtUseCaseName").val(result.Extend.UseCaseName);
+                    //选人控件赋值
+                    $("#txtCreator").SheetUIManager().SetValue(Creator);
+
+                } else {
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                }
+            }
+        });
+
+
+
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel({ excludeIDs: ["DataItemGrid", "ActivityGrid"] });
+
+        if (isImport) {
+            $("[id*=txtSquenceNo]").closest("tr").show();
+        }
+
+        LoadData();
+    });
+
+    //获取列
+    function GetPropertyColums() {
+        var Report_Data_Name = $.Lang("Simulation.Report_Data_Name");
+        var PortalWebPartPubAttr_Type = $.Lang("Simulation.PortalWebPartPubAttr_Type");
+        var SimulationDetail_DefaultValue = $.Lang("Simulation.SimulationDetail_DefaultValue");
+        var Settings_Settings = $.Lang("Simulation.Settings_Settings");
+        return [
+            { display: Report_Data_Name, name: "ItemName" },
+            { display: PortalWebPartPubAttr_Type, name: "LogicType", align: "left" },
+            { display: SimulationDetail_DefaultValue , name: "DisplayValueString", width: "30%" },
+            {
+                display: Settings_Settings, align: "center", render: function (row) {
+                if (row.Editable) {
+                    return "<a href='javascript:EditSimulationData(\"" + row.ItemName + "\")'>" + Settings_Settings + "</a>";
+                }
+            }
+            },
+            ];
+    }
+
+    //获取列
+    function GetActivityColums() {
+
+        var EditSimulation_ActivityName =$.Lang("Simulation.EditSimulation_ActivityName");
+        var SimulationDetail_DefaultValue =$.Lang("Simulation.SimulationDetail_DefaultValue");
+        var EditSimulation_Ignore =$.Lang("Simulation.EditSimulation_Ignore");
+        var Settings_Settings =$.Lang("Simulation.Settings_Settings");
+        return [
+            { display: EditSimulation_ActivityName, name: "ActivityName" },
+            { display: SimulationDetail_DefaultValue, name: "DisplayValueString", width: "30%" },
+            {
+                display: EditSimulation_Ignore, align: "left", render: function (row) {
+                    if (row.Ignore)
+                        return "<input type='checkbox' class='ignore' checked='checked'  data-code='" + row.ActivityCode + "' />";
+                    else
+                        return "<input type='checkbox' class='ignore' data-code='" + row.ActivityCode + "' />";
+                }
+            },
+            {
+                display: Settings_Settings, align: "center", render: function (row) {
+                if (row.Editable) {
+                    return "<a href='javascript:EditActivityData(\"" + row.ActivityCode + "\")'>" + Settings_Settings + "</a>";
+                }
+            }
+            },
+            ];
+    }
+
+    //执行导入
+    var DoImport = function () {
+        //debugger;
+        var SquenceNo = $("[id*=txtSquenceNo]").val();
+        if(SquenceNo && SquenceNo.length>0){
+        $.ajax({
+            type: "post",
+            url: _PORTALROOT_GLOBAL + $.Controller.Simulation.ImportSimulation,
+            cache: false,
+            async: false,
+            dataType: "json",
+            data: {
+                SquenceNo: SquenceNo,
+                WorkflowCode: WorkflowCode
+            },
+            success: function (result) {
+                if (result.Success) {
+                    //$("[id*=txtCreator_UserIDs]").val(result.Extend.Originator.ObjectID);
+                    //$("[id*=txtCreator_UserNames]").val(result.Extend.Originator.Name);
+                    $("[id*=txtUseCaseName]").val(result.Extend.WorkflowName);
+                    $("#txtCreator").SheetUIManager().SetValue(new Array(result.Extend.Originator.ObjectID));
+
+                    //设置数据项
+                    $("#DataItemGrid").ligerGrid({
+                        columns: GetPropertyColums(),
+                        width: '100%',
+                        height: '98%',
+                        data: result.Extend.DataItems,
+                        rownumbers: true,
+                        usePager: false,
+                        tree: { columnId: 'ParentID' },
+                        allowAdjustColWidth: true
+                    });
+                    //设置活动节点参与者
+                    $("#ActivityGrid").ligerGrid({
+                        columns: GetActivityColums(),
+                        width: '100%',
+                        height: '98%',
+                        data: result.Extend.Activitys,
+                        rownumbers: true,
+                        usePager: false,
+                        tree: { columnId: 'ParentID' },
+                        allowAdjustColWidth: true
+                    });
+                    Activitys = result.Extend.Activitys;
+                    DataItems = result.Extend.DataItems;
+                }
+                else {
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                }
+            },
+            error: function (msg) {
+            }
+        });
+        } else {
+            $.H3Dialog.Warn({ content: "请输入流水号!" });
+        }
+    }
+
+    //执行保存
+    var DoSave = function () {
+        //debugger;
+        var Originators = $("#txtCreator").SheetUIManager().GetValue();
+        var ArrayDataItem = {};
+        if (typeof (DataItems) != "undefined" && DataItems.Rows) {
+            $(DataItems.Rows).each(function () {
+                if (this.ItemValues && this.ItemValues.length > 0) {
+                    ArrayDataItem[this.ItemName] = this.ItemValues;
+                }
+            });
+        }
+        var Ignore = {};
+        if (typeof (Activitys) != "undefined" && Activitys.Rows) {
+            $("#ActivityGrid").find("input.ignore").each(function () {
+                var check = false;
+                if (this.checked) { check = true }
+                for (var i = 0; i < Activitys.Rows.length; i++) {
+                    if (Activitys.Rows[i].ActivityCode == $(this).attr("data-code")) {
+                        Ignore[Activitys.Rows[i].ActivityCode] = check;
+                    }
+                }
+
+            });
+
+            $(Activitys.Rows).each(function () {
+                if (this.Participants && this.Participants.length > 0) {
+                    ArrayDataItem[this.ActivityCode] = this.Participants;
+                }
+                else {
+                    ArrayDataItem[this.ActivityCode] = [];
+                }
+            });
+        }
+       
+        pageData.EditSimulation.ObjectID = SimulationID;
+        pageData.EditSimulation.WorkflowCode = WorkflowCode;
+        pageData.EditSimulation.WorkflowName = $("#ltlWorkflowName").val();
+        pageData.EditSimulation.UseCaseName = $("#txtUseCaseName").val();
+        pageData.EditSimulation.Creator = JSON.stringify(Originators);
+        pageData.EditSimulation.DataItemsString = JSON.stringify(ArrayDataItem);
+        pageData.EditSimulation.IgnoresString = JSON.stringify(Ignore);
+        $.ajax({
+            type: "post",
+            url: _PORTALROOT_GLOBAL + $.Controller.Simulation.SaveSimulation,
+            cache: false,
+            async: false,
+            dataType: "json",
+            data: pageData.EditSimulation,
+            success: function (result) {
+                //debugger;
+                if (result.Success) {
+                    SimulationID = result.Message;
+                    $.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                    parent.location.reload();
+                }
+                else {
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                }
+            },
+            error: function (msg) {
+            }
+        });
+    }
+
+    //设置数据项值
+    var EditSimulationData = function (_ItemName) {
+        //已设置的值
+        var _v = null;
+        if (typeof (DataItems) != "undefined") {
+            $(DataItems.Rows).each(function () {
+                if (this.ItemName == _ItemName) {
+                    _v = this.ItemValues;
+                }
+            });
+        }
+        ItemDialog = ShowDialog($.Lang("Simulation.SimulationDetail_DataItem"),  _PORTALROOT_GLOBAL+"/admin/TabMaster.html?url=ProcessModel/EditSimulationData.html&ItemName=" + _ItemName + "&WorkflowCode="+WorkflowCode+"&SimulationID="+SimulationID+"&v=" + encodeURI(JSON.stringify(_v)), 450, 650);
+    }
+
+    //设置流程参与者值
+    var EditActivityData = function (_ActivityCode) {
+        //已设置的值
+        var _v = null;
+        if (typeof (Activitys) != "undefined") {
+            $(Activitys.Rows).each(function () {
+                if (this.ActivityCode == _ActivityCode) {
+                    _v = this.Participants;
+                }
+            });
+        }
+        ItemDialog = ShowDialog($.Lang("Simulation.SimulationDetail_DataItem"),  _PORTALROOT_GLOBAL+"/admin/TabMaster.html?url=ProcessModel/EditSimulationData.html&ActivityCode=" + _ActivityCode + "&WorkflowCode="+WorkflowCode+"&SimulationID="+ SimulationID+"&v=" + encodeURI(JSON.stringify(_v)), 450, 650);
+    }
+</script>
+
+<div id="H3ToolBar">
+    <a href="javascript:DoSave()" data-icon="fa fa-save" data-lang="GlobalButton.Save"></a>
+</div>
+<div id="panelBasic">
+        <div class="H3Panel">
+            <span data-lang="Simulation.Simulation_FlowSimulation"></span>
+            <table>
+                <tr>
+                    <td data-lang="Simulation.Simulation_WorkflowName"></td>
+                    <td>
+                        <input type="text" disabled="disabled" id="ltlWorkflowName">
+                    </td>
+                </tr>
+                <tr style="display: none">
+                    <td data-lang="Simulation.Simulation_SquenceNo"></td>
+                    <td>
+                        <input type="text" id="txtSquenceNo">
+                        <a href="javascript:DoImport()" data-lang="GlobalButton.Import"></a>
+                    </td>
+                </tr>
+                <tr>
+                    <td data-lang="Simulation.Simulation_CaseName"></td>
+                    <td>
+                        <input type="text" id="txtUseCaseName">
+                        <span style="color:Red;" id="spanValidator">*</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td data-lang="Simulation.Simulation_Originator"></td>
+                    <td>
+                        <div class="tableNoCss">
+                            <div id="txtCreator" style="width: 250px;"> </div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+</div>
+<div class="H3Panel">
+    <span data-lang="Simulation.SimulationDetail_Default"></span>
+    <div id="DataItemGrid" style="clear: both; margin: 0px; padding: 0px;"></div>
+</div>
+<div class="H3Panel">
+    <span data-lang="Simulation.SimulationDetail_Default"></span>
+    <div id="ActivityGrid" style="clear: both; margin: 0px; padding: 0px;"></div>
+</div>

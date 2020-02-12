@@ -1,0 +1,220 @@
+﻿<!--
+    导出流程数据
+     -->
+<!--  ng-init="
+     app.settings.asideFolded=false;
+     app.settings.asideDock=false;" -->
+<div class="hbox hbox-auto-xs hbox-auto-sm">
+    <!-- main -->
+    <div class="col">
+        <!-- main header -->
+        <div class="bg-light lter b-b wrapper-md">
+            <div class="row">
+                <div class="col-sm-6 col-xs-12">
+                    <span class="h3" ng-bind="menuData.DisplayName"></span>
+                </div>
+            </div>
+        </div>
+        <div class="wrapper-md paddingbottomNone">
+            <div class="panel panel-default">
+                <!--<div>-->
+                <div id="ExportInstanceData_Conditions" class="dataTables_wrapper form-inline dt-bootstrap no-footer">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div ui-jq="SheetUser" ui-options="UserOptions"
+                                 id="sheetUser" class="input-group" style="width: 100%">
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div ui-jq="SheetWorkflow" ui-options="WorkflowOptions"
+                                 id="sheetWorkflow" class="input-group" style="width: 100%">
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="input-group" style="width: 100%;">
+                                <span class="input-group-addon" style="width: 20%;"
+                                      translate="QueryTableColumn.From">从</span>
+                                <input id="StartTime" class="form-control"
+                                       ng-model="StartTime" ui-options="getwdatePickerOptions()"
+                                       ui-jq="wdatePicker" onchange=""
+                                       placeholder="{{LanJson.StartTime}}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="input-group" style="width: 100%;">
+                                <span class="input-group-addon" style="width: 20%;"
+                                      translate="QueryTableColumn.To">至</span>
+                                <input id="EndTime" class="form-control"
+                                       ng-model="EndTime" ui-options="getwdatePickerOptions()"
+                                       ui-jq="wdatePicker" onchange=""
+                                       placeholder="{{LanJson.EndTime}}" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="input-group" style="width: 100%;">
+                                <span class="input-group-addon" style="width:20%"
+                                      translate="QueryTableColumn.DataFilter_Connection">逻辑关系</span>
+                                <span class="form-control">
+                                    <label class="i-checks">
+                                        <input type="radio" name="Connection" value="AND" ng-model="LogicRelation" ng-disabled="Conditions.length!=0">
+                                        <i></i>
+                                        <label translate="QueryTableColumn.And">并且</label>
+                                    </label>
+                                    <label class="i-checks">
+                                        <input type="radio" name="Connection" value="OR" ng-model="LogicRelation" ng-disabled="Conditions.length!=0">
+                                        <i></i>
+                                        <label translate="QueryTableColumn.Or">或者</label>
+                                    </label>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class=" input-group" style="width: 100%;">
+                                <span class="input-group-addon" style="width:20%"
+                                      translate="QueryTableColumn.DataFilter_DataItem">数据项</span>
+                                <select ng-model="ItemsCode" ng-change="WorkflowItemChange()"
+                                        class="form-control">
+                                    <option ng-repeat="Workflow in WorkflowItems"
+                                            value="{{Workflow.Value}}">
+                                        {{Workflow.Text}}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <!-- 操作符 -->
+                        <div class="col-md-3">
+                            <div class=" input-group" style="width: 100%;">
+                                <span class="input-group-addon" style="width:20%"
+                                      translate="QueryTableColumn.DataFilter_DataItem">关系</span>
+                                <select ng-model="RelationValue" ng-change="RelationChange()"
+                                        class="form-control">
+                                    <option ng-repeat="Relation in LogicRelations"
+                                            value="{{Relation.Value}}">
+                                        {{Relation.Text}}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3" id="DataFilter_DataItem_Value">
+                            <div class="input-group" style="width: 100%;">
+                                <span class="input-group-addon" style="width: 20%;"
+                                      translate="QueryTableColumn.DataFilter_Value">值</span>
+                                <!-- 此处有文本，时间，布尔，选人输入 -->
+                                <input ng-model="ItemsValue" type="text"
+                                       ng-show="StringDisplay" ng-change="ItemsValueChange()"
+                                       ng-disabled="!StringEditAble"
+                                       class=" form-control" ng-cloak />
+                                <input ng-model="ItemsValue" ui-jq="wdatePicker" onchange=""
+                                       ng-show="DateTimeDisplay" ng-change="ItemsValueChange()"
+                                       class="form-control" ng-cloak />
+                                <select ng-model="ItemsValue"
+                                        ng-show="BoolDisplay" ng-change="ItemsValueChange()"
+                                        class="form-control" ng-cloak>
+                                    <option value="Yes" selected="selected">是</option>
+                                    <option value="No">否</option>
+                                </select>
+
+                                <div ui-jq="SheetUser" ui-options="SearchUserOptions" id="SearchUser"
+                                     ng-show="ParticipantDisplay"></div>
+                                <span class="input-group-addon" style="width: 30px;" ng-click="addCondition()">
+                                    <i class="glyphicon glyphicon-arrow-down"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row" style="border-bottom:1px solid #eee;padding-bottom:10px;">
+                        <div class="col-md-12">
+                            <div class="input-group" style="width:100%">
+                                <span class="input-group-addon" style="width:6%;"
+                                      translate="QueryTableColumn.DataFilter_Conditions">查询条件</span>
+                                <select multiple="multiple" class="form-control">
+                                    <option ng-repeat="b in Conditions"
+                                            ng-dblclick="RemoveCondition(b.Value)" selected="selected">
+                                        {{b.Text}}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row" style="border-bottom:1px solid #eee;padding-bottom:10px;">
+                        <div class="col-sm-6">
+                            <label class="checkbox-inline i-checks" style="padding-top:6px;">
+                                <input type="checkbox" ng-model="checkAll" ng-click="selectAll();"><i></i>
+                                <label translate="QueryTableColumn.Report_ExportData_DisplayColumn">显示的列</label>
+                            </label>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="btn-group btn-default pull-right">
+                                <button class="QueryInstanceData btn btn-default"
+                                        ng-click="QueryInstanceData()"
+                                        ng-disabled="WorkflowCode==''">
+                                    <i class="panel-title-icon fa fa-search">
+                                        <span style="margin-left:3px;"
+                                              translate="QueryTableColumn.DataFilter_Query">查询</span>
+                                    </i>
+                                </button>
+                                <button class="btn btn-default"
+                                        ng-click="ExportIntanceData()"
+                                        ng-disabled="WorkflowCode==''">
+                                    <i class="panel-title-icon fa fa-download">
+                                        <span style="margin-left:3px;"
+                                              translate="QueryTableColumn.Report_ExportAudit_DataExport">
+                                            导出报表
+                                        </span>
+                                    </i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-3" ng-repeat="column in SearchColumns" style="margin-bottom:5px;">
+                            <label class="checkbox-inline i-checks">
+                                <input type="checkbox" ng-model="column.Selected"><i></i>{{column.Text}}
+                            </label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 table-responsive" ng-style="{true:{'margin-top':'-25px'},false:{'border-top':'1px solid #eee'}}[tableInitialed]">
+                            <!-- ui-jq="dataTable" ui-options="options" -->
+                            <table id="ExportInstanceData" style="width: 98%;"
+                                   class="table table-striped m-b-none">
+                                <thead>
+                                    <tr class="theadtr_ExportInstanceData" style="height:50px;border-top:1px solid #eee;">
+                                        <th ng-repeat="column in SearchColumns" ng-show="column.Selected">
+                                            {{column.Text}}
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!--</div>-->
+            </div>
+        </div>
+
+        <table id="tabTemplate" class="table table-striped m-b-none" style="display:none;">
+            <thead>
+                <tr class="theadtr_ExportInstanceData"></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <!-- / main -->
+    </div>
+</div>
+<style>
+    #DataFilter_DataItem_Value .SelectorPanel {
+        left: -200px !important;
+    }
+</style>

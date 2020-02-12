@@ -1,0 +1,246 @@
+﻿li {
+    list-style: none;
+}
+
+a {
+    text-decoration: none;
+}
+
+input[type="checkbox"], input[type="radio"] {
+    float: left;
+}
+
+    input[type="checkbox"] + label,
+    input[type="radio"] + label {
+        padding-left: 5px;
+    }
+
+.header-1,
+.header-1:hover,
+.header-2,
+.header-2:hover {
+    cursor: pointer;
+    text-decoration: none !important;
+    display: block;
+    z-index: 100000000;
+    border-top: 1px solid #eee;
+    margin: 0 -9px 0 -9px;
+}
+
+    .header-1,
+    .header-1:hover {
+        color: #333 !important;
+        font-size: 18px;
+        font-weight: 300;
+        padding: 30px 18px 15px 18px;
+        background: #fafafa;
+        background: rgba(0,0,0,.02);
+        margin-bottom: -15px;
+    }
+
+    .header-2,
+    .header-2:hover {
+        text-transform: uppercase;
+        font-size: 11px;
+        font-weight: 600;
+        color: #888 !important;
+        padding: 10px 18px 0 18px;
+        margin-bottom: 15px;
+        margin-top: 0;
+    }
+
+    .header-1 + .header-2 {
+        margin-top: 10px;
+        margin-bottom: 0;
+    }
+
+    .header-1 + .col-sm-12 {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+        margin-left: -9px;
+        margin-right: -9px;
+        padding-left: 18px;
+        padding-right: 18px;
+        width: auto !important;
+        float: none;
+    }
+
+#main-wrapper {
+    padding-left: 0;
+}
+
+.row {
+    margin-bottom: 15px;
+}
+
+.ui-note {
+    margin: 0;
+    border-top: 1px solid #eee !important;
+    padding-top: 20px;
+    background: none;
+}
+
+label, optgroup {
+    font-weight: 800;
+}
+
+body.theme-default {
+    background: none;
+}
+
+.navbar-header {
+    font-size: 18px;
+    line-height: 40px;
+    font-weight: bold;
+    text-align: center;
+    padding-left: 0;
+}
+
+.navbar-nav {
+    text-align: center;
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    background-color: black;
+    z-index: 999;
+    border-radius: 5px;
+    text-align: center;
+}
+
+    .navbar-nav > li > a {
+        width: 96%;
+        border-radius: 5px;
+        background-color: white;
+        color: dodgerblue;
+    }
+
+#main-navbar {
+    background-color: white;
+    position: fixed;
+    top: 0;
+}
+
+.navbar-return {
+    position: absolute;
+    left: 14px;
+    top: 15px;
+    color: dodgerblue;
+    z-index: 9999;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.navbar-save {
+    position: absolute;
+    right: 14px;
+    top: 15px;
+    color: dodgerblue;
+    z-index: 9999;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.action-collapsed {
+    color: dodgerblue;
+    position: absolute;
+    right: 10px;
+    top: 5px;
+    z-index: 9999;
+    font-weight: 400;
+    font-size: 13px;
+    padding: 10px;
+    cursor: pointer;
+}
+
+ul.action-buttons {
+    width: 96%;
+    margin-left: -2%;
+    position: fixed;
+    bottom: 0;
+    opacity: 1;
+}
+
+    ul.action-buttons > li {
+        text-align: center;
+        background-color: white;
+        margin-top: 4px;
+        border-radius: 4px;
+        line-height: 28px;
+    }
+
+        ul.action-buttons > li:active {
+            background-color: silver;
+        }
+
+        ul.action-buttons > li > a > label {
+            width: 100%;
+            height: 24px;
+            color: dodgerblue;
+            font-weight: 400;
+            cursor: pointer;
+            margin-bottom: 0;
+        }
+
+.model-bg {
+    position: fixed;
+    background-color: #666;
+    opacity: 0.6;
+    z-index: 100;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}
+
+.action-panel {
+    display: none;
+    width: 100%;
+    height: 100%;
+    z-index: 99999;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.subtable-add {
+    padding-left: 14px;
+    color: dodgerblue;
+    margin-bottom: 15px;
+}
+
+.row.comment-history {
+    padding-left: 11px;
+    margin-right: 0;
+    padding-right: 0;
+}
+
+    .row.comment-history:empty {
+        display: none;
+    }
+
+.comment-body {
+    margin-right: 16px;
+}
+
+textarea:disabled[category="comment"] {
+    display: none;
+}
+
+.l-user-selected {
+    font-weight: bold;
+}
+
+.form-control.error {
+    border-color: #e66454;
+}
+
+/*.mobile-button {
+}
+
+    .mobile-button:hover {
+        background-color: silver;
+    }*/

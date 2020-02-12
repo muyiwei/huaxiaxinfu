@@ -1,0 +1,114 @@
+﻿<div id="ActionDiv">
+    <div id="ActionToolBar">
+        <a id="ctl00_BodyContent_btnAddAction" href="javascript:__doPostBack(&#39;ctl00$BodyContent$btnAddAction&#39;,&#39;&#39;)">添加功能</a>
+    </div>
+    <div class="tableNoCss">
+        <div>
+            <table class="mywork_list_table" cellspacing="0" rules="all" border="0" border="1" id="ctl00_BodyContent_gvActions" style="width:95%;border-collapse:collapse;">
+                <tr>
+                    <th align="center" scope="col" style="width:120px;">动作编码</th>
+                    <th align="center" scope="col" style="width:80px;">显示名称</th>
+                    <th align="center" scope="col" style="width:80px;">动作类型</th>
+                    <th align="center" scope="col">业务方法或链接</th>
+                    <th scope="col">
+                        <span id="ctl00_BodyContent_gvActions_ctl01_lblWithID">传入ID</span>
+                        <input id="btnCheckAll1" onclick="SelectAll(this)" type="checkbox" />
+                    </th>
+                    <th scope="col">
+                        <span id="ctl00_BodyContent_gvActions_ctl01_lblConfirm">确认</span>
+                        <input id="btnCheckAll1" onclick="SelectAll(this)" type="checkbox" />
+                    </th>
+                    <th align="center" scope="col" style="width:10%;">保存后</th>
+                    <th align="center" scope="col" style="width:40px;">排序键</th>
+                    <th align="center" scope="col"></th>
+                </tr>
+                <tr>
+                    <td align="center">
+                        <input name="ctl00$BodyContent$gvActions$ctl02$txtActionCode" type="text" value="Delete" id="ctl00_BodyContent_gvActions_ctl02_txtActionCode" />
+                    </td>
+                    <td align="center">
+                        <input name="ctl00$BodyContent$gvActions$ctl02$txtDisplayName" type="text" value="删除" id="ctl00_BodyContent_gvActions_ctl02_txtDisplayName" />
+                    </td>
+                    <td align="center">
+                        <select name="ctl00$BodyContent$gvActions$ctl02$ddlActionType" id="ctl00_BodyContent_gvActions_ctl02_ddlActionType">
+                            <option selected="selected" value="0">业务方法</option>
+                            <option value="2">打开连接</option>
+
+                        </select>
+                    </td>
+                    <td align="center">
+                        <select name="ctl00$BodyContent$gvActions$ctl02$ddlMethods" id="ctl00_BodyContent_gvActions_ctl02_ddlMethods" style="width:95%;">
+                            <option selected="selected" value="Remove">[Remove]</option>
+
+                        </select>
+                        <select name="ctl00$BodyContent$gvActions$ctl02$ddlBizSheets" id="ctl00_BodyContent_gvActions_ctl02_ddlBizSheets" style="width:95%;"></select>
+                        <input name="ctl00$BodyContent$gvActions$ctl02$txtUrl" type="text" maxlength="400" id="ctl00_BodyContent_gvActions_ctl02_txtUrl" title="Example:StartInstance.aspx?BizObjectID={BizObjectID}&amp;WorkflowCode=..." style="width:95%;" />
+                    </td>
+                    <td>
+                        <input id="ctl00_BodyContent_gvActions_ctl02_chkWithID" type="checkbox" name="ctl00$BodyContent$gvActions$ctl02$chkWithID" checked="checked" />
+                    </td>
+                    <td>
+                        <input id="ctl00_BodyContent_gvActions_ctl02_chkConfirm" type="checkbox" name="ctl00$BodyContent$gvActions$ctl02$chkConfirm" checked="checked" />
+                    </td>
+                    <td align="center">
+                        <select name="ctl00$BodyContent$gvActions$ctl02$ddlAfterSave" id="ctl00_BodyContent_gvActions_ctl02_ddlAfterSave" style="width:95%;">
+                            <option value="-1">未指定</option>
+                            <option selected="selected" value="0">0</option>
+                            <option value="1">关闭并刷新父页面</option>
+
+                        </select>
+                    </td>
+                    <td align="center">
+                        <input name="ctl00$BodyContent$gvActions$ctl02$txtSortKey" type="text" value="0" maxlength="200" id="ctl00_BodyContent_gvActions_ctl02_txtSortKey" style="width:30px;" />
+                    </td>
+                    <td align="center">
+                        <a id="ctl00_BodyContent_gvActions_ctl02_btnDelete" href="javascript:__doPostBack(&#39;ctl00$BodyContent$gvActions$ctl02$btnDelete&#39;,&#39;&#39;)">删除</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center">
+                        <input name="ctl00$BodyContent$gvActions$ctl03$txtActionCode" type="text" id="ctl00_BodyContent_gvActions_ctl03_txtActionCode" />
+                    </td>
+                    <td align="center">
+                        <input name="ctl00$BodyContent$gvActions$ctl03$txtDisplayName" type="text" id="ctl00_BodyContent_gvActions_ctl03_txtDisplayName" />
+                    </td>
+                    <td align="center">
+                        <select name="ctl00$BodyContent$gvActions$ctl03$ddlActionType" id="ctl00_BodyContent_gvActions_ctl03_ddlActionType">
+                            <option selected="selected" value="0">业务方法</option>
+                            <option value="2">打开连接</option>
+
+                        </select>
+                    </td>
+                    <td align="center">
+                        <select name="ctl00$BodyContent$gvActions$ctl03$ddlMethods" id="ctl00_BodyContent_gvActions_ctl03_ddlMethods" style="width:95%;">
+                            <option value="Remove">[Remove]</option>
+
+                        </select>
+                        <select name="ctl00$BodyContent$gvActions$ctl03$ddlBizSheets" id="ctl00_BodyContent_gvActions_ctl03_ddlBizSheets" style="width:95%;"></select>
+                        <input name="ctl00$BodyContent$gvActions$ctl03$txtUrl" type="text" maxlength="400" id="ctl00_BodyContent_gvActions_ctl03_txtUrl" title="Example:StartInstance.aspx?BizObjectID={BizObjectID}&amp;WorkflowCode=..." style="width:95%;" />
+                    </td>
+                    <td>
+                        <input id="ctl00_BodyContent_gvActions_ctl03_chkWithID" type="checkbox" name="ctl00$BodyContent$gvActions$ctl03$chkWithID" />
+                    </td>
+                    <td>
+                        <input id="ctl00_BodyContent_gvActions_ctl03_chkConfirm" type="checkbox" name="ctl00$BodyContent$gvActions$ctl03$chkConfirm" />
+                    </td>
+                    <td align="center">
+                        <select name="ctl00$BodyContent$gvActions$ctl03$ddlAfterSave" id="ctl00_BodyContent_gvActions_ctl03_ddlAfterSave" style="width:95%;">
+                            <option value="-1">未指定</option>
+                            <option selected="selected" value="0">0</option>
+                            <option value="1">关闭并刷新父页面</option>
+
+                        </select>
+                    </td>
+                    <td align="center">
+                        <input name="ctl00$BodyContent$gvActions$ctl03$txtSortKey" type="text" value="0" maxlength="200" id="ctl00_BodyContent_gvActions_ctl03_txtSortKey" style="width:30px;" />
+                    </td>
+                    <td align="center">
+                        <a id="ctl00_BodyContent_gvActions_ctl03_btnDelete" href="javascript:__doPostBack(&#39;ctl00$BodyContent$gvActions$ctl03$btnDelete&#39;,&#39;&#39;)">删除</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,185 @@
+﻿<script>
+    $(function () {
+        var pageData = {
+            ServerMonitor: {},
+            LanData: $.Languages
+        };
+
+        //初始化页面数据
+        initPageData();
+        var model = new Vue({
+            el: "#ServerMonitorInfo",
+            data: pageData,
+            methods: {
+                ShowOnlineUserFun: function () {
+                    CreateLigerGrid(
+                        $("#UserList"),
+                        GetOnlineUserColumns(),
+                        $.Controller.ServerMonitor.GetOnlineUserList,
+                        false
+                        );
+                }
+            }
+        });
+
+        $(".H3Panel").BuildPanel({ excludeIDs: ["UserList"] });
+
+        //初始化页面数据
+        function initPageData() {
+            $.ajax({
+                url: $.Controller.ServerMonitor.GetServerMonitor,
+                type: 'get',
+                dataType: "json",
+                async: false,//同步执行
+                success: function (result) {
+                    if (result.Success!=false) {
+                        pageData.ServerMonitor = result;
+                        pageData.ServerMonitor.Register = $.Lang(pageData.ServerMonitor.Register);
+                        pageData.ServerMonitor.VesselLimit = pageData.ServerMonitor.VesselLimit == 0 ? $.Lang("ServerMonitor.NoLimit") : pageData.ServerMonitor.VesselLimit;
+                        pageData.ServerMonitor.UserLimit = pageData.ServerMonitor.UserLimit == 0 ? $.Lang("ServerMonitor.NoLimit") : pageData.ServerMonitor.UserLimit;
+                        pageData.ServerMonitor.WorkflowLimit = pageData.ServerMonitor.WorkflowLimit == 0 ? $.Lang("ServerMonitor.NoLimit") : pageData.ServerMonitor.WorkflowLimit;
+                        pageData.ServerMonitor.LanguageLimit = pageData.ServerMonitor.LanguageLimit == 0 ? $.Lang("ServerMonitor.NoLimit") : pageData.ServerMonitor.LanguageLimit;
+                    }
+                }
+            });
+
+        };
+
+
+        function ShowOnlineUserFun() {
+            CreateLigerGrid(
+                $("#UserList"),
+                GetOnlineUserColumns(),
+                $.Controller.ServerMonitor.GetOnlineUserList,
+                false
+                );
+        }
+
+        function GetOnlineUserColumns() {
+            var key = $.Lang("ServerMonitor.Key");
+            var userName = $.Lang("ServerMonitor.UserName");
+            var loginTime = $.Lang("ServerMonitor.LoginTime");
+            return [
+                { display: key, name: 'UserID', hide: true },
+                { display: userName, name: 'UserName', width: '50%', align: 'center' },
+                { display: loginTime, name: 'LoginTime', width: '45%', align: 'center' }
+            ];
+
+        }
+    });
+</script>
+<style>
+    .tableList input[type="text"] {
+        width: 120px;
+    }
+</style>
+<div id="ServerMonitorInfo" style="clear: both; width: 100%;">
+    <div class="H3Panel">
+        <span>{{LanData.ServerMonitor.System}}</span>
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft">{{LanData.ServerMonitor.Current}}</td>
+                <td class="tableLeft">
+                    <input type="text" disabled="disabled" v-model="ServerMonitor.LicenseType" />
+                </td>
+                <td class="tableLeft">{{LanData.ServerMonitor.Register}}</td>
+                <td class="tableLeft">
+                    <input type="text" disabled="disabled" v-model="ServerMonitor.Register" />
+                </td>
+                <td class="tableLeft">{{LanData.ServerMonitor.Expired}}</td>
+                <td class="tableLeft">
+                    <input type="text" disabled="disabled" v-model="ServerMonitor.Expired" />
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.ServerMonitor.Instance}}</td>
+                <td class="tableLeft">
+                    <input type="text" disabled="disabled" v-model="ServerMonitor.InstanceNum">
+                </td>
+                <td class="tableLeft">
+                    {{LanData.ServerMonitor.Running}}
+                </td>
+                <td class="tableLeft">
+                    <input type="text" disabled="disabled" v-model="ServerMonitor.RunningInstanceNum">
+                </td>
+                <td class="tableLeft"></td>
+                <td class="tableLeft"></td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.ServerMonitor.Database}}</td>
+                <td class="tableLeft">
+                    <input type="text" disabled="disabled" v-model="ServerMonitor.DatabaseSize">
+                </td>
+                <td class="tableLeft">{{LanData.ServerMonitor.OnlineNum}}</td>
+                <td class="tableLeft">
+                    <span v-text="ServerMonitor.OnlineCount"></span>
+                    <a href="javascript:void(0);" v-on:click="ShowOnlineUserFun">{{LanData.GlobalButton.View}}</a>
+                </td>
+            </tr>
+            <tr style="display: none;">
+                <td class="tableLeft">{{LanData.ServerMonitor.VesselCount}}</td>
+                <td class="tableLeft">
+                    <input type="text" disabled="disabled" v-model="ServerMonitor.VesselLimit">
+                </td>
+                <td class="tableLeft">{{LanData.ServerMonitor.Used}}</td>
+                <td class="tableLeft">
+                    <input type="text" disabled="disabled" v-model="ServerMonitor.VesselCount">
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.ServerMonitor.WorkflowCount}}</td>
+                <td class="tableLeft">
+                    <input type="text" disabled="disabled" v-model="ServerMonitor.WorkflowLimit">
+                </td>
+                <td class="tableLeft">{{LanData.ServerMonitor.Used}}</td>
+                <td class="tableLeft">
+                    <input type="text" disabled="disabled" v-model="ServerMonitor.TemplateNum">
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.ServerMonitor.UserCount}}</td>
+                <td class="tableLeft">
+                    <input type="text" disabled="disabled" v-model="ServerMonitor.UserLimit">
+                </td>
+                <td class="tableLeft">{{LanData.ServerMonitor.Used}}</td>
+                <td class="tableLeft">
+                    <input type="text" disabled="disabled" v-model="ServerMonitor.UserCount">
+                </td>
+            </tr>
+
+            <tr>
+                <td class="tableLeft">
+                    <img v-bind:src="ServerMonitor.imgBizBus?ServerMonitor.CheckedImg:ServerMonitor.UnCheckedImg" />{{LanData.ServerMonitor.BizBus}}
+                </td>
+                <td class="tableLeft">
+                    <img v-bind:src="ServerMonitor.imgBizRule?ServerMonitor.CheckedImg:ServerMonitor.UnCheckedImg" />{{LanData.ServerMonitor.BizRule}}
+                </td>
+                <td class="tableLeft">
+                    <img v-bind:src="ServerMonitor.imgBPA?ServerMonitor.CheckedImg:ServerMonitor.UnCheckedImg" />{{LanData.ServerMonitor.BPA}}
+                </td>
+                <td class="tableLeft">
+                    <img v-bind:src="ServerMonitor.imgApps?ServerMonitor.CheckedImg:ServerMonitor.UnCheckedImg" />{{LanData.ServerMonitor.Apps}}
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    <img v-bind:src="ServerMonitor.imgPortal?ServerMonitor.CheckedImg:ServerMonitor.UnCheckedImg" />{{LanData.ServerMonitor.Portal}}
+                </td>
+                <td class="tableLeft">
+                    <img v-bind:src="ServerMonitor.imgMobile?ServerMonitor.CheckedImg:ServerMonitor.UnCheckedImg" />{{LanData.ServerMonitor.Mobile}}
+                </td>
+                <td class="tableLeft">
+                    <img v-bind:src="ServerMonitor.imgWeChat?ServerMonitor.CheckedImg:ServerMonitor.UnCheckedImg" />{{LanData.ServerMonitor.WeChat}}
+                </td>
+                <td class="tableLeft">
+                    <img v-bind:src="ServerMonitor.imgSAP?ServerMonitor.CheckedImg:ServerMonitor.UnCheckedImgI" />SAPConnector
+                </td>
+            </tr>
+            <tr></tr>
+        </table>
+    </div>
+</div>
+    <div class="H3Panel">
+        <div id="UserList"></div>
+    </div>
+

@@ -1,0 +1,65 @@
+﻿<!--<link href="../WFRes/css/PortalStyle0.css" rel="stylesheet" type="text/css" />-->
+<script src="../WFRes/_Scripts/jquery/ajaxfileupload.js"></script>
+<script>
+    function DocumentReady() {
+        $("#ToolBar").AspLinkToolBar();
+    }
+
+    $(function () { DocumentReady(); });
+
+    //上传适配器文件
+    function UploadAssembly() {
+        var AdapterData = {};
+        AdapterData.DisplayName = $("#txtName").val();
+        AdapterData.Description = $("#txtDescription").val();
+
+        var actionUrl = $.Controller.Adapter.UploadAdapterAssembly;
+        $.ajaxFileUpload({
+            url: actionUrl,
+            fileElementId: "fileAssembly",
+            secureuri: false,
+            type: "post",
+            data: AdapterData,
+            success: function (result) {
+                var str = $(result).find("pre").text();
+                var data = $.parseJSON(str);
+                //debugger;
+                if (data.Success) {
+                    parent.H3DialogManger.Close();
+                } else {
+                    $.H3Dialog.Warn({ content: $.Lang(data.Message) });
+                }
+            }
+        });
+    }
+</script>
+
+<div id="ToolBar">
+    <a id="lnkUpload" onclick="UploadAssembly();" data-icon="fa fa-upload" data-lang="Adapter.Upload"></a>
+</div>
+<div>
+    <table class="tableList">
+        <!--<tr style="display:none;">
+            <td class="tableLeft" data-lang="Adapter.DisplayName"></td>
+            <td>
+                <input type="text" ID="txtName"/>
+            </td>
+            <td></td>
+        </tr>
+        <tr style="display: none;">
+            <td class="tableLeft" data-lang="Adapter.Description"></td>
+            <td>
+                <input type="text" id="txtDescription" />
+                
+            </td>
+            <td></td>
+        </tr>-->
+        <tr>
+            <td class="tableLeft" data-lang="Adapter.Assembly"></td>
+            <td>
+                <input type="file" id="fileAssembly" name="fileAssembly" />
+            </td>
+            <td></td>
+        </tr>
+    </table>
+</div>

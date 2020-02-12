@@ -1,0 +1,83 @@
+<ion-view hide-nav-bar='true' class="appCenterItem" view-title="{{DisplayName}}">
+    <div class="menu-tittle  {{$root.dingMobile.dingHeaderClass}}">
+        <div class="menu-tittle-left" ng-click="goBack();">
+            <i class="f17 ion-chevron-left blue pr25">{{languages.back}}</i>
+        </div>
+        <div class="menu-tittle-middle f17">
+            {{DisplayName}}
+        </div>
+        <div class="menu-tittle-right">
+        </div>
+    </div>
+    <div class="menu-border">
+    </div>
+    <ion-content class="{{$root.dingMobile.dingContentClass}}">
+        <div class="appCenterItemList" ng-if="data.length>0">
+            <div class="aciItem" ng-repeat="item in data" ng-if="item.Children.length!=0">
+                <div class="aTitle" ng-click="changeContentShow(item)">
+                    <span class="f15">{{item.DisplayName}}（{{item.Children.length}}）</span>
+                    <img src="img/details/up.svg" class="up" ng-if="item.contentShow" />
+                    <img src="img/details/down.svg" class="down" ng-if="!item.contentShow" />
+                </div>
+                <div class="aContent" ng-if="item.contentShow">
+                    <div class="childrenItem" ng-repeat="i in item.Children" ng-if="i.Type==1" ui-sref="{{i.Url}}">
+                        <i ng-class="i.IconCss" ng-if="i.IconCss"></i>
+                        <i ng-if="!i.IconCss" ng-class="{'defaultIcon':true,'acItemIcon':true,'user-a':$index%4==0,'user-d':$index%4==3,'user-b':$index%4==1,'user-c':$index%4==2}"></i>
+                        <p class="f12">{{i.DisplayName}}</p>
+                    </div>
+                    <a class="childrenItem" ng-repeat="i in item.Children" ng-if="i.Type==2" ng-click="startWorkflow('{{i.Code}}')">
+                        <i ng-class="i.IconCss" ng-if="i.IconCss"></i>
+                        <i ng-if="!i.IconCss" ng-class="{'defaultIcon':true,'acItemIcon':true,'user-a':$index%4==0,'user-d':$index%4==3,'user-b':$index%4==1,'user-c':$index%4==2}"></i>
+                        <p class="f12">{{i.DisplayName}}</p>
+                    </a>
+                    <a class="childrenItem" ng-repeat="i in item.Children" ng-if="i.Type==3" ng-click="openLink('{{i.Url}}')">
+                        <i ng-class="i.IconCss" ng-if="i.IconCss"></i>
+                        <i ng-if="!i.IconCss" ng-class="{'defaultIcon':true,'acItemIcon':true,'user-a':$index%4==0,'user-d':$index%4==3,'user-b':$index%4==1,'user-c':$index%4==2}"></i>
+                        <p class="f12">{{i.DisplayName}}</p>
+                    </a>
+                    <div class="childrenItem" ng-repeat="i in item.Children" ng-if="i.Type==4" ng-click="editBizObjet('{{i.Url}}')">
+                        <i ng-class="i.IconCss" ng-if="i.IconCss"></i>
+                        <i ng-if="!i.IconCss" ng-class="{'defaultIcon':true,'acItemIcon':true,'user-a':$index%4==0,'user-d':$index%4==3,'user-b':$index%4==1,'user-c':$index%4==2}"></i>
+                        <p class="f12">{{i.DisplayName}}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="aciItem" ng-if="otherShow">
+                <div class="aTitle" ng-click="changeOtherContentShow()">
+                    <span class="f15">其他（{{otherNumber}}）</span>
+                    <img src="img/details/up.svg" class="up" ng-if="otherContentShow" />
+                    <img src="img/details/down.svg" class="down" ng-if="!otherContentShow" />
+                </div>
+                <div class="aContent" ng-if="otherContentShow">
+                    <div class="childrenItem" ng-repeat="item in data" ng-if="item.Children.length==0&&item.Type==1" ui-sref="{{item.Url}}">
+                        <i ng-class="item.IconCss" ng-show="item.IconCss.length>2&&item.IconCss" class="acItemIcon f22"></i>
+                        <i ng-show="item.IconCss.length<2||!item.IconCss" ng-class="{'defaultIcon':true,'acItemIcon':true,'user-a':$index%4==0,'user-d':$index%4==3,'user-b':$index%4==1,'user-c':$index%4==2}"></i>
+                        <p class="f12">{{item.DisplayName}}</p>
+                    </div>
+                    <div class="childrenItem" ng-repeat="item in data" ng-if="item.Children.length==0&&item.Type==4" ng-click="editBizObjet('{{item.Url}}')">
+                        <i ng-class="item.IconCss" ng-show="item.IconCss.length>2&&item.IconCss" class="acItemIcon f22"></i>
+                        <i ng-show="item.IconCss.length<2||!item.IconCss" ng-class="{'defaultIcon':true,'acItemIcon':true,'user-a':$index%4==0,'user-d':$index%4==3,'user-b':$index%4==1,'user-c':$index%4==2}"></i>
+                        <p class="f12">{{item.DisplayName}}</p>
+                    </div>
+                    <a class="childrenItem" ng-repeat="item in data" ng-if="item.Children.length==0&&item.Type==2" ng-click="startWorkflow('{{item.Code}}')">
+                        <i ng-class="item.IconCss" ng-show="item.IconCss.length>2&&item.IconCss" class="acItemIcon f22"></i>
+                        <i ng-show="item.IconCss.length<2||!item.IconCss" ng-class="{'defaultIcon':true,'acItemIcon':true,'user-a':$index%4==0,'user-d':$index%4==3,'user-b':$index%4==1,'user-c':$index%4==2}"></i>
+                        <p class="f12">{{item.DisplayName}}</p>
+                    </a>
+                    <a class="childrenItem" ng-repeat="item in data" ng-if="item.Children.length==0&&item.Type==3" ng-click="openLink('{{item.Url}}')">
+                        <i ng-class="item.IconCss" ng-show="item.IconCss.length>2&&item.IconCss" class="acItemIcon f22"></i>
+                        <i ng-show="item.IconCss.length<2||!item.IconCss" ng-class="{'defaultIcon':true,'acItemIcon':true,'user-a':$index%4==0,'user-d':$index%4==3,'user-b':$index%4==1,'user-c':$index%4==2}"></i>
+                        <p class="f12">{{item.DisplayName}}</p>
+                    </a>
+
+                </div>
+
+            </div>
+        </div>
+        <div class="appCenterListEmpty" ng-if="data.length==0">
+            <img ng-src="{{setting.httpUrl}}/Mobile/img/emptyAppCenter.png" />
+            <p class="f14">{{languages.noContent}}</p>
+        </div>
+
+    </ion-content>
+</ion-view>

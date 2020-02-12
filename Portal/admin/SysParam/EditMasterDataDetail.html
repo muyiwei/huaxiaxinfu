@@ -1,0 +1,129 @@
+﻿<script>
+    $(function () {
+        var pageData = {
+            MasterData: {},
+            LanData: $.Languages
+        };
+        //初始化页面数据
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                }
+            }
+        });
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+        function initPageData() {
+            var id = getUrlParam("id");
+            if (id && id != "") {
+                $.ajax({
+                    url: $.Controller.MasterData.GetMasterData,
+                    type: 'get',
+                    dataType: "json",
+                    data: { id: id },
+                    async: false,//同步执行
+                    success: function (result) {
+                        pageData.MasterData = result;
+                    }
+                });
+            } else {
+                var category = getUrlParam("sltCategory");
+                pageData.MasterData.Category = category;
+                pageData.MasterData.SortKey = 1;
+            }
+        };
+
+        function saveData() {
+            $.ajax({
+                url: $.Controller.MasterData.SaveMasterData,
+                type: "post",
+                dataType: "json",
+                data: pageData.MasterData,
+                success: function (result) {
+                    if (result.Success) {
+                        parent.ReloadGrid(result.Extend);
+                        parent.$.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                        parent.H3DialogManger.Cancel();
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        };
+    });
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a v-on:click="saveData"  data-icon="fa fa-save" href="javascript:void(0)" data-lang="EditMasterData.Save"></a>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.msgGlobalString.Msg_BasciInfor}}</span>
+        <input v-model="MasterData.ObjectID" hidden="hidden" />
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditMasterData.Category}}
+                </td>
+                <td>
+                    <template v-if="MasterData.ObjectID">
+                        <input v-model="MasterData.Category" disabled="disabled" type="text" />
+                    </template>
+                    <template v-else>
+                        <input v-model="MasterData.Category" detect-change="on" detect-blur="on" initial="off" v-validate:category="{required:true}" type="text" />
+                        <span style="color:Red;" v-if="$formValidator.category.required">{{LanData.msgGlobalString.EnumValueRequired}}</span>
+                    </template>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditMasterData.Code}}
+                </td>
+                <td>
+                    <template v-if="MasterData.ObjectID">
+                        <input v-model="MasterData.Code" disabled="disabled" type="text" />
+                    </template>
+                    <template v-else>
+                        <input v-model="MasterData.Code" detect-change="on" detect-blur="on" initial="off" v-validate:code="{required:true}" type="text" />
+                        <span style="color:Red;" v-if="$formValidator.code.required">{{LanData.msgGlobalString.EnumValueRequired}}</span>
+                    </template>
+
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditMasterData.DisplayText}}
+                </td>
+                <td>
+                    <input v-model="MasterData.DisplayText" detect-change="on" detect-blur="on" initial="off" v-validate:display-text="{required:true}" type="text" />
+                    <span style="color:Red;" v-if="$formValidator.displayText.required">{{LanData.msgGlobalString.EnumValueRequired}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditMasterData.SortKey}}
+                </td>
+                <td align="left">
+                    <input v-model="MasterData.SortKey" detect-change="on" detect-blur="on" initial="off" v-validate:sort-key="['number']" type="text" />
+                    <span style="color:Red;" v-if="$formValidator.sortKey.number">{{LanData.msgGlobalString.NumberValidate}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditMasterData.DefaultValue}}
+                </td>
+                <td>
+                    <input v-model="MasterData.IsDefault" type="checkbox" />
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

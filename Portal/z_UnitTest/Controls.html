@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <link href="../WFRes/_Content/themes/ligerUI/Aqua/css/ligerui-all.css" rel="stylesheet" type="text/css" />
+    <!--<link href="../WFRes/_Content/themes/ligerUI/ligerui-icons.css" rel="stylesheet" type="text/css" />-->
+    <!--<link href="../WFRes/_Content/themes/H3Default/H3-All.css" rel="stylesheet" type="text/css" />-->
+    <link href="../WFRes/assets/stylesheets/pixel-admin.min.css" rel="stylesheet" type="text/css" />
+
+    <script type="text/javascript" src="../WFRes/_Scripts/jquery/jquery.js"></script>
+    <script src="../WFRes/_Scripts/jquery/jquery.lang.js" type="text/javascript"></script>
+    <script src="../WFRes/_Scripts/ligerUI/ligerui.all.js" type="text/javascript"></script>
+
+    <script type="text/javascript" src="../WFRes/_Scripts/MvcSheet/SheetControls.js"></script>
+    <script type="text/javascript" src="../WFRes/_Scripts/MvcSheet/MvcSheetUI.js"></script>
+    <script type="text/javascript" src="../WFRes/_Scripts/MvcSheet/Controls/SheetUser.js"></script>
+    <script type="text/javascript" src="../WFRes/_Scripts/MvcSheet/Controls/SheetWorkflow.js"></script>
+
+    <script type="text/javascript">
+        /*
+
+         SheetWorkflow: {
+        DesignProperties: [
+             { Name: "DataField", Description: "获取或设置控件绑定的数据项名称", DefaultValue: "", ValueRange: null },
+             { Name: "DefaultValue", Description: "获取或设置选人控件绑定的默认值", DefaultValue: "", ValueRange: null },
+             { Name: "RootCode", Description: "获取或设置根节点流程模板编码", DefaultValue: "", ValueRange: null },
+             { Name: "WorkflowCodes", Description: "获取或设置根节点流程模板编码", DefaultValue: "", ValueRange: null },
+             { Name: "Mode", Description: "获取或设置选择方式(流程包/流程模板)", DefaultValue: "Package", ValueRange: ["Package", "WorkflowTemplate"] },
+             { Name: "IsMultiple", Description: "获取或设置是否支持多选", DefaultValue: true, ValueRange: [true, false] }
+        ],
+        DesignEvents: [
+            { Name: "OnChange", Description: "获取或设置流程模板的Change事件" }
+        ]
+    }
+
+        */
+        $(function () {
+            $("#divUser").SheetUser({ Editable: true, Visiable: true, OrgUnitVisible: true });
+
+            $("#divWorkflow").SheetWorkflow({ Editable: true, Visiable: true, Mode: "WorkflowTemplate", IsMultiple: false });
+            $("#divWorkflow1").SheetWorkflow({
+                Editable: true, Visiable: true, IsMultiple: true, Mode: "WorkflowTemplate", OnChange: function (e) {
+                    debugger;
+                },
+                Originate: true, DefaultValue: "ProformanceTest1"
+            });
+
+            $("#divWorkflow2").SheetWorkflow({
+                Editable: true,
+                Visiable: true,
+                IsMultiple: true,
+                Mode: "Package",
+                OnChange: function (e) {
+                    debugger;
+                },
+                Originate: true,
+                DefaultValue: ["Data2", "SubTableTest"]
+            });
+
+            $("input").click(function () {
+                // 获取选定的 Code 值
+                console.log("V->" + $("#divWorkflow").SheetUIManager().GetValue());
+                // 获取选定的 Text 值
+                console.log("T->" + $("#divWorkflow").SheetUIManager().GetText());
+            })
+        })
+    </script>
+</head>
+<body>
+    <hr />
+    选用户
+    <div id="divUser"></div>
+    <hr />
+    <br />
+    选流程
+    <div id="divWorkflow"></div>
+    <hr />
+    <br />
+    选流程
+    <br />
+    <div id="divWorkflow1"></div>
+    <hr />
+    选流程包
+    <br />
+    <div id="divWorkflow2"></div>
+    <hr />
+
+    <input type="button" value="V" />
+</body>
+</html>

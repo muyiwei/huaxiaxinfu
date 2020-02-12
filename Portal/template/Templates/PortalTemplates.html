@@ -1,0 +1,87 @@
+﻿<div class="hbox hbox-auto-xs hbox-auto-sm">
+    <div class="col">
+        <div class="bg-light lter b-b wrapper-md">
+            <div class="row" style=" padding-right: 15px; ">
+                <div class="col-sm-6 col-xs-12">
+                    <span class="h3" translate="PortalTemplates.ManageTemplate">模板管理</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="wrapper-md paddingbottomNone">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <span ng-click="AddTemplate();" class="btn btn-default hh" style="cursor: pointer;" translate="EditGlobalData.Add">添加</span>
+                </div>
+                <div class="panel-body tab-content-padding">
+                    <div id="list_div">
+                        <div class="template-item" ng-repeat="Template in Templates">
+                            <div class="img">
+                                <img src="{{'Contents/Images/template/' + (temp.Icon||'default.png')}}" ng-click="EditTemplate('{{Template.ObjectID}}')" />
+                                <div class='name' ng-click="PreView('{{Template.ObjectID}}')">
+                                    <a>
+                                        {{Template.TemplateName}}
+                                        <span class='fa fa-search' title='SheetDesigner_Preview'>
+                                        </span>
+                                    </a>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <div class="clear"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/ng-template" id="EditPortalTemplates.html">
+    <div class="modal-header">
+        <button type="button" class="close"
+                data-dismiss="modal" aria-hidden="true" ng-click="cancel()">
+            ×
+        </button>
+        <h4 class="modal-title" id="myModalLabel">
+            <span translate="EditMasterData.Edit"></span>
+        </h4>
+    </div>
+    <div id="content-wrapper" class="form-horizontal" style="padding-top: 18px; width: 100%; height: 360px">
+        <div class="row form-group">
+            <label class="col-sm-2 control-label" translate="PortalTemplates.TemplateName">
+                模板名称
+            </label>
+            <div class="col-sm-10">
+                <input id="txt_tempname" ng-value="Template.TemplateName" style="width: 260px" maxlength="32"
+                       class="form-control">
+            </div>
+        </div>
+        <div class="row form-group">
+            <label class="col-sm-2 control-label" translate="PortalTemplates.IconPath">
+                图标地址
+            </label>
+            <div class="col-sm-10">
+                <input id="txt_icon" ng-value="Template.Icon" style="width: 260px" maxlength="32" class="form-control">
+            </div>
+        </div>
+        <div class="row form-group">
+            <label class="col-sm-2 control-label" translate="PortalTemplates.Html">
+                模板HTML
+            </label>
+            <div class="col-sm-10" style="height: 265px; top: -30px;">
+                <textarea id="txt_html" ng-model="Template.HtmlContent" style="height: 260px; width: 100%; "
+                          data-init="true"></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <label style="text-align:center;color:red;" ng-show="Validation_false"
+               translate="PortalTemplates.TemplateFalse">模板名称/模板HTML不能为空</label>
+        <button type="button" class="btn btn-info" ng-click="remove()" ng-if="Pattern">
+            <label translate="EditGlobalData.Delete">删除</label>
+        </button>
+        <button type="button" class="btn btn-info" ng-click="ok()" ng-disabled="canClick">
+            <label translate="QueryTableColumn.Button_Save">保存</label>
+        </button>
+    </div>
+</script>

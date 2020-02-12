@@ -1,0 +1,260 @@
+﻿<script>
+    $(function () {
+        var pageData = {
+        };
+        var VirtualFields = [{ "Text": "EditBizObjectSchemaProperty.VirtualFields.Yes", "Value": "true" }, { "Text": "EditBizObjectSchemaProperty.VirtualFields.No", "Value": "false" }];
+        //初始化页面数据
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            computed: {
+                ShowExtraInfo: function () {
+                    var showExtraInfo = true;
+                    var logicTypes = ['GlobalData', 'BizObjectArray', 'Comment', 'Attachment', 'Association'];
+                    var logicType = this.SchemProperty.LogicType;
+                    logicTypes.forEach(function (k, n) {
+                        if (k == logicType) {
+                            showExtraInfo = false;
+                            pageData.SchemProperty.RecordTrail = false;
+                            pageData.SchemProperty.Required = false;
+                            pageData.SchemProperty.Searchable = false;
+                            pageData.SchemProperty.Indexed = false;
+                            pageData.SchemProperty.DefaultValue = null;
+                        }
+                    });
+                    return showExtraInfo;
+                }
+            },
+            methods: {
+                saveData: function (type) {
+                    if (pageData.SchemProperty.LogicType == "Association") {
+                        var associationCode = $("#divWorkflow").SheetUser().GetValue();
+                        if (!associationCode) {
+                            $.H3Dialog.Warn({ content: $.Lang("EditBizObjectSchemaProperty.AssociationCodeRequired") });
+                        } else {
+                            pageData.SchemProperty.DefaultValue = associationCode;
+                        }
+                    }
+                    this.$validate(true);//表单验证
+                    //this.$resetValidation();
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData(type);
+                    }
+                },
+                deleteData: function (obj) {
+                    deleteData(obj);
+                },
+                logicTypeChange: function () {
+                    if (pageData.SchemProperty.LogicType == 'Comment' || pageData.SchemProperty.LogicType == 'Attachment') {
+                        //pageData.SchemProperty.DefaultValue = "";
+                        //pageData.SchemProperty.VirtualField == true;
+                    }
+                }
+            }
+        });
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+        if (pageData.SchemProperty.DefaultValue && pageData.SchemProperty.LogicType == "Association") {
+            $("#divWorkflow").SheetWorkflow({ Editable: true, Visiable: true, IsMultiple: false, IsSearch2: true, IsFrequentFlow: false, Mode: "Package", Originate: true, DefaultValue: pageData.SchemProperty.DefaultValue });
+        } else {
+            $("#divWorkflow").SheetWorkflow({ Editable: true, Visiable: true, IsMultiple: false, IsSearch2: true, IsFrequentFlow: false, Mode: "Package", Originate: true });
+
+        }
+        //初始化页面数据
+        function initPageData() {
+            debugger;
+            var property = getUrlParam("Property") || "";
+            var schemaCode = getUrlParam("SchemaCode") || "";
+            var parentProperty = getUrlParam("ParentProperty") || "";
+            var isPublished = getUrlParam("IsPublished") || "";
+            if (schemaCode) {
+                $.ajax({
+                    url: $.Controller.BizObjectSchemaProperty.GetBizObjectSchemaProperty,
+                    type: 'get',
+                    dataType: "json",
+                    data: { schemaCode: schemaCode, property: property, parentProperty: parentProperty, isPublished: isPublished },
+                    async: false,//同步执行
+                    success: function (result) {
+                        if (result.Success == false) {
+                            pageData.LanData = $.Languages;
+                            parent.$.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        } else {
+                            var newLogicTypes = [];
+                            for (var i = 0; i < result.LogicTypes.length; i++) {
+                                if (result.LogicTypes[i].Value != "GlobalData")
+                                {
+                                    newLogicTypes.push(result.LogicTypes[i]);
+                                }
+                            } 
+                            //子表不显示GlobalData
+                            if (result.SchemProperty.ParentProperty&&
+                                result.SchemProperty.ParentProperty.lastIndexOf('\\') != 0) {
+                                result.LogicTypes = newLogicTypes;
+                            }  
+                            pageData = result;
+                            pageData.LogicTypes = $.LangArray(pageData.LogicTypes, "Text");
+                            pageData.VirtualFields = $.LangArray(VirtualFields, "Text");
+                            pageData.SchemProperty.VirtualField = pageData.SchemProperty.VirtualField ? "true" : "false";
+                            pageData.LanData = $.Languages;
+                        }
+                    }
+                });
+            }
+        };
+        //保存
+        function saveData(type) { 
+            $.ajax({
+                url: $.Controller.BizObjectSchemaProperty.SaveBizObjectSchemaProperty,
+                type: "post",
+                dataType: "json",
+                data: pageData.SchemProperty,
+                success: function (result) {
+                    if (result.Success) {
+                        parent.$.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                        if (type == 0) {
+                            parent.GridReload(pageData.SchemProperty.SchemaCode);
+                            parent.H3DialogManger.Cancel();
+                        }
+                        else {
+                            pageData.SchemProperty = result.Extend.SchemProperty;
+                            pageData.SchemProperty.VirtualField = pageData.SchemProperty.VirtualField ? "true" : "false";
+                            parent.GridReload(pageData.SchemProperty.SchemaCode);
+                        }
+                    } else {
+                        if (result.Extend) {
+                            var content = $.format($.Lang(result.Message), $.Lang(result.Extend));
+                            $.H3Dialog.Warn({ content: content });
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+
+    //删除
+    function deleteData(obj, parentProperty, schemaCode, property) {
+        if (ConfirmDel(obj)) {
+            //var delDataUrl = pageData.ConstString.ParentProperty + "=" + encodeURI(parentProperty) + "&" + pageData.ConstString.SchemCodeStr + "=" + pageData.BizObjectSchema.Code + "&" + pageData.ConstString.ParamProperty + "=" + encodeURI(property);
+            var param = {
+                parentProperty: encodeURI(parentProperty),
+                schemaCode: schemaCode,
+                property: encodeURI(property)
+            };
+            $.ajax({
+                url: $.Controller.BizObjectSchemaProperty.DeleteBizObjectSchemaProperty,
+                data: param,
+                type: 'post',
+                dataType: "json",
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.DeleteSucced") });
+                        parent.H3DialogManger.Close();
+                    } else {
+                        if (result.Message)
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        else $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.DeleteFailed") });
+                    }
+                }
+            });
+        }
+
+    };
+
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a v-on:click="saveData(0)" data-icon="fa fa-save" href="javascript:void(0)" data-lang="GlobalButton.Save">保存</a>
+        <a onclick="deleteData(this, '{{SchemProperty.ParentProperty}}', '{{SchemProperty.SchemaCode}}', '{{SchemProperty.PropertyName}}')" data-icon="fa fa-minus" href="javascript:void(0)" data-lang="GlobalButton.Delete" v-if="SchemProperty.Property">删除</a>
+        <a v-on:click="saveData(1)" data-icon="icon-baocunbingjixutianjia" href="javascript:void(0)" data-lang="GlobalButton.SaveAndAdd" v-if="!SchemProperty.Property">保存并继续添加</a>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.msgGlobalString.BasicProperties}}</span>
+        <table>
+            <tr>
+                <td>{{LanData.EditBizObjectSchemaProperty.PropertyName}}</td>
+                <td>
+                    <input v-model="SchemProperty.PropertyName" detect-change="off" detect-blur="on" initial="off" v-validate:property-name="{required:true,maxlength:30}" type="text" v-bind:disabled="IsCodeEdit" />
+                    <span style="color:Red;" v-if="$formValidator.propertyName.required" data-lang="msgGlobalString.EnumValueRequired"></span>
+                    <span style="color:Red;" v-if="$formValidator.propertyName.maxlength" data-lang="EditBizObjectSchemaProperty.PropertyMaxLength"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.EditBizObjectSchemaProperty.PropertyDisplayName}}</td>
+                <td>
+                    <input v-model="SchemProperty.DisplayName" detect-change="off" detect-blur="on" initial="off" v-validate:display-name="{required:true}" type="text" />
+                    <span style="color:Red;" v-if="$formValidator.displayName.required" data-lang="msgGlobalString.EnumValueRequired"></span>
+                </td>
+            </tr>
+            <tr v-show="SchemProperty.LogicType!='BizObject'">
+                <td>
+                    {{LanData.EditBizObjectSchemaProperty.PropertyType}}
+                </td>
+                <td>
+                    <select id="sltLogicType" v-model="SchemProperty.LogicType" v-on:change="logicTypeChange">
+                        <option v-for="option in LogicTypes" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+            </tr>
+            <tr itemid="Metadata" v-show="SchemProperty.LogicType=='GlobalData'">
+                <td>{{LanData.EditBizObjectSchemaProperty.Global}}</td>
+                <td>
+                    <select v-model="SchemProperty.Global">
+                        <option v-for="option in Globals" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+            </tr>
+            <tr itemid="Metadata" v-show="SchemProperty.LogicType=='Association'">
+                <td>{{LanData.EditBizObjectSchemaProperty.Association}}</td>
+                <td>
+                    <div id="divWorkflow" style="width: 256px;"></div>
+                </td>
+            </tr>
+            <tbody v-show="ShowExtraInfo">
+                <tr itemid="Normal">
+                    <td>
+                        {{LanData.EditBizObjectSchemaProperty.DefaultValue}}
+                    </td>
+                    <td>
+                        <input v-model="SchemProperty.DefaultValue" type="text" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        {{LanData.EditBizObjectSchemaProperty.VirtualField}}
+                    </td>
+                    <td colspan="2" class="tableNoCss">
+                        <table border="0">
+                            <tr>
+                                <td v-for="item in VirtualFields" style="padding-right:50px;">
+                                    <input id="rad{{item.Value}}" type="radio" name="VirtualField" value="{{item.Value}}" v-model="SchemProperty.VirtualField" />
+                                    <label for="rad{{item.Value}}" style="position: relative;top: -2px;">
+                                        {{item.Text}}
+                                    </label>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr itemid="Normal" v-show="SchemProperty.VirtualField=='false'">
+                    <td>{{LanData.EditBizObjectSchemaProperty.Advanced}}</td>
+                    <td>
+                        <input id="chkRecordTrail" v-model="SchemProperty.RecordTrail" type="checkbox" />
+                        <label for="chkRecordTrail" style="position: relative; top: -3px;">{{LanData.EditBizObjectSchemaProperty.Track}}</label>
+                        <input id="chkIndexed" v-model="SchemProperty.Indexed" type="checkbox" style="margin-left:15px" />
+                        <label for="chkIndexed" style="position: relative; top: -3px;">{{LanData.EditBizObjectSchemaProperty.Indexed}}</label>
+                        <input id="chkSearchable" v-model="SchemProperty.Searchable" type="checkbox" style="margin-left: 15px" v-show="SchemProperty.LogicType!='TimeSpan'" />
+                        <label for="chkSearchable" style="position: relative; top: -3px;" v-show="SchemProperty.LogicType!='TimeSpan'">{{LanData.EditBizObjectSchemaProperty.Searchable}}</label>
+                        <input id="Required" v-model="SchemProperty.Required" type="checkbox" style="margin-left: 15px" />
+                        <label for="Required" style="position: relative; top: -3px;">{{LanData.EditBizObjectSchemaProperty.Required}}</label>
+                     </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    </valiadator>

@@ -1,0 +1,76 @@
+﻿<div class="item item-divider bpm-userselectitems" ng-show="selectUsers.length!=0">
+    <ion-scroll direction="x" scrollbar-x="false" class="">
+        <ul class="breadcrumb-wrapper">
+            <li class="bpm-breadcrumb bpm-orgitem"
+                ng-repeat="user in selectUsers track by user.id"
+                ng-if="user.type=='O'"
+                ng-click="cancelSelected($index)">
+                <span ng-class="{'user-a':$index%4==0,'user-b':$index%4==1,'user-c':$index%4==2,'user-d':$index%4==3,}">{{user.name}}</span>
+            </li>
+            <li class="bpm-breadcrumb bpm-orgitem"
+                ng-repeat="user in selectUsers track by user.id"
+                ng-if="user.type=='G'"
+                ng-click="cancelSelected($index)">
+                <span ng-class="{'user-a':$index%4==0,'user-b':$index%4==1,'user-c':$index%4==2,'user-d':$index%4==3,}">{{user.name}}</span>
+            </li>
+            <li class="bpm-breadcrumb bpm-useritem"
+                ng-repeat="user in selectUsers"
+                ng-if="user.type=='U'"
+                ng-click="cancelSelected($index)">
+                <i class="user-name"
+                   ng-class="{'user-a':$index%4==0,'user-b':$index%4==1,'user-c':$index%4==2,'user-d':$index%4==3,}">
+                    <span>{{user.name|limitTo :-2}}</span>
+                </i>
+            </li>
+        </ul>
+    </ion-scroll>
+    <style>
+        .bpm-userselectitems {
+            padding: 4px !important;
+        }
+
+            .bpm-userselectitems .breadcrumb-wrapper {
+                height: 50px;
+                padding-top: 5px;
+            }
+
+            .bpm-userselectitems .bpm-breadcrumb {
+                display: inline;
+                line-height: 30px;
+                font-size: 13px;
+                word-break: break-all;
+            }
+
+            .bpm-userselectitems .bpm-useritem {
+            }
+
+                .bpm-userselectitems .bpm-useritem .user-name {
+                    display: inline-block;
+                    height: 40px;
+                    width: 40px;
+                    border-radius: 60%;
+                }
+
+                    .bpm-userselectitems .bpm-useritem .user-name span {
+                        margin-left: 6px;
+                        line-height: 40px;
+                    }
+
+            .bpm-userselectitems .bpm-orgitem {
+            }
+
+                .bpm-userselectitems .bpm-orgitem .user-name {
+                    display: inline-block;
+                    height: 40px;
+                    width: 40px;
+                    border-radius: 60%;
+                }
+
+                .bpm-userselectitems .bpm-orgitem span {
+                    padding: 7px;
+                    margin-left: 6px;
+                    margin-right: 6px;
+                    line-height: 40px;
+                }
+    </style>
+</div>

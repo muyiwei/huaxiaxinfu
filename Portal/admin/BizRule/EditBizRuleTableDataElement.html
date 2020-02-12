@@ -1,0 +1,204 @@
+﻿<script>
+
+    var pageData = {
+        RuleDataElement: { LogicType: "ShortString", ParamType: "In" },//类型赋默认值
+        ParamTypeList: {},
+        LogicTypeList:{},
+        LanData: $.Languages
+    };
+    $(function () {
+
+        InitPageData();
+
+        //如果是编辑，不能使用保存并继续
+        if (pageData.RuleDataElement.ObjectID) {
+            $("#btnSaveAndContinueAdd").remove();
+        } else {
+            $("#btnRemove").remove();
+        }
+        //
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        //$.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        SaveData(false);
+                    }
+                },
+                saveDataAndAdd: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        SaveData(true);
+                    }
+                },
+                remove: function (event) {
+                    Remove();
+                }
+            }
+        });
+
+        $(".H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+    });
+
+    function InitPageData() {
+        var RuleCode = getUrlParam("RuleCode");
+        var ElementName = getUrlParam("ItemName");
+
+        //数据类型
+        $.ajax({
+            url: $.Controller.BizRuleDataElement.GetLogicTypeList,
+            type: "get",
+            data: {},
+            async:false,
+            success: function (data) {
+                pageData.LogicTypeList = data;
+            }
+        });
+        //参数类型
+        $.ajax({
+            url: $.Controller.BizRuleDataElement.GetParamTypeList,
+            type: "get",
+            data: {},
+            async: false,
+            success: function (data) {
+                pageData.ParamTypeList = data;
+            }
+        });
+
+        if (ElementName) {
+            //获取数据项信息
+            $.ajax({
+                url: $.Controller.BizRuleDataElement.GetRuleElement,
+                type: "get",
+                data: { ruleCode: RuleCode, elementName: ElementName },
+                async: false,
+                success: function (data) {
+                    pageData.RuleDataElement = data;
+                }
+            });
+        } else {
+            pageData.RuleDataElement.RuleCode = RuleCode;
+           // pageData.RuleDataElement.ElementName = ElementName;
+        }
+    }
+
+    function SaveData(IsContinue) {
+        //debugger;
+        $.ajax({
+            url: $.Controller.BizRuleDataElement.Save,
+            type: "post",
+            dataType: "json",
+            data: pageData.RuleDataElement,
+            success: function (result) {
+                if (result.Success) {
+                    if (IsContinue) {
+                        //继续添加，清空之前的数据
+                        pageData.RuleDataElement.ObjectID = "";
+                        pageData.RuleDataElement.ElementName = "";
+                        pageData.RuleDataElement.DisplayName = "";
+                        pageData.RuleDataElement.Description = "";
+                        pageData.RuleDataElement.DefaultValue = "";
+                        parent.GridLoad();
+                    }
+                    else {
+                        parent.H3DialogManger.Close();
+                    }
+                } else {
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                }
+            }
+        });
+    }
+
+    function Remove()
+    {
+        if (pageData.RuleDataElement.ObjectID)
+        {
+            $.ajax({
+                url: $.Controller.BizRuleDataElement.RemoveElement,
+                type: "post",
+                dataType: "json",
+                data: { ruleCode: pageData.RuleDataElement.RuleCode, elementName: pageData.RuleDataElement.ElementName },
+                success: function (result) {
+                    if (result.Success) {
+                        parent.H3DialogManger.Close();
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        }
+    }
+
+</script>
+<validator name="formValidator">
+    <div class="H3ToolBar">
+        <a id="btnSave" data-icon="fa fa-save" v-on:click="saveData" data-lang="GlobalButton.Save"></a>
+        <a id="btnSaveAndContinueAdd" data-icon="icon-baocunbingjixutianjia" v-on:click="saveDataAndAdd" data-lang="GlobalButton.SaveAndAdd"></a>
+        <a id="btnRemove" data-icon="fa fa-minus" v-on:click="remove" data-lang="GlobalButton.Delete"></a>
+    </div>
+    <div class="H3Panel">
+        <span data-lang="msgGlobalString.BasicProperties"></span>
+        <table>
+            <tr>
+                <td>{{LanData.BizRule.Code}}</td>
+                <td>
+                    <input type="text" id="txtCode" v-bind:disabled="RuleDataElement.ObjectID" maxlength="64" v-model="RuleDataElement.ElementName" detect-change="off" detect-blur="on" initial="off" v-validate:item-code="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.itemCode.required">{{LanData.msgGlobalString.EnumValueRequired}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.BizRule.DisplayName}}</td>
+                <td>
+                    <input type="text" id="txtDisplayName" maxlength="64" v-model="RuleDataElement.DisplayName" detect-change="off" detect-blur="on" initial="off" v-validate:item-name="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.itemName.required">{{LanData.msgGlobalString.EnumValueRequired}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.BizRule.Description}}</td>
+                <td>
+                    <textarea id="txtDescription" v-model="RuleDataElement.Description" />
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="H3Panel">
+        <span data-lang="BizRule.PanelParamType"></span>
+        <table>
+            <tr>
+                <td>{{LanData.BizRule.LogicType}}</td>
+                <td>
+                    <select id="lstLogicType" v-model="RuleDataElement.LogicType">
+                        <option v-for="option in LogicTypeList" v-bind:value="option.Value">
+                            {{option.Text}}
+                        </option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.BizRule.ParamType}}</td>
+                <td>
+                    <select id="lstParamType" v-model="RuleDataElement.ParamType">
+                        <option v-for="option in ParamTypeList" v-bind:value="option.Value">
+                            {{option.Text}}
+                        </option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.BizRule.DefaultValue}}</td>
+                <td>
+                    <textarea id="txtDefaultValue" v-model="RuleDataElement.DefaultValue" />
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

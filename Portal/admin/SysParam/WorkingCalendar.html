@@ -1,0 +1,268 @@
+﻿<link type="text/css" rel="stylesheet" href="../WFRes/_Scripts/jquery/plugin/calendar/jquery.calendar.css" />
+<script type="text/javascript" src="../WFRes/_Scripts/jquery/plugin/calendar/jquery.calendar.js"></script>
+
+<script type="text/javascript">
+    var pageData = {
+        controls: {
+            selCalendar: "#selCalendar",
+            divCalendar: "#divCalendar",
+            tabWorkingDay: "#tabWorkingDay",
+            divInitial: ".divInitial",
+            btnSaveWorkingDay: "#btnSaveWorkingDay",
+            toolBar: "#ToolBar",
+            h3Panel: ".H3Panel"
+        },
+        Model: {},
+        Lang: $.Languages
+    };
+
+    $(function () {
+        pageLoad();
+
+        pageData.controls.toolBar.AspLinkToolBar();
+        pageData.controls.h3Panel.BuildPanel();
+
+        pageData.controls.selCalendar.change(function () {
+            showCalendar($(this).val());
+        });
+
+        showCalendar(pageData.controls.selCalendar.val());
+    })
+
+    var showCalendar = function (calendarId) {
+        pageData.controls.divCalendar.html("").WorkCalendar({
+            url: $.Controller.WorkingCalendar.GetWorkingDays,
+            calendarId: calendarId,
+            weeks: [$.Languages.msgGlobalString.Monday,
+                $.Languages.msgGlobalString.Tuesday,
+                $.Languages.msgGlobalString.Wednesday,
+                $.Languages.msgGlobalString.Thursday,
+                $.Languages.msgGlobalString.Friday,
+                $.Languages.msgGlobalString.Saturday,
+                $.Languages.msgGlobalString.Sunday],
+            workdayText: $.Languages.msgGlobalString.WorkdayText,
+            holidayText: $.Languages.msgGlobalString.HolidayText,
+            yearText: $.Languages.msgGlobalString.YearText,
+            monthText: $.Languages.msgGlobalString.MonthText,
+            todayText: $.Languages.msgGlobalString.TodayText,
+            selected: function (e) {
+                // 选中日期事件
+                if (e == null) {
+                    pageData.controls.tabWorkingDay.hide();
+                }
+                else {
+                    displayWorkingDay(e);
+                    pageData.controls.tabWorkingDay.show();
+                }
+            }
+        });
+    }
+
+    // 页面初始化操作
+    var pageLoad = function () {
+        for (var k in pageData.controls) {
+            pageData.controls[k] = $(pageData.controls[k]);
+        }
+        $("<option value=\"-1\"></option>").appendTo($(".hours"));
+        $("<option value=\"-1\"></option>").appendTo($(".minutes"));
+
+        for (var i = 0; i <= 23; i++) {
+            $("<option value=\"" + i + "\">" + i + "</option>").appendTo($(".hours"));
+        }
+        for (var i = 0; i <= 59; i++) {
+            $("<option value=\"" + i + "\">" + i + "</option>").appendTo($(".minutes"));
+        }
+
+        var model = new Vue({
+            el: "#divContainer",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    }
+                    else {
+                        saveWorkingDay();
+                    }
+                }
+            }
+        });
+
+        $.ajax({
+            url: $.Controller.WorkingCalendar.GetWorkingCalendarList,
+            type: 'post',
+            dataType: "json",
+            data: {},
+            async: false,//同步执行
+            success: function (result) {
+                pageData.calendarList = result;
+                if (!pageData.calendarList || pageData.calendarList.length == 0) {
+                    pageData.controls.divInitial.show();
+                }
+                else {
+                    for (var i = 0; i < pageData.calendarList.length; i++) {
+                        $("<option value=\"" + pageData.calendarList[i].ObjectID + "\">" + pageData.calendarList[i].DisplayName + "</option>").appendTo($("#selCalendar"));
+                    }
+                }
+            }
+        });
+
+        pageData.controls.btnSaveWorkingDay.click(saveWorkingDay);
+    }
+
+    // 这个函数待提取到 TabMaster.html 中
+    String.prototype.toDate = function () {
+        var d = eval("new " + this.substring(1, this.length - 1));
+        return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+    }
+
+    // 添加工作日历
+    var addWorkingCalendar = function () {
+        var title = $.Lang("WorkingCalendar.AddCalendar");
+        ShowDialog(title, _PORTALROOT_GLOBAL+ "/admin/TabMaster.html?url=SysParam/EditCalendar.html");
+    }
+
+    // 编辑工作日历
+    var editWorkingCalendar = function () {
+        if (pageData.controls.selCalendar.val()) {
+            var title = $.Lang("WorkingCalendar.EditCalendar");
+            ShowDialog(title, _PORTALROOT_GLOBAL+ "/admin/TabMaster.html?url=SysParam/EditCalendar.html&CalendarID=" + pageData.controls.selCalendar.val());
+        }
+    }
+
+    // 删除工作日历
+    var removeWorkingalendar = function (obj) {
+        var calendarId = pageData.controls.selCalendar.val();
+        if (calendarId) {
+            if (ConfirmDel(obj)) {
+                $.ajax({
+                    url: $.Controller.WorkingCalendar.RemoveWorkingCalendar,
+                    type: 'post',
+                    dataType: "json",
+                    data: { CalendarID: pageData.controls.selCalendar.val() },
+                    async: false,
+                    success: function (result) {
+                        if (!result.Success) {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        }
+                        else {
+                            window.location.reload();
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    // 显示工作日期
+    var displayWorkingDay = function (workingDay) {
+        $.ajax({
+            url: $.Controller.WorkingCalendar.GetWorkingDay,
+            type: 'post',
+            dataType: "json",
+            data: { CalendarID: workingDay.CalendarId, WorkingDate: workingDay.CurrentDate.toDate() },
+            async: false,//同步执行
+            success: function (result) {
+                pageData.Model = result;
+            }
+        });
+    }
+
+    var saveWorkingDay = function () {
+        $.ajax({
+            url: $.Controller.WorkingCalendar.UpdateWorkingDay,
+            type: 'post',
+            dataType: "json",
+            data: pageData.Model,
+            async: true,
+            success: function (result) {
+                if (!result.Success) {
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                }
+                else {
+                    pageData.controls.divCalendar.WorkCalendar({ refresh: true });
+                }
+            }
+        });
+    };
+</script>
+
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a onclick="addWorkingCalendar()" data-icon="fa fa-plus" data-lang="GlobalButton.Add">添加</a>
+        <a onclick="editWorkingCalendar()" data-icon="fa fa-edit" href="javascript:void(0)" data-lang="GlobalButton.Edit">编辑</a>
+        <a onclick="removeWorkingalendar(this)" data-icon="fa fa-edit" href="javascript:void(0)" data-lang="GlobalButton.Delete">删除</a>
+    </div>
+    <div class="H3Panel" id="divContainer">
+        <table class="tableList" style="width:100%;">
+            <tr>
+                <td class="tableLeft" style="width: 120px;">
+                    {{Lang.WorkingCalendar.Calendar}}
+                </td>
+                <td style="width:280px;">
+                    <select id="selCalendar" style="padding-right:10px"></select>
+                </td>
+                <td>&nbsp;<div class="divInitial" style="display:none;">{{Lang.WorkingCalendar.InitText1}}<a href="#" onclick="addWorkingCalendar()">{{Lang.WorkingCalendar.InitText2}}</a></div></td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <div id="divCalendar" style="margin-top:10px;"></div>
+                </td>
+                <td style="vertical-align:top;">
+                    <table border="0" id="tabWorkingDay" style="width:100%;display:none;">
+                        <tr>
+                            <td class="tableLeft" style="width: 120px; height: 33px; ">
+                                {{Lang.WorkingCalendar.SelectedDay}}
+                            </td>
+                            <td style="text-align:left">
+                                <label>{{Model.CurrentDate}}</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="tableLeft" style="width: 120px; height: 33px; ">
+                                {{Lang.WorkingCalendar.IsWorkingDay}}
+                            </td>
+                            <td style="text-align:left">
+                                <input type="checkbox" id="chkWorkingDay" v-model="Model.IsWorkingDay" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="tableLeft" style="height: 33px; ">
+                                {{Lang.WorkingCalendar.IsExceptionDay}}
+                            </td>
+                            <td style="text-align:left">
+                                <input type="checkbox" id="chkExceptional" v-model="Model.IsExceptional" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="tableLeft" style="height: 33px; ">
+                                {{Lang.WorkingCalendar.WorkingTimeSpan}}
+                            </td>
+                            <td style="text-align:left">
+                                {{Lang.msgGlobalString.Morning}} {{Lang.msgGlobalString.From}}<select style="width:50px" class="hours" v-model="Model.AMStartHour"></select>{{Lang.msgGlobalString.Hour}}<select style="width:50px" class="minutes" v-model="Model.AMStartMinute"></select>{{Lang.msgGlobalString.Minute}}
+                                {{Lang.msgGlobalString.To}} <select style="width:50px" class="hours" v-model="Model.AMEndHour"></select>{{Lang.msgGlobalString.Hour}}<select style="width:50px" class="minutes" v-model="Model.AMEndMinute"></select>{{Lang.msgGlobalString.Minute}}<br />
+                                {{Lang.msgGlobalString.Afternoon}} {{Lang.msgGlobalString.From}}<select style="width:50px" class="hours" v-model="Model.PMStartHour"></select>{{Lang.msgGlobalString.Hour}}<select style="width:50px" class="minutes" v-model="Model.PMStartMinute"></select>{{Lang.msgGlobalString.Minute}}
+                                {{Lang.msgGlobalString.To}} <select style="width:50px" class="hours" v-model="Model.PMEndHour"></select>{{Lang.msgGlobalString.Hour}}<select style="width:50px" class="minutes" v-model="Model.PMEndMinute"></select>{{Lang.msgGlobalString.Minute}}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="tableLeft" style="height: 39px;">
+                                {{Lang.WorkingCalendar.Description}}
+                            </td>
+                            <td style="text-align:left">
+                                <input type="text" max="32" v-model="Model.Description" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="tableLeft" style="height: 33px; "></td>
+                            <td style="text-align:left">
+                                <button style="height:28px;" id="btnSaveWorkingDay">{{Lang.GlobalButton.Save}}</button>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

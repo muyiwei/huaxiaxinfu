@@ -1,0 +1,26 @@
+<div class="row">
+    <div class="col" style="text-align:center;">
+        <sapn>{{names.Day}}</sapn>
+        <!--<a ng-click="pickerDate('add')" class="button button-clear icon ion-ios-arrow-up"></a>-->
+        <input type="number" select-line ng-model="data.day" ng-change="DateChange('day')">
+        <!--<a ng-click="pickerDate('minus')" class="button button-clear icon ion-ios-arrow-down"></a>-->
+    </div>
+    <div class="col" style="text-align:center;">
+        <sapn>{{names.Hour}}</sapn>
+        <!--<a ng-click="pickerMonth('add')" class="button button-clear icon ion-ios-arrow-up"></a>-->
+        <input type="number" select-line ng-model="data.hour" ng-change="DateChange('hour')">
+        <!--<a ng-click="pickerMonth('minus')" class="button button-clear icon ion-ios-arrow-down"></a>-->
+    </div>
+    <div class="col" style="text-align:center;">
+        <sapn>{{names.Minute}}</sapn>
+        <!--<a ng-click="pickerYear('add')" class="button button-clear icon ion-ios-arrow-up"></a>-->
+        <input type="number" select-line ng-model="data.min" ng-change="DateChange('min')">
+        <!--<a ng-click="pickerYear( 'minus')" class="button button-clear icon ion-ios-arrow-down"></a>-->
+    </div>
+    <div class="col" style="text-align:center;">
+        <sapn>{{names.Second}}</sapn>
+        <!--<a ng-click="pickerYear('add')" selectline class="button button-clear icon ion-ios-arrow-up"></a>-->
+        <input type="number" select-line ng-model="data.second" ng-change="DateChange('second')">
+        <!--<a ng-click="pickerYear('minus')" class="button button-clear icon ion-ios-arrow-down"></a>-->
+    </div>
+</div>

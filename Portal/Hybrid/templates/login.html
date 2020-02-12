@@ -1,0 +1,39 @@
+﻿<ion-view view-title="H3 BPM">
+    <ion-content ng-hide="IsSSO">
+        <style type="text/css">
+            .list {
+                background-color: #FFF;
+            }
+        </style>
+        <div class="list" style="margin-bottom:0px;padding-bottom:0px;">
+            <label id="lblImage" class="item item-image animated fadeInDown"
+                   style="background-color:#ffffff;vertical-align:middle;text-align:center; padding-top:80px;padding-bottom:20px;border-bottom:none;">
+                <img src="img/logo.png" style="width:76%;" />
+            </label>
+        </div>
+        <div class="list animated fadeInUp" style="padding:10px 20px;">
+            <label class="item item-input" style="border-left:none;border-right:none;border-top:none;background-color:#ffffff">
+                <input type="text" id="txtUserName" ng-model="user.Code" placeholder="请输入用户名" focus-on="userCode">
+            </label>
+            <label class="item item-input" style="border-left:none;border-right:none;background-color:#ffffff">
+                <input type="password" id="txtPassword" ng-model="user.Password" placeholder="请输入密码" focus-on="userPassword">
+            </label>
+        </div>
+        <div class="padding animated fadeInUp">
+            <button class="button button-block button-positive" ng-click="validateUser(true)">
+                登 录
+            </button>
+            <span style="display:none;">
+                {{clientInfo.UUID}}-{{clientInfo.AppVersion}}<br />
+                {{clientInfo.JPushID}}-{{clientInfo.Platform}}<br />
+            </span>
+            <p class="text-right" style="display:none;">
+                <a href="#/forgot-password">忘记密码</a>
+            </p>
+        </div>
+    </ion-content>
+    <ion-footer-bar class="bar-stable fix-buttons" ng-hide="IsSSO">
+        <h1 class="title"></h1>
+        <a class="button button-clear icon ion-ios-gear-outline" href="#/setting"></a>
+    </ion-footer-bar>
+</ion-view>

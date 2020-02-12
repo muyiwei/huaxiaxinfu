@@ -1,0 +1,307 @@
+﻿<script>
+
+    var pageData = {
+        MethodData: { ReturnType: "None" }, //方法数据
+        ReturnTypeList: {},//返回类型
+        LanData: $.Languages
+    }
+
+    $(function () {
+        LoadReturnTypeList();
+        LoadMethod();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        //$.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        SaveData();
+                    }
+                }
+            }
+        });
+
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+    })
+
+    function LoadMethod()
+    {
+        var ServiceCode = getUrlParam("ServiceCode");
+        var MethodName = getUrlParam("Method");
+        //debugger;
+        var MethodUrl = $.Controller.BizServiceMethod.GetMethod;
+        if (ServiceCode && ServiceCode != "") {
+            $.ajax({
+                url: MethodUrl,
+                async:false,
+                data:{serviceCode:ServiceCode,methodName:MethodName},
+                success: function (result) {
+                    //debugger;
+                    if (result.Success) {
+                        pageData.MethodData = result.Extend;
+                        if (pageData.MethodData.ReturnType ==null || pageData.MethodData.ReturnType == "")
+                        {
+                            pageData.MethodData.ReturnType ="None";//默认值
+                        }
+                    }
+                    else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        }
+    }
+
+    function LoadReturnTypeList()
+    {
+        var ajaxUrl = $.Controller.BizServiceMethod.GetReturnType;
+        $.ajax({
+            url: ajaxUrl,
+            type: "get",
+            async:false,
+            success: function (result) {
+                if (result) {
+                    pageData.ReturnTypeList = result;
+                }
+                else {
+                }
+            }
+        });
+    }
+
+    function SaveData()
+    {
+        //debugger;
+        pageData.MethodData.MethodSetting = encodeURIComponent($("#txtMethodSetting").val());
+        $.ajax({
+            url: $.Controller.BizServiceMethod.SaveMethod,
+            type: "post",
+            dataType: "json",
+            data: pageData.MethodData,
+            success: function (result) {
+                if (result.Success) {
+                    $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                    pageData.MethodData.MethodSetting = decodeURIComponent(pageData.MethodData.MethodSetting);
+                    //关闭当前对话框
+                    parent.H3DialogManger.Close();
+
+                } else {
+                    //错误详细信息在Extend属性中
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) + ":" + result.Extend });
+                }
+            },
+            error: function(){
+             pageData.MethodData.MethodSetting = decodeURIComponent(pageData.MethodData.MethodSetting);
+            }
+        });
+    }
+
+</script>
+<validator name="formValidator">
+    <div id="H3ToolBar">
+        <a id="btnSave" v-on:click="saveData" data-icon="fa fa-save" data-lang="GlobalButton.Save"></a>
+    </div>
+    <div class="H3Panel">
+        <span data-lang="msgGlobalString.Msg_BasciInfor"></span>
+        <table>
+            <tr>
+                <td>
+                    {{LanData.BizServiceMethod.MethodName}}
+                </td>
+                <td>
+                    <input type="text" id="txtMethodName" v-bind:disabled="MethodData.ObjectID" v-model="MethodData.MethodName" detect-change="on" detect-blur="on" initial="off" v-validate:item-code="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.itemCode.required">{{LanData.msgGlobalString.EnumValueRequired}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.BizServiceMethod.DisplayName}} 
+                </td>
+                <td>
+                    <input type="text" id="txtDisplayName" v-model="MethodData.DisplayName" detect-change="on" detect-blur="on" initial="off" v-validate:item-name="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.itemName.required">{{LanData.msgGlobalString.DisplayNameNotNull}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.BizServiceMethod.Description}}
+                </td>
+                <td>
+                    <textarea id="txtDisplayName" v-model="MethodData.Description"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.BizServiceMethod.ReturnType}} 
+                </td>
+                <td>
+                    <select id="lstReturnType" v-model="MethodData.ReturnType">
+                        <option v-for="option in ReturnTypeList" v-bind:value="option.Value">
+                            {{option.Text}}
+                        </option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="H3Panel">
+        <span data-lang="BizServiceMethod.MethodSet"></span>
+        <table>
+            <tr>
+                <td>
+                    {{LanData.BizServiceMethod.Set}} 
+                </td>
+                <td>
+                    <div id="dvContent" style="width: 100%; padding-right: 5px;">
+                        <div title="SQL" lselected="true" style="padding-right: 5px;">
+                            <textarea id="txtSql" spellcheck="false" style="width:100%" ></textarea>
+                        </div>
+                        <div title="XML" style="padding-right: 5px;">
+                            <textarea id="txtMethodSetting" spellcheck="false" style="width:100%" v-model="MethodData.MethodSetting"></textarea>
+                        </div>
+                    </div>
+                    <input type="hidden" id="hdParameterPrefix" v-model="MethodData.ParameterPrefix" />
+                    <input type="hidden" id="hdServiceCode" v-model="MethodData.ServiceCode" />
+                </td>
+            </tr>
+        </table>
+    </div>
+    <script>
+        $(function () {
+            //如果不是Data Sql类型业务方法
+            //debugger;
+            var dbSqlType = "OThinker.H3.BizBus.BizAdapters.DbSqlAdapter";
+            if (pageData.MethodData.BizAdapterCode != dbSqlType) {
+                $("#dvContent").children("[title=SQL]").remove();
+            }
+            $("#dvContent").ligerTab();
+        });
+    </script>
+
+    <script>
+        $(function () {
+            var txtSql = $("[id*=txtSql]");
+            var txtXml = $("[id*=txtMethodSetting]");
+            var CreateXml = function () {
+                var Parameters = [];
+                var Columns = [];
+                var Sql = [];
+
+                var _Sql = $(txtSql).val();
+                var _SetXml = function () {
+                    var _Xml = "<MethodSetting>\n";
+
+                    _Xml += "<Parameters>\n";
+                    $(Parameters).each(function () {
+                        _Xml += "<Parameter Name=\"" + this.toString() + "\" Type=\"ShortString\"></Parameter>\n";
+                    });
+                    _Xml += "</Parameters>\n";
+
+                    _Xml += "<Columns>\n";
+                    $(Columns).each(function () {
+                        _Xml += "<Column Name=\"" + this.Name + "\" Type=\"" + this.Type + "\" />\n";
+                    });
+                    _Xml += "</Columns>\n";
+
+                    _Xml += "<Sql>\n";
+                    _Xml += _Sql;
+                    _Xml += "</Sql>\n";
+
+                    _Xml += "</MethodSetting>";
+                    txtXml.val(_Xml);
+                }
+
+                if (_Sql && _Sql.trim()) {
+                    _Sql = _Sql.trim();
+                    //修改XML
+                    var crud = _Sql.trim().substring(0, 6).toLowerCase();
+
+                    //获取Parameters
+                    var _ParameterPrefix = pageData.MethodData.ParameterPrefix;
+                    {
+                        var _Sql2 = _Sql.replace(/'[^']+'/g, "''");
+                        var reg = new RegExp("[^" + _ParameterPrefix + "][" + _ParameterPrefix + "][^+-/*><=\\s\)\(:\|&]+", "g");
+                        var ps = _Sql2.match(reg);
+                        $(ps).each(function () {
+                            if (this && this.toString()) {
+                                var pName = this.toString().substring(this.toString().indexOf(_ParameterPrefix) + 1, this.toString().length);
+                                if ($.inArray(pName, Parameters) == -1) {
+                                    Parameters.push(pName);
+                                }
+                            }
+                        });
+                    }
+
+                    //ajax获取Columns
+                    if ((crud == "select"||"exec") && ($("[id*='lstReturnType']").val() != "None")) {
+                        var GetColClumnsUrl = $.Controller.BizServiceMethod.GetMethodColumns;
+                        var MethodName = getUrlParam("Method");
+
+                        $.ajax({
+                            url: GetColClumnsUrl,
+                            data: {
+                                serviceCode: pageData.MethodData.ServiceCode,
+                                methodName: MethodName,
+                                parameters: JSON.stringify(Parameters),
+                                sql: _Sql
+                            },
+                            dataType: "JSON",
+                            async: false,
+                            success: function (data) {
+                                //debugger;
+                                if (data.Success) {
+                                    for (p in data.Extend) {
+                                        Columns.push({ Name: p, Type: data.Extend[p] });
+                                    }
+
+                                    _SetXml();
+                                } else {
+                                    $.H3Dialog.Warn({ content: $.Lang("BizServiceMethod.BizServiceMethod") });
+                                }
+                            },
+                            error: function (msg) {
+
+                            }
+                        });
+                        return;
+                    }
+                    else if (crud == "insert" || crud == "update" || crud == "delete") {
+                        _SetXml();
+                    }
+                    else {
+                        _SetXml();
+                    }
+                } else {
+                    txtXml.val("");
+                }
+
+            };
+
+            txtSql.unbind("change").bind("change", function () {
+                CreateXml();
+            })
+
+            $("[id*='lstReturnType']").unbind("change").bind("change", function () {
+                CreateXml();
+            })
+
+            txtXml.change(function () {
+                //修改Sql
+                var _Xml = $(txtXml).val();
+                var s = _Xml.indexOf("<Sql>");
+                var e = _Xml.indexOf("</Sql>");
+                var _Sql = _Xml.substring(s + 5, e);
+                if (_Sql) {
+                    _Sql = _Sql.trim();
+                }
+                $(txtSql).val(_Sql);
+            });
+            txtXml.change();
+        });
+    </script>
+</validator>

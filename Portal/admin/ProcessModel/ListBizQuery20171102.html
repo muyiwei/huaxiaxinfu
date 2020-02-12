@@ -1,0 +1,140 @@
+﻿<script>
+    var SchemaCode = "";
+    $(function () {
+        debugger;
+        SchemaCode = getUrlParam("SchemaCode") || "";
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel({ excludeIDs: ["ListenerGrid"] });
+        InitPageData();
+        CreateLigerGrid(
+            $("#ListenerGrid"),
+            GetListenerGridColumns(),
+            $.Controller.BizQuery.GetBizQueryList,
+            true,
+             null,
+             null, null, null,
+             {
+                 schemaCode: SchemaCode
+             }
+            );
+    })
+    
+    function InitPageData() {
+        var OwnSchemaCode = getUrlParam("OwnSchemaCode") || "";
+        var IsSchemaPublished = false;
+        $.ajax({
+            url: $.Controller.BizQuery.IsSchemaPublished,
+            type: 'get',
+            dataType: "json",
+            async: false,//同步执行
+            data: { schemaCode: SchemaCode, ownSchemaCode: OwnSchemaCode },
+            success: function (result) {
+                if (!result.Success) {
+                    IsSchemaPublished = false;
+                    $("#ToolBar").hide();
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                } else {
+                    IsSchemaPublished= true;
+                }
+                setControlUsable(result.Extend,$("a"));
+            }
+        });
+        return IsSchemaPublished;
+    }
+    function GetListenerGridColumns() {
+        var QueryCode = $.Lang("BizQuery.QueryCode");
+        var DisplayName = $.Lang("BizQuery.DisplayName");
+        var DisplayColumns = $.Lang("BizQuery.DisplayColumns");
+        var Action = $.Lang("BizQuery.Action");
+        var edit = $.Lang("GlobalButton.Edit");
+        var run = $.Lang("GlobalButton.Run");
+        return [
+                { display: QueryCode, name: "QueryCode" },
+                { display: DisplayName, name: "DisplayName" },
+                {
+                    display: DisplayColumns, name: "DisplayColumns",
+                    render: function (row) {
+                        var _DisplayColumns = row["Columns"];
+                        var _text = "";
+                        if (_DisplayColumns && _DisplayColumns.length > 0) {
+                            $(_DisplayColumns).each(function () {
+                                if (this.Visible == "1") {
+                                    _text += this.PropertyName + ";";
+                                }
+                            });
+                        }
+                        return _text;
+                    }
+                },
+                {
+                    display: Action, name: "edit",
+                    render: function (row) {
+                        var editLink = "<div style='width:30%;float:left;'><a href='#' queryCode='" + row.QueryCode + "' onclick='AddQuery(this)'>" + edit + "</a></div>";
+                        var runLink = "<div style='width:30%;float:left;'><a href='#' queryCode='" + row.QueryCode + "' onclick='RunQuery(this)'>" + run + "</a></div>";
+                        return editLink + runLink;
+                    }
+                }
+        ];
+    }
+
+    function AddQuery(obj) {
+        debugger;
+        var queryCode = $(obj).attr("queryCode") == null ? "" : $(obj).attr("queryCode");
+        var url = _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/EditBizQuery.html";
+        url += "&SchemaCode=" + SchemaCode;
+        url += "&QueryCode=" + queryCode;
+        ShowDialog($(obj).text(), url).max();
+    }
+
+    function RunQuery(obj) {
+        var queryCode = $(obj).attr("queryCode") == null ? "" : $(obj).attr("queryCode");
+        var url = _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/RunBizQuery.html";
+        url += "&SchemaCode=" + SchemaCode;
+        url += "&QueryCode=" + queryCode;
+        ShowDialog($(obj).text(), url).max();
+    }
+
+    function DeleteFun(obj) {
+        var SelectItemName = $.Lang("msgGlobalString.SelectItem");
+        var rows = H3GridManager.getSelectedRows();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: SelectItemName });
+            return false;
+        }
+        var codes = "";
+        for (var i = 0; i < rows.length; i++) {
+            codes = codes + rows[i].QueryCode + ";";
+        }
+        if (ConfirmDel(obj)) {
+            $.ajax({
+                url: $.Controller.BizQuery.DelBizQuery,
+                type: 'post',
+                dataType: "json",
+                data: { codes: codes },
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                        setTimeout(function () {
+                            top.workTab.reload(top.workTab.getSelectedTabItemID());
+                        }, 1000);
+                    } else {
+                        $.H3Dialog.Warn({ content: result.Message });
+                    }
+                }
+            });
+        }
+    };
+
+    function CreatePage(obj) {
+        var url = _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/GenerateBizObjectPage.html&SchemaCode=" + SchemaCode;
+        ShowDialog($(obj).text(), url).max();
+    }
+</script>
+<div id="ToolBar">
+    <a href="javascript:void(0)" id="lnkAdd" data-icon="fa fa-plus" onclick="AddQuery(this)" data-lang="GlobalButton.Add">添加</a>
+    <a id="btnGenerate" href="javascript:void(0)" onclick="CreatePage(this)" data-icon="fa fa-building-o" data-lang="GlobalButton.Generate">生成页面</a>
+    <a onclick="return DeleteFun(this);" id="" data-icon="fa fa-minus" href="javascript:void(0)" data-lang="GlobalButton.Delete">删除</a>
+</div>
+<div class="H3Panel">
+    <div id="ListenerGrid"></div>
+</div>

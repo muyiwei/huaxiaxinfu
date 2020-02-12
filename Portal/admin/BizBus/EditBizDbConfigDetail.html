@@ -1,0 +1,200 @@
+﻿<!--<link href="../../WFRes/css/PortalStyle0.css" rel="stylesheet" type="text/css" />-->
+<script>
+   
+    $(function () {
+        var pageData = {
+            DbConfig: {DbType:1},
+            LanData:$.Languages
+        };
+
+        //初始化页面
+        InitPageData();
+
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                  
+                    var validateCondition;
+                    if (pageData.DbConfig.DbType!=2) {
+                        validateCondition = this.$formValidator.invalid;
+                    } else {
+                        validateCondition = this.$formValidator.System.invalid;
+                    }
+                    if (validateCondition) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        SaveData();
+                    }
+                }
+            }
+        });
+
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Pannel").BuildPanel();
+        CheckDbType();
+
+        function SaveData() {
+            var actionUrl = $.Controller.BizDbConfig.SaveDbConfig;
+            $.ajax({
+                url: actionUrl,
+                type: "post",
+                dataType: "json",
+                data: pageData.DbConfig,
+                success: function (result) {
+                    if (result.Success) {
+                        parent.H3DialogManger.Close();
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        }
+
+        //根据传递的参数获取对应的数据，Vue绑定数据使用
+        function InitPageData() {
+            var id = getUrlParam("code");
+            if (id && id != "") {
+                $.ajax({
+                    url: $.Controller.BizDbConfig.GetDbConfig,
+                    type: 'get',
+                    dataType: "json",
+                    data: { code: id },
+                    async: false,//同步执行
+                    success: function (result) {
+                        pageData.DbConfig = result;
+                    }
+                });
+            }
+        };
+    })
+
+    
+
+    function CheckDbType() {
+        $("input[name$='lstDbType']").click(function () {
+            var val = $(this).val();
+            if (val == 2) {
+                $("#trServer").hide();
+            }
+            else {
+                $("#trServer").show();
+            }
+        });
+    }
+
+</script>
+
+<validator name="formValidator" v-bind:groups="['Custom','System']">
+    <div id="ToolBar">
+        <a id="lnkOK" v-on:click="saveData" data-icon="fa fa-save" data-lang="GlobalButton.Save"></a>
+    </div>
+
+    <div class="H3Pannel">
+        <span>{{LanData.BizDbConnectionConfig.BasicProperty}}</span>
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.BizDbConnectionConfig.Code}}
+
+                </td>
+                <td>
+                    <input type="text" group="System" id="txtCode" v-model="DbConfig.Code" v-bind:disabled="DbConfig.ObjectID" detect-change="on" detect-blur="on" initial="off" v-validate:item-code="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.itemCode.required">{{LanData.BizDbConnectionConfig.CodeNotNull}}</span>
+                </td>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.BizDbConnectionConfig.DisplayName}}
+                </td>
+                <td>
+                    <input type="text" id="txtDisplayName" v-model="DbConfig.DisplayName" />
+                </td>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="H3Pannel">
+        <span>{{LanData.BizDbConnectionConfig.DatabaseConn}}</span>
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.BizDbConnectionConfig.DbType}}
+                </td>
+                <td class="tableNoCss">
+                    <input type="radio" value="1" id="lstDbType1" name="lstDbType" v-model="DbConfig.DbType" /><label for="lstDbType1">SqlServer</label>
+                    <input type="radio" value="2" id="lstDbType2" name="lstDbType" v-model="DbConfig.DbType" /><label for="lstDbType2">Oracle</label>
+                    <input type="radio" value="3" id="lstDbType3" name="lstDbType" v-model="DbConfig.DbType" /><label for="lstDbType3">MySql</label>
+                </td>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.BizDbConnectionConfig.ServerName}}
+
+                </td>
+                <td>
+                    <input type="text" group="System" id="txtServer" v-model="DbConfig.ServerName" detect-change="on" detect-blur="on" initial="off" v-validate:server-name="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.serverName.required">{{LanData.BizDbConnectionConfig.ServerNameNotNull}}</span>
+                </td>
+                <td></td>
+            </tr>
+            <tr id="trServer" v-show="DbConfig.DbType==1 || DbConfig.DbType==3">
+                <td class="tableLeft">
+                    {{LanData.BizDbConnectionConfig.DBName}}
+                </td>
+                <td>
+                    <input type="text" group="Custom" id="txtDataBase" v-model="DbConfig.DBName" detect-change="on" detect-blur="on" initial="off" v-validate:db-name="{required:true}" />
+                    <span style="color:Red;" v-if="DbConfig.DbType!=2 && $formValidator.dbName.required">{{LanData.BizDbConnectionConfig.DBNameNotNull}}</span>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.BizDbConnectionConfig.UserName}}
+
+                </td>
+                <td>
+                    <input type="text" group="System" id="txtUser" v-model="DbConfig.UserName" detect-change="on" detect-blur="on" initial="off" v-validate:user-name="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.userName.required">{{LanData.BizDbConnectionConfig.UserNameNotNull}}</span>
+
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.BizDbConnectionConfig.Password}}
+                </td>
+                <td>
+                    <input type="password" id="txtPwd" v-model="DbConfig.Password" />
+                </td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+    <div class="H3Pannel">
+        <span> {{LanData.BizDbConnectionConfig.Description}}</span>
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.BizDbConnectionConfig.Description}}
+                </td>
+                <td>
+                    <textarea id="txtDescription"  v-model="DbConfig.Description" />
+                </td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+    <input type="hidden" id="hfSelectedId" />
+</validator>
+

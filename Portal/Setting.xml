@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SettingConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- 1 -->
+  <!--数据库连接-->
+  <ConnectionString dataSource="10.2.90.26" dbName="SSODBRelease" userID="xggcNEnF14o=" password="JqrbkWYvGZyMDt4Eg6LOHA==" />
+  <!-- 2 -->
+  <!--活动目录连接设置-->
+  <ActiveDirectoryConfiguration server="10.2.90.28" domain="cfld-dev.cn" directoryPath="DC=cfld-dev,DC=cn" groupName="administrators" filter="(and(objectCategory=person)(objectClass=user)(samaccountname=usertosearch))" filterReplace="usertosearch" userName="ewfYTlqs52fNtKkWcnhstw==" password="x8LXVFo1u5VLBe8rEpap7A==" expirationTime="60" passwordWarnExpireDays="30" />
+  <!-- 3 -->
+  <!--当前站点的设置，包括：
+          systemCode：系统代码(代理中的唯一标识码)
+          key：加密密码(代理中配置)
+          expirationTime: 过期时间
+          useProxyUrl:true/false
+          proxyUrl:通常情况下，单点登录采用HttpModule/JavaServletFilter来实现，针对所有的请求，都实现用户的验证功能。
+              对于一般项目，我们要求被接入系统从单点登录提供的标准变量中获取用户名：
+              （.net）HttpContext.Current.User.Identity.Name（推荐）
+              （.net）HttpContext.Current.Item["WD_SSO_UserName"]
+              （java）request.getAttribute("loginid")
+              但一些项目从一些特殊的渠道获取用户名，如从Session["UserId"]获取用户名，那么在ProxyUrl所对应的页面中，就可以对该变量赋值，再实现重定向，可以进行跳转。
+              （另：可以通过重新包装单点登录dll来实现相同功能。）
+  -->
+  <CurrentSite systemCode="CRS279" key="UC7MNSXB9RBL88T2CU72" sessionIdName="ASP.NET_SessionId" dateTimeFormat="yyyy-MM-dd HH:mm:ss" useProxyUrl="false" proxyUrl="" IsForbidden="false" />
+  <!-- 4 -->
+  <!--Cookie的设置-->
+  <CookieDomains crossDomainRegex=".*(crossdomain.aspx)" P3P="CP=CURa ADMa DEVa PSAo PSDo OUR BUS UNI PUR INT DEM STA PRE COM NAV OTC NOI DSP COR">
+    <domain name=".cfldpe.com" regex=".*(.cfldpe.com)" myHost="sso.cfldpe.com" loginUrl="http://sso.cfldpe.com/LoginLight.aspx" crossdomainUrl="http://sso.cfldpe.com/Crossdomain.aspx" defaultSite="http://m.ssoa.cfldpe.com/">
+    </domain>
+  </CookieDomains>
+  <!-- 5 -->
+  <!--是否启用服务器验证-->
+  <UseServerLogin value="true" />
+  <!--日志模块-->
+  <!--
+      参数:
+        enable:是否使用输出日志功能  
+        type:日志输出的类型(FileLogger:输出文件  DBLogger:输出到数据库表)
+    -->
+  <Logging enable="true" type="FileLogger">
+    <FileLogger fileName="FileName" level="ALL" showDateTime="true" showLogName="true" dateTimeFormat="yyyy-MM-dd HH:mm:ss" />
+    <DBLogger level="Warn" dateTimeFormat="yyyy-MM-dd HH:mm:ss" connectionType="System.Data.SqlClient.SqlConnection, System.Data, Version=2.0.0.0, Culture=neutral,PublicKeyToken=b77a5c561934e089" connectionString="Data Source=10.2.90.26;User ID=ssouser;Password=cfld_sso2014;persist security info=False;initial catalog=SSODBLog;" commandText="INSERT INTO TA_ErrorInfo ([InfoID],[InfoType],[Date],[Level],[Logger],[UserID],[Message],[StackTrace])&#xD;&#xA;              VALUES (@id, @level, @datetime, @level, @logger, @UserId, @message, @exception)" parameters="@id,@level,@datetime,@logger,@UserId,@message,@exception" />
+  </Logging>
+  <!-- 6 -->
+  <!--定义接口配置,动态加载程序集(禁止修改该节)-->
+  <Assemblies>
+    <AssemblyDefinition InterfaceName="SecurityToken" AssemblyName="CFLD.SSO.Tokens" TypeName="CFLD.SSO.Tokens.UserNameSecurityToken" FileName="CFLD.SSO.Tokens.dll" />
+    <AssemblyDefinition InterfaceName="SecurityTokenHandler" AssemblyName="CFLD.SSO.Tokens" TypeName="CFLD.SSO.Tokens.UserNameSecurityTokenHandler" FileName="CFLD.SSO.Tokens.dll" />
+  </Assemblies>
+  <!-- 7 -->
+  <!--IHttpModule对哪些文件进行过滤-->
+  <AuthorizationManager>
+    <!--IHttpModule处理的文件扩展名-->
+    <IncludeFileExtension value=".*" />
+    <!--IHttpModule排除的路径及文件-->
+    <ExcludeFilePath>
+      <Files value=".*(GetUserName.aspx|Webservices|Login|Login.aspx|wd_sso_getauthcontents|wd_sso_logout|updateIsForbidden|cfld_sso_localmodel_login|cfld_sso_localmodel_exit|VerifyCodeAndRememberPwd|Login.html|\.ico|\.gif|\.jpg|\.png|\.bmp|\.css|\.js|\.xml|\.axd)" />
+      <Paths value=".*(Controls|Data)" />
+    </ExcludeFilePath>
+  </AuthorizationManager>
+  <!-- 8 -->
+  <!--用户信息设置-->
+  <UserConfiguration>
+    <!-- 是否保存可逆的加密密码 -->
+    <IsSaveReversibleEncryptedPasswords value="false">
+    </IsSaveReversibleEncryptedPasswords>
+    <!-- 用户验证方式(活动目录还是数据库),值为 AD、DB、LDAP、ADorLDAP、LDAPtoAD -->
+    <UserSource value="AD">
+    </UserSource>
+  </UserConfiguration>
+  <!-- 9 -->
+  <!--LocalModel模式配置-->
+  <LocalModelManager>
+    <!--在LocalModel模式下，value值为SSO，将进行单点模式， value值为AD，则进行AD认证模式；value值为DB，则进行本地认证模式; 默认值：SSO-->
+    <LocalModelSource value="SSO">
+    </LocalModelSource>
+    <!--LocalModel 模式下，登陆后，默认跳转地址-->
+    <ADTargetDefaultAddress value="http://zbcj.cfld-sso.cn/">
+    </ADTargetDefaultAddress>
+    <!--DB认证，接口程序集配置-->
+    <DBAssemblyDefinition AssemblyName="CFLD.SSO.WebSite.LocalModel" TypeName="CFLD.SSO.WebSite.LocalModel.DBValidationTest" />
+  </LocalModelManager>
+</SettingConfig>

@@ -1,0 +1,179 @@
+﻿<script>
+    
+    $(function () {
+        $("#ToolBar").AspLinkToolBar();
+        CreateLigerGrid(
+            $("#AgentList"),
+            GetCategoryColumns(),
+            $.Controller.Agent.GetAgentList,
+            true
+        );
+        //初始化代理人
+        $("#sltAgent").SheetUser({ Editable: true, Visiable: true, Originate: true, IsMultiple: true });
+        //初始化流程模板
+        $("#divWorkflow").SheetWorkflow({ Editable: true, Visiable: true, IsMultiple: true, IsSearch: true, IsFrequentFlow: true, Mode: "WorkflowTemplate" });
+        //初始化被代理人
+        $("#sltMandatary").SheetUser({ Editable: true, Visiable: true, Originate: true, IsMultiple: true });
+        $(document).unbind("click.fa").bind("click.fa", function () {
+            var m = $("#AgentList").ligerGetGridManager();
+            m._onResize();
+        });
+    })
+
+ 
+    function GetCategoryColumns() {
+        var UserName = $.Lang("Agent.UserName");
+        var workflowCode = $.Lang("Agent.WorkflowCode");
+        var workflowName = $.Lang("Agent.WorkflowName");
+        var agentName = $.Lang("Agent.AgentName");
+        var startTime = $.Lang("DataSettings.StartTime");
+        var endTime = $.Lang("DataSettings.EndTime");
+        var edit = $.Lang("GlobalButton.Edit");
+        return [
+           { display: "ObjectID", name: "ObjectID", hide: true },
+           { display: UserName, name: "UserName", width: '10%' },
+           { display: workflowCode, name: "WorkflowCode", width: '20%' },
+           { display: workflowName, name: "WorkflowName", width: '20%' },
+           { display: agentName, name: "AgentName", width: '10%' },
+           { display: startTime, name: "StartTime", width: '15%' },
+           { display: endTime, name: "EndTime", width: '15%' },
+           {
+               display: edit, code: "edit", width: '5%', render: function (row) {
+                   return "<a href='#' id='" + row.ObjectID + "' onclick='RowEditClick(this)'>" + edit + "</a>";
+               }
+           }
+        ];
+    }
+    //新增委托设置
+    function AddFun() {
+        var title = $.Lang("Agent.AddAgency");
+        ShowDialog(title, _PORTALROOT_GLOBAL+ "/admin/TabMaster.html?url=SysParam/EditAgent.html");
+    }
+
+    //编辑委托设置
+    function RowEditClick(obj) {
+        var title = $.Lang("Agent.EditAgency");
+        ShowDialog(title, _PORTALROOT_GLOBAL+ "/admin/TabMaster.html?url=SysParam/EditAgent.html&Mode=2&AgentID=" + obj.id);
+    }
+
+    //删除委托设置
+    function DeleteFun(obj) {
+        var SelectItemName = $.Lang("msgGlobalString.SelectItem");
+        var rows = H3GridManager.getSelectedRows();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: SelectItemName });
+            return false;
+        }
+        if (ConfirmDel(obj)) {
+            var ids = "";
+            for (var i = 0; i < rows.length; i++) {
+                ids = ids + rows[i].ObjectID + ",";
+            }
+            $.ajax({
+                url: $.Controller.Agent.DelAgent,
+                type: 'post',
+                dataType: "json",
+                data: { ids: ids },
+                success: function (result) {
+                    if (result.Success) {
+                        top.workTab.reload(top.workTab.getSelectedTabItemID());
+                    } else {
+                        $.H3Dialog.Error({ content: result.Message });
+                    }
+                }
+            });
+        }
+    }
+
+    //重新加载表格数据
+    function ReloadGrid() {
+        var manager = $("#AgentList").ligerGetGridManager();
+        manager.reload();
+    }
+    //申明过滤条件对象
+    var SeachParams = function () {
+        var params = {};
+        params.WorkflowCode = [];
+        params.Agent = [];
+        params.Mandatary = [];
+        return params;
+    }
+    //根据条件帅选
+    function QueryFunList() {
+        var WorkflowCode = $("#divWorkflow").SheetUIManager().GetValue();
+        var Agent = $("#sltAgent").SheetUIManager().GetValue();
+        var Mandatary = $("#sltMandatary").SheetUIManager().GetValue();
+        var seach = SeachParams();
+        seach.WorkflowCode = WorkflowCode;
+        seach.Agent = Agent;
+        seach.Mandatary = Mandatary;
+
+        CreateLigerGrid(
+           $("#AgentList"),
+           GetCategoryColumns(),
+           $.Controller.Agent.GetAgentListParams,
+           true ,
+           null ,
+            null ,
+            null ,
+            null ,
+           seach
+        );
+    }
+</script>
+<style>
+    /*报表选人控件中间文字太长显示异常*/
+    .SelectorPanel .task {
+        text-align: left;
+        display: flex;
+    }
+
+    .SelectorPanel .task .task-title {
+        flex-grow: 1;
+        margin-right: 10px;
+    }
+    #divWorkflow input{
+        width:1px!important;
+    }
+    #divWorkflow ul{
+        width:97%!important;
+        overflow-y:auto!important;
+    }
+    #divWorkflow,#sltMandatary {
+        width: 90% !important;
+    }
+</style>
+
+<div id="ToolBar">
+    <a href="#" id="lnkAdd" data-icon="fa fa-plus" onclick="AddFun()" data-lang="GlobalButton.Add">添加</a>
+    <a onclick="DeleteFun(this);" data-lang="GlobalButton.Delete" data-icon="fa fa-minus" href="#">删除</a>
+</div>
+<div class="H3Panel">
+    <table class="tableList">
+        <tr>
+            <td style="width: 1%; padding-left: 40px;"></td>
+            <td style="width: 8%; " data-lang="GlobalButton.WorkflowTemplate">流程模板</td>
+            <td style="width:20%;">
+                <div id="divWorkflow" style="width:90%;height:80%"></div>
+            </td>
+            <td style="width:8%;" data-lang="GlobalButton.Agent">委托人</td>
+            <td style="width:20%;">
+                <div id="sltAgent" style="width:90%;height:80%" ></div>
+            </td>
+            
+            <td style="width:20%;">
+                <a onclick="QueryFunList()" href="#" data-lang="GlobalButton.Search" data-icon="fa fa-plus">查询</a>
+            </td>
+        </tr>
+        <tr>
+            <td style="width: 1%; padding-left: 40px;"></td>
+            <td style="width: 8%; " data-lang="GlobalButton.Mandatary">代理人</td>
+            <td style="width:20%;">
+                <div id="sltMandatary" style="width:90%;height:80%"></div>
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="H3Panel">
+    <div id="AgentList"></div>
+</div>

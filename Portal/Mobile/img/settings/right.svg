@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="14px" height="23px" viewBox="0 0 14 23" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 44 (41411) - http://www.bohemiancoding.com/sketch -->
+    <title>Combined Shape</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="13系统设置-" transform="translate(-695.000000, -418.000000)" fill="#999999">
+            <g id="箭头" transform="translate(697.374369, 429.374369) scale(1, -1) rotate(-135.000000) translate(-697.374369, -429.374369) translate(688.874369, 420.374369)">
+                <path d="M3.42157288,14.5637085 L3.42157288,2.49788184 C3.42157288,1.65977044 2.75,0.992640687 1.92157288,0.992640687 C1.08737011,0.992640687 0.421572875,1.66656011 0.421572875,2.49788184 L0.421572875,15.4873995 C0.421572875,16.0546509 0.729211436,16.5435779 1.18490383,16.8003534 C1.44281724,17.2575602 1.93416101,17.5637085 2.49788184,17.5637085 L15.4873995,17.5637085 C16.3255109,17.5637085 16.9926407,16.8921356 16.9926407,16.0637085 C16.9926407,15.2295057 16.3187213,14.5637085 15.4873995,14.5637085 L3.42157288,14.5637085 Z" id="Combined-Shape"></path>
+            </g>
+        </g>
+    </g>
+</svg>

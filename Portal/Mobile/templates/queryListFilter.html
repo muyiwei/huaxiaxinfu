@@ -1,0 +1,36 @@
+﻿<ion-popover-view class="sideSlip" mykeyboard>
+    <style type="text/css">
+        .dropdown-menu {
+            pointer-events: auto;
+        }
+
+        .sideSlip select {
+            box-sizing: border-box;
+            color: #797F89;
+            height: 0.96rem;
+            border: 1px solid #cccccc;
+            border-radius: 4px;
+            line-height: 0.56rem;
+            padding: 0 10px;
+            -webkit-appearance: none;
+            background: #fff;
+            flex-grow: 1;
+        }
+    </style>
+    <!--view的外面不要添加任何其他节点，包括注释，保证view是这个页面的唯一节点，否则会导致view无法按照ionic标准渲染-->
+    <!--尽量调成标准的ionic格式，能减少很多问题-->
+    <ion-header-bar class="menu-tittle">
+        <div class="menu-tittle-left pr25" ng-click="closePopover()"><i class="ion-chevron-right f22 blue"></i></div>
+        <div class="menu-tittle-middle f15"><i class="icon-shaixuan f14 blue"></i><span>{{languages.filter}}</span></div>
+        <div class="menu-tittle-right"></div>
+    </ion-header-bar>
+    <ion-content id="queryListFilter" scroll="true" delegate-handle="filter">
+
+    </ion-content>
+    <ion-footer-bar class="bottom-button">
+
+        <div class="bb-left f16" ng-click="resetReportSearch()">{{languages.reset}}</div>
+        <div class="bb-right f16" ng-click="hideFilterReport()">{{languages.confirm}}</div>
+
+    </ion-footer-bar>
+</ion-popover-view>

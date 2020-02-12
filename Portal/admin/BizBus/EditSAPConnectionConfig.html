@@ -1,0 +1,154 @@
+﻿<link href="../WFRes/css/PortalStyle0.css" rel="stylesheet" type="text/css" />
+<script>
+
+    $(function () {
+        var pageData = {
+            SapConfig: {},
+            LanData: $.Languages
+        };
+        InitPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        SaveData();
+                    }
+                }
+            }
+        });
+
+        $("#ToolBar").AspLinkToolBar();
+
+        //根据传递的参数获取对应的数据，Vue绑定数据使用
+        function InitPageData() {
+            var connectionName = getUrlParam("paramName");
+            if (connectionName && connectionName != "") {
+                $.ajax({
+                    url: $.Controller.SAPConnectionConfig.GetConnectionConfig,
+                    type: 'get',
+                    dataType: "json",
+                    data: { connectionName: connectionName },
+                    async: false,//同步执行
+                    success: function (result) {
+                        pageData.SapConfig = result;
+                    }
+                });
+            }
+        };
+
+        function SaveData() {
+            $.ajax({
+                url: $.Controller.SAPConnectionConfig.SaveConnectionConfig,
+                type: "post",
+                dataType: "json",
+                data: pageData.SapConfig,
+                success: function (result) {
+                    //debugger;
+                    if (result.Success) {
+                        parent.H3DialogManger.Close();
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message)+","+result.Extend });
+                    }
+                }
+            });
+        };
+    });
+
+</script>
+
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a id="lnkUpdate" data-icon="fa fa-save" v-on:click="saveData" data-lang="GlobalButton.Save"></a>
+    </div>
+
+    <div>
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.SAPConnectionConfig.Name}}
+                   
+                </td>
+                <td>
+                    <input type="text" id="txtName" v-bind:disabled="SapConfig.ObjectID" v-model="SapConfig.Name" detect-change="on" detect-blur="on" initial="off" v-validate:config-name="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.configName.required">{{LanData.msgGlobalString.EnumValueRequired}}</span>
+                </td>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                      {{LanData.SAPConnectionConfig.MaxPoolSize}}
+                </td>
+                <td>
+
+                    <input type="text" id="txtMaxPoolSize" v-model="SapConfig.MaxPoolSize" detect-change="on" detect-blur="on" initial="off" v-validate:poolsize="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.poolsize.required">{{LanData.msgGlobalString.EnumValueRequired}} </span>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.SAPConnectionConfig.LoginUser}}
+               
+                </td>
+                <td>
+                 
+                    <input type="text" id="txtLoginName" v-model="SapConfig.LoginUser" />
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.SAPConnectionConfig.LoginPassword}}
+                </td>
+                <td>
+                  
+                    <input type="password" id="txtLoginPassword" v-model="SapConfig.LoginPassword" />
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.SAPConnectionConfig.Language}}
+                </td>
+                <td>
+                    <input type="text" id="txtLanguage" v-model="SapConfig.Language" />
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.SAPConnectionConfig.Client}}
+                </td>
+                <td>
+                    <input type="text" id="txtClient" v-model="SapConfig.Client" />
+                  
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.SAPConnectionConfig.AppServerHost}} 
+                </td>
+                <td>
+                    <input type="text" id="txtAppServerHost" v-model="SapConfig.AppServerHost" />
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                     {{LanData.SAPConnectionConfig.SystemNumber}} 
+                </td>
+                <td>
+                    <input type="text" id="txtSystemNumber" v-model="SapConfig.SystemNumber" /></td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+</validator>

@@ -1,0 +1,113 @@
+﻿<!--
+    查询流程实例
+     -->
+<!--  ng-init="
+     app.settings.asideFolded=false;
+     app.settings.asideDock=false;" -->
+<div class="hbox hbox-auto-xs hbox-auto-sm">
+    <div class="col">
+        <div class="bg-light lter b-b wrapper-md">
+            <div class="row">
+                <div class="col-sm-6 col-xs-12">
+                    <span class="h3" ng-bind="menuData.DisplayName"></span>
+                </div>
+            </div>
+        </div>
+        <!--表格部分Start-->
+        <div class="wrapper-md paddingbottomNone">
+            <div class="panel panel-default">
+                <div class="table-responsive">
+                    <!-- 搜索 -->
+                    <form class="form-inline searchContainer" role="form">
+                        <div class="form-group">
+                            <input ng-model="SearchKey" style="width:200px;" maxlength="32" class="form-control" placeholder="{{LanJson.ProcessName}}" />
+                        </div>
+                        <div class="form-group">
+                            <div ui-jq="SheetWorkflow" ui-options="WorkflowOptions" id="sheetWorkflow" >
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group">
+                                <input ng-model="StartTime" ui-jq="wdatePicker" style="width:100px;" id="StartTime"
+                                       class="input-sm form-control" ui-options="getwdatePickerOptions()"
+                                       placeholder="{{LanJson.StartTime}}" />
+                                <span class="input-group-addon" style="border-left:0px;border-right:0px;" translate="QueryTableColumn.To"></span>
+                                <input ng-model="EndTime" ui-jq="wdatePicker" style="width:100px;" id="EndTime"
+                                       class="input-sm form-control" ui-options="getwdatePickerOptions()"
+                                       placeholder="{{LanJson.EndTime}}" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <input ng-model="SequenceNo" style="width:200px;" maxlength="32" class="input-sm form-control"
+                                   placeholder="{{LanJson.SequenceNo}}" />
+                        </div>
+                        <div class="form-group">
+                            <div ui-jq="SheetUser" ui-options="UserOptions" id="sheetUser" style="margin-left:0px;"></div>
+                        </div>
+                        <div class="form-group">
+                            <select class="input-sm form-control" ng-model="InstanceState">
+                                <option value="0">{{LanJson.UnfinishedText}}</option>
+                                <option value="1">{{LanJson.FinishedText}}</option>
+                                <option value="2">{{LanJson.CanceledText}}</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <input ng-model="searchKey" type="text" class="input-sm form-control" style="width:200px;display:none;" placeholder="搜索...">
+                            <button class="btn btn-sm btn-default" type="button" style="height:30px;">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </div>
+                       
+                        
+
+                        
+                    </form>
+
+                    <table ui-jq="dataTable" id="tabQueryInstance"
+                           ui-options="tabQueryInstance"
+                           class="table table-striped m-b-none" style="width: 99.5%;">
+                        <thead>
+                            <tr>
+                                <th style="width:30px" class="hide1024">
+                                    <span translate="QueryTableColumn.Flag"></span>
+                                </th>
+                                <th id="ProcessName">
+                                    <span translate="QueryTableColumn.ProcessName"></span>
+                                </th>
+                                <th id="WorkFlow">
+                                    <span translate="QueryTableColumn.WorkFlow"></span>
+                                </th>
+                                <th id="SequenceNo" class="hide414">
+                                    <span translate="InstanceDetail.SequenceNo"></span>
+                                </th>
+                                <th id="Originator" class="hide1024">
+                                    <span translate="QueryTableColumn.Originator"></span>
+                                </th>
+                                <th id="CreatTime">
+                                    <span translate="QueryTableColumn.CreatTime" class="hide414"></span>
+                                </th>
+                                <th ng-show="InstanceState==0" id="ApproverLink" class="hide1024">
+                                    <span translate="QueryTableColumn.ApproverLink"></span>
+                                </th>
+                                <th ng-show="InstanceState==0" id="Approver" class="hide1024">
+                                    <span translate="QueryTableColumn.Approver"></span>
+                                </th>
+
+                                <th ng-show="InstanceState==1" id="FinishedTime" class="hide414">
+                                    <span translate="QueryTableColumn.FinishTime"></span>
+                                </th>
+
+                                <th ng-show="InstanceState==2" id="CancelTime" class="hide414">
+                                    <span translate="QueryTableColumn.CancelTime"></span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!--表格部分End-->
+    </div>
+    <!-- / main -->
+</div>

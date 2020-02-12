@@ -1,0 +1,279 @@
+﻿<script type="text/javascript" src="../WFRes/_Scripts/MvcSheet/Controls/SheetWorkflow.js"></script>
+<script>
+    $(function () {
+        var pageData = {
+            Association: {},
+            ParentID: "",
+            LanData: $.Languages
+        };
+        //初始化页面数据
+        initPageData();
+        //构造vue对象
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                },
+                addRow: function () {
+                    var association = pageData.Association;
+                    if (association.MapType == 'Const' && !association.Const) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        addRow();
+                    }
+                },
+                workflowChange: function () {
+                    workflowChange();
+                },
+                filterMethodChange: function () {
+                    filterMethodChange();
+                },
+                deleteRow: function (item) {
+                    pageData.PropertyMap.$remove(item);
+                }
+            }
+        });
+
+        //初始化页面数据
+        function initPageData() {
+            var schemaCode = getUrlParam("SchemaCode") || "";
+            var associationName = getUrlParam("AssociationName") || "";
+            var ParentID = getUrlParam("ParentID") || "";
+            if (schemaCode) {
+                $.ajax({
+                    url: $.Controller.BizObjectSchemaAssociation.GetAssociation,
+                    type: 'get',
+                    dataType: "json",
+                    data: { schemaCode: schemaCode, associationName: associationName },
+                    async: false,//同步执行
+                    success: function (result) {
+                        if (result.Success) {
+                            pageData = result.Extend;
+                            pageData.LanData = $.Languages;
+                            pageData.ParentID = ParentID;
+                            pageData.Association.Type = pageData.Association.Type == "Fixed" ? "OneMulti" : pageData.Association.Type
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        }
+                    }
+                });
+            }
+        };
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+        //构造流程选项框
+        if (pageData.Association.ObjectID) {
+            $("#divWorkflow").SheetWorkflow({ Editable: false, Visiable: true, IsMultiple: false, Mode: "Package", Originate: true, OnChange: function () { workflowChange() }, DefaultValue: pageData.Association.WorkflowID });
+        } else {
+            $("#divWorkflow").SheetWorkflow({ Editable: true, Visiable: true, IsMultiple: false, Mode: "Package", OnChange: function () { workflowChange() } });
+        }
+        //保存
+        function saveData() {
+            var workflowID = $("#divWorkflow").SheetUIManager().GetValue();
+            pageData.Association.WorkflowID = workflowID;
+            pageData.Association.PropertyMap = JSON.stringify(pageData.PropertyMap);
+            $.ajax({
+                url: $.Controller.BizObjectSchemaAssociation.SaveAssociation,
+                type: "post",
+                dataType: "json",
+                traditional: true,
+                data: pageData.Association,
+                success: function (result) {
+                    if (result.Success) {
+                        parent.$.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                        if (parent.ReloadGrid) {
+                            parent.ReloadGrid();
+                            parent.H3DialogManger.Cancel();
+                        } else {
+                            top.ReloadNode(pageData.ParentID);
+                            parent.H3DialogManger.Close();
+                        }
+                    } else {
+                        if (result.Extend) {
+                            $.H3Dialog.Warn({ content: $.format($.Lang(result.Message), result.Extend) });
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+
+                        }
+                    }
+                }
+            });
+        }
+
+        function addRow() {
+            var itemName = pageData.Association.ItemName;
+            var mapType = pageData.Association.MapType;
+            var mapTo = pageData.Association.MapTo;
+            if (mapType == 'Const') mapTo = pageData.Association.Const;
+            var row = { ItemName: itemName, MapType: mapType, MapTo: mapTo };
+            pageData.PropertyMap.push(row);
+        }
+
+        function workflowChange() {
+            var workflowID = $("#divWorkflow").SheetUIManager().GetValue();
+            pageData.Association.WorkflowID = workflowID;
+            $.ajax({
+                url: $.Controller.BizObjectSchemaAssociation.WorkflowChange,
+                type: "post",
+                dataType: "json",
+                traditional: true,
+                data: pageData.Association,
+                success: function (result) {
+                    if (result.Success) {
+                        pageData.ItemNames = result.Extend.ItemNames;
+                        pageData.FilterMethods = result.Extend.FilterMethods;
+                        pageData.Association.FilterMethod = result.Extend.FilterMethod;
+                        pageData.Association.ItemName = result.Extend.ItemName;
+                    } else {
+                        if (result.Extend) {
+                            $.H3Dialog.Warn({ content: $.format($.Lang(result.Message), result.Extend) });
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+
+                        }
+                    }
+                }
+            });
+        }
+
+        function filterMethodChange() {
+            var workflowID = $("#divWorkflow").SheetUIManager().GetValue();
+            pageData.Association.WorkflowID = workflowID;
+            $.ajax({
+                url: $.Controller.BizObjectSchemaAssociation.FilterMethodChange,
+                type: "post",
+                dataType: "json",
+                traditional: true,
+                data: pageData.Association,
+                success: function (result) {
+                    if (result.Success) {
+                        pageData.ItemNames = result.Extend.ItemNames;
+                    } else {
+                        if (result.Extend) {
+                            $.H3Dialog.Warn({ content: $.format($.Lang(result.Message), result.Extend) });
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a id="lnkOK" v-on:click="saveData" data-icon="fa fa-save" href="javascript:void(0)" data-lang="GlobalButton.Save">保存</a>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.BizObjectSchemaAssociation.CreateAssociation}}</span>
+        <table>
+            <tr>
+                <td>{{LanData.BizObjectSchemaAssociation.RelationName}}</td>
+                <td>
+                    <input type="text" v-model="Association.RelationName" maxlength="64" v-bind:disabled="Association.ObjectID" detect-change="on" detect-blur="on" initial="off" v-validate:relation-name="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.relationName.invalid">{{LanData.msgGlobalString.EnumValueRequired}} </span>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.BizObjectSchemaAssociation.DisplayName}}</td>
+                <td>
+                    <input type="text" v-model="Association.DisplayName" maxlength="64" v-bind:disabled="Association.ObjectID" detect-change="on" detect-blur="on" initial="off" v-validate:display-name="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.displayName.invalid">{{LanData.msgGlobalString.EnumValueRequired}} </span>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.BizObjectSchemaAssociation.Correspondence}}</td>
+                <td colspan="2" class="tableNoCss">
+                    <table border="0">
+                        <tr>
+                            <td >
+                                <label v-for="item in AssociationTypes" style="padding-left:3px">
+                                    <input type="radio" value="{{item.Value}}" v-model="Association.Type" v-bind:disabled="Association.ObjectID" />
+                                    {{item.Text}}
+                                </label>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.BizObjectSchemaAssociation.Mode}}</td>
+                <td style="padding-left: 0px;">
+                    <div id="divWorkflow" style="width: 250px;"></div>
+                </td>
+                <!--<td>
+                    <SheetControls:WorkflowSelector ID="workflowSelector" runat="server" AutoPostBack="true" IsBizObjectMode="true"
+                                                    OnTextChanged="lstAssociatedSchema_SelectedIndexChanged"></SheetControls:WorkflowSelector>
+                </td>-->
+            </tr>
+            <tr>
+                <td>{{LanData.BizObjectSchemaAssociation.Filtering}}</td>
+                <td>
+                    <select v-model="Association.FilterMethod" v-on:change="filterMethodChange">
+                        <option v-for="option in FilterMethods" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="H3Panel">
+        <span>{{LanData.BizObjectSchemaAssociation.PropertySet}}</span>
+        <table id="setProperty" class="tableList" style="width: 90%;">
+            <tr>
+                <td>{{LanData.BizObjectSchemaAssociation.MapTo}}</td>
+                <td>{{LanData.BizObjectSchemaAssociation.Associated}}</td>
+                <td>{{LanData.BizObjectSchemaAssociation.DataItem}}</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>
+                    <select v-model="Association.ItemName" style="width:200px;">
+                        <option v-for="option in ItemNames" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+                <td>
+                    <select v-model="Association.MapType" style="width:200px;">
+                        <option v-for="option in MapTypes" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+                <td>
+                    <select v-model="Association.MapTo" v-show="Association.MapType!='Const'" style="width:200px;">
+                        <option v-for="option in MapToes" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                    <input type="text" style="width:200px;" v-model="Association.Const" v-show="Association.MapType=='Const'" />
+                </td>
+                <td></td>
+            </tr>
+            <tr v-for="item in PropertyMap ">
+                <td spacetd="spacetd" style="width: 20px;"></td>
+                <td class="tableLeft">{{item.ItemName}}</td>
+                <td>{{item.MapType}}</td>
+                <td>{{item.MapTo}}</td>
+                <td>
+                    <a href="javascript:void(0);" v-on:click="deleteRow(item)" data-lang="GlobalButton.Delete"></a>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div>
+        <table style="width: 100%">
+            <tr>
+                <td style="width: 10px"></td>
+                <td>
+                    <a href="javascript:void(0);" v-on:click="addRow" data-lang="GlobalButton.Add"></a>
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

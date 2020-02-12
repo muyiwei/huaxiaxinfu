@@ -1,0 +1,127 @@
+﻿
+<script>
+    var gridManger;
+    $(function () {
+        $("#H3ToolBar").AspLinkToolBar();
+
+        var userid = getUrlParam("id");
+        $("#hduserid").val(userid);
+
+        CreateLigerGrid(
+         $("#SignatureGrid"),
+         GetListColumns(),
+         $.Controller.OrgUser.GetSignaureList,
+         true, "98%", null, null, null,
+         {
+             userId: userid
+         });
+
+        $("img[name='DefaultImg']").each(function () {
+            var imgObj = $(this);
+            imgObj.bind("click", function () {
+                if (imgObj.attr("value") == "false") {
+                    $("img[name='DefaultImg']").attr("src", _PORTALROOT_GLOBAL + "/WFRes/images/unChecked.gif");
+                    imgObj.attr("src", _PORTALROOT_GLOBAL + "/WFRes/images/checked.gif");
+                }
+            });
+        });
+    });
+
+    function GetListColumns() {
+        var Name = $.Lang("EditSignature.Name");
+        var Icon = $.Lang("EditSignature.Icon");
+        var SortKey = $.Lang("EditSignature.SortKey");
+        var IsDefault = $.Lang("EditSignature.IsDefault");
+        return [
+            { display: "ObjectID", name: "ObjectID", hide: true },
+            { display: Name, name: "Name" },
+            { display: Icon, name: "Icon",render:SetImage },
+            { display: SortKey, name: "SortKey" },
+            { display: IsDefault, name: "IsDefault", render: SetIsDefault, align: "center " }
+        ];
+    }
+
+    function SetIsDefault(rowdata, index, value) {
+        //debugger;
+        if (value==true) {
+            return "<img id='" + rowdata.ObjectID + "' name='DefaultImg' value='true' src='" + _PORTALROOT_GLOBAL + "/WFRes/images/checked.gif' value='true' onclick='SetDefault(this)'  style='cursor:pointer;'/>";
+        }
+        else {
+            return "<img id='" + rowdata.ObjectID + "' name='DefaultImg' value='false' src='" + _PORTALROOT_GLOBAL + "/WFRes/images/unChecked.gif' value='false' onclick='SetDefault(this)' style='cursor:pointer;'/>";
+        }
+    }
+
+    function SetImage(rowdata, index, value) {
+        return "<img name='sigunatureImage' value='true' src='" + value + "' value='true'  style='cursor:pointer;width:16px;height:16px'/>";
+    }
+
+    function SetDefault(obj) {
+        if ($(obj).attr("value") == "false") {
+            $("img[name='DefaultImg']").attr("src", _PORTALROOT_GLOBAL + "/WFRes/images/unChecked.gif");
+            $("img[name='DefaultImg']").attr("value", "false");
+            $(obj).attr("src", _PORTALROOT_GLOBAL + "/WFRes/images/checked.gif");
+            $(obj).attr("value", "true");
+        }
+        else {
+            $(obj).attr("src", _PORTALROOT_GLOBAL + "/WFRes/images/unChecked.gif");
+            $(obj).attr("value", "false");
+        }
+
+        var editUrl = $.Controller.OrgUser.ChangeSignaureDefault;//TODO
+        var signatureId = obj.id;
+        var isdefault = $(obj).attr("value");
+        $.ajax({
+            url: editUrl,
+            data: { signaureId: signatureId, isDefault: isdefault },
+            success: function () {
+                if ($(obj).attr("value") == "true")
+                    $.H3Dialog.Success({ content: $.Lang("EditSignature.Msg0") });
+                    
+                else
+                    $.H3Dialog.Warn({ content: $.Lang("EditSignature.Msg1") });
+            }
+        });
+    }
+    function RemoveSignature() {
+        //debugger;
+        var manager = $("#SignatureGrid").ligerGetGridManager();
+        var rows = manager.getSelectedRows();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: $.Lang("EditSignature.Msg2") });
+            return;
+        }
+        var ids = "";
+        for (var i = 0; i < rows.length; i++) {
+            ids += ";" + rows[i].ObjectID;
+        }
+        var confrimstr = $.Lang("EditSignature.Msg3")
+        if (confirm(confrimstr)) {
+            var removeUrl = $.Controller.OrgUser.RemoveSignaure;
+            $.ajax({
+                url: removeUrl,
+                type:"post",
+                data: { SignaureIds: ids },
+                success: function (data) {
+                    //var manager = $("#SignatureGrid").ligerGetGridManager();
+                    //manager.reload();
+                    top.workTab.reload(top.workTab.getSelectedTabItemID());
+                    $.H3Dialog.Success({ content: $.Lang("EditSignature.Msg4") });
+                }
+            });
+        }
+    }
+
+    function AddSignature() {
+        var userid = $("#hduserid").val();
+        var addSignature = $.Lang("EditSignature.AddSignature");
+        ShowDialog(addSignature, _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=Organization/EditSignatureDetail.html&userid=" + userid);//TODO URL
+    }
+</script>
+
+<div id="H3ToolBar">
+    <a href="#" data-icon="fa fa-plus" onclick="AddSignature()" data-lang="GlobalButton.Add"></a>
+    <a id="btnDel" href="javascript:void(0);" data-icon="fa fa-minus" onclick="RemoveSignature()" data-lang="GlobalButton.Delete"></a>
+</div>
+<div id="SignatureGrid">
+</div>
+<input type="hidden" id="hduserid" />

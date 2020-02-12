@@ -1,0 +1,20 @@
+﻿<ion-modal-view class="product edit create" ng-controller="worksheetCtrl">
+    <style type="text/css">
+        .scroll {
+            height: 100%;
+        }
+    </style>
+    <ion-content has-bouncing="true">
+        <iframe id="worksheetFrame" ng-src="{{workItemUrl}}" class="worksheetFrame" style="width:100%;height:100%;border:0px;"></iframe>
+    </ion-content>
+</ion-modal-view>
+<!--<ion-view view-title="表单" ng-if="dingMobile.isDingMobile">
+    <style type="text/css">
+        .scroll {
+            height: 100%;
+        }
+    </style>
+    <ion-content has-bouncing="true">
+        <iframe id="worksheetFrame" ng-src="{{workItemUrl}}" class="worksheetFrame" style="width:100%;height:100%;border:0px;"></iframe>
+    </ion-content>
+</ion-view>-->

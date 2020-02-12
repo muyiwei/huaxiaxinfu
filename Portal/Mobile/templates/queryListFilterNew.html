@@ -1,0 +1,212 @@
+﻿<ion-popover-view class="queryListFilter sideSlip" mykeyboard>
+    <ion-header-bar class="menu-tittle">
+        <div class="menu-tittle-left pr25" ng-click="closePopover()"><i class="ion-chevron-right f22 blue"></i></div>
+        <div class="menu-tittle-middle f15"><i class="icon-shaixuan f14 blue"></i><span>{{languages.filter}}</span></div>
+        <div class="menu-tittle-right"></div>
+    </ion-header-bar>
+    <ion-content scroll="true" delegate-handle="filter">
+
+        <div ng-repeat="Filter in pageModel.FilterData" ng-if="Filter.Visible==1" ui-finshed-render="FinishedFunc">
+            <!--文本框标题-->
+            <div class="menu-bar" ng-if="Filter.DisplayType==0">
+                <div class=" menu-bar-left f15 mr10">{{Filter.PropertyName}}</div>
+                <div class="menu-bar-right"></div>
+            </div>
+            <!--单选下拉标题-->
+            <div class="menu-bar" ng-if="Filter.DisplayType==2||Filter.DisplayType==1">
+                <div class=" menu-bar-left f15 mr10">{{Filter.PropertyName}}-{{languages.queryList.SingleChoice}}</div>
+                <div class="menu-bar-right"></div>
+            </div>
+            <!--多选标题-->
+            <div class="menu-bar" ng-if="Filter.DisplayType==3">
+                <div class=" menu-bar-left f15 mr10">{{Filter.PropertyName}}-{{languages.queryList.MultipleChoice}}</div>
+                <div class="menu-bar-right"></div>
+            </div>
+
+            
+            <!-- 文本框 -->
+            <div class="input-container" ng-if="Filter.DisplayType==0&& Filter.FilterType!=2
+                                               &&(Filter.LogicType=='ShortString'||Filter.LogicType=='String'||Filter.LogicType=='Int'||Filter.LogicType=='Long'||Filter.LogicType=='Double')">
+                <input id="{{Filter.PropertyCode}}" placeholder="{{languages.queryList.PleaseInput}}" />
+            </div>
+            <!-- 文本框 范围查询 -->
+            <div class="input-container range-container" ng-if="Filter.DisplayType==0&& Filter.FilterType==2
+                                               &&(Filter.LogicType=='ShortString'||Filter.LogicType=='String'||Filter.LogicType=='Double')">
+                <input id="{{Filter.PropertyCode}}" placeholder="{{languages.queryList.StartValue}}" onkeyup="value=value.replace(/^\./g, '').replace(/[^\d\.]/g,'').replace('.', '$#$').replace(/\./g, '').replace('$#$', '.')" />
+                <span class="divisionLine">
+                    -
+                </span>
+                <input id="{{Filter.PropertyCode+'1'}}" placeholder="{{languages.queryList.EndValue}}" onkeyup="value=value.replace(/^\./g, '').replace(/[^\d\.]/g,'').replace('.', '$#$').replace(/\./g, '').replace('$#$', '.')" />
+            </div>
+            <!-- 整数型 范围查询 -->
+            <div class="input-container range-container" ng-if="Filter.DisplayType==0&& Filter.FilterType==2
+                                               &&(Filter.LogicType=='Int'||Filter.LogicType=='Long')">
+                <input id="{{Filter.PropertyCode}}" placeholder="{{languages.queryList.StartValue}}" onkeyup="this.value=this.value.replace(/\D/g,'')" onblur="this.value=this.value.replace(/\D/g,'')" />
+                <span class="divisionLine">
+                    -
+                </span>
+                <input id="{{Filter.PropertyCode+'1'}}" placeholder="{{languages.queryList.EndValue}}" onkeyup="this.value=this.value.replace(/\D/g,'')" onblur="this.value=this.value.replace(/\D/g,'')" />
+            </div>
+            <!-- 时间控件 -->
+            <div class="input-container" ng-if="Filter.DisplayType==0 && Filter.LogicType=='DateTime'
+                                               && Filter.FilterType!=2">
+                <input ion-datetime-picker date ng-model="time" value=""
+                       id="{{Filter.PropertyCode}}" placeholder="{{languages.queryList.PleaseInput}}" />
+            </div>
+
+            
+            <!-- 时间控件 范围查询-->
+            <div class="input-container range-container" ng-if="Filter.DisplayType==0 && Filter.LogicType=='DateTime'
+                                               && Filter.FilterType==2">
+                <div class="rcLeft">
+                    <span id="{{Filter.PropertyCode}}" ng-class="{'displayNone':!startTime}">{{startTime|date:" yyyy-MM-dd"}}</span>
+                    <span ng-if="!startTime">{{languages.queryList.StartValue}}</span>
+                    <img src="img/shijian.svg" class="calendar" ion-datetime-picker date ng-model="startTime">
+                </div>
+                <span class="divisionLine">
+                    -
+                </span>
+                <div class="rcRight">
+                    <span id="{{Filter.PropertyCode+'1'}}" ng-class="{'displayNone':!endTime}">{{endTime|date:" yyyy-MM-dd"}}</span>
+                    <span ng-if="!endTime">{{languages.queryList.EndValue}}</span>
+                    <img src="img/shijian.svg" class="calendar" ion-datetime-picker date ng-model="endTime">
+                </div>
+            </div>
+            
+            <!-- 单选按钮 -->
+            <div class="input-container radio-container" ng-if="Filter.DisplayType==2">
+                <div ng-repeat="option in Filter.SelectedValues" class="cItem" ng-click="RadioClick($event)">
+                    <span class="{{Filter.PropertyCode}}" data-value="{{option.Value}}">{{option.Text}}</span>
+                </div>
+            </div>
+
+
+            <!-- 下拉框 -->
+            <div class="input-container select-container" ng-if="Filter.DisplayType==1">
+                <div ng-repeat="option in Filter.SelectedValues" class="cItem" ng-click="RadioClick($event)">
+                    <span class="{{Filter.PropertyCode}}" data-value="{{option.Value}}">{{option.Text}}</span>
+                </div>
+            </div>
+
+
+            <!-- 复选按钮 -->
+            <div class="input-container checkbox-container" ng-if="Filter.DisplayType==3">
+                <div ng-repeat="option in Filter.SelectedValues" class="cItem" ng-click="CheckboxClick($event)">
+                    <span class="{{Filter.PropertyCode}}" data-value="{{option.Value}}">{{option.Text}}</span>
+                </div>
+            </div>
+
+
+
+            <!-- 选人控件 -->
+            <div class="menu-bar" ng-if="Filter.DisplayType==5&&(Filter.PropertyCode!='CreatedByParentId'&&Filter.PropertyCode!='OwnerParentId')" ng-click="goSheetUser(Filter.PropertyCode,1)">
+                <div class="menu-bar-left f15 mr10">{{Filter.PropertyName}}</div>
+                <div class="menu-bar-right f14">
+                    <span id="{{Filter.PropertyCode}}">
+                    </span>
+                    <i class="ion-chevron-right f14 ml10"></i>
+                </div>
+            </div>
+            <!-- 选部门控件 -->
+            <div class="menu-bar" ng-if="Filter.DisplayType==5&&(Filter.PropertyCode=='CreatedByParentId'||Filter.PropertyCode=='OwnerParentId')" ng-click="goSheetUser(Filter.PropertyCode,2)">
+                <div class="menu-bar-left f15 mr10">{{Filter.PropertyName}}</div>
+                <div class="menu-bar-right f14">
+                    <span id="{{Filter.PropertyCode}}">
+                    </span>
+                    <i class="ion-chevron-right f14 ml10"></i>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!--<div ng-repeat="Filter in pageModel.FilterData" ng-if="Filter.Visible==1"
+             style="padding:10px;"
+             ui-finshed-render="FinishedFunc">
+            <div class="input-group" style="width: 100%;">
+                <span class="input-group-addon" style="width:20%">
+                    {{Filter.PropertyName}}
+                </span>
+                 文本框 
+                <input class="form-control" id="{{Filter.PropertyCode}}"
+                       ng-if="Filter.DisplayType==0&& Filter.FilterType!=2
+                                               &&(Filter.LogicType=='ShortString'||Filter.LogicType=='String'||Filter.LogicType=='Int'||Filter.LogicType=='Long'||Filter.LogicType=='Double')" />
+                 文本框 范围查询 
+                <div class="input-group" ng-if="Filter.DisplayType==0&& Filter.FilterType==2
+                                               &&(Filter.LogicType=='ShortString'||Filter.LogicType=='String'||Filter.LogicType=='Double')"
+                     style="width:100%;">
+                    <input class="form-control" id="{{Filter.PropertyCode}}" onkeyup="value=value.replace(/^\./g, '').replace(/[^\d\.]/g,'').replace('.', '$#$').replace(/\./g, '').replace('$#$', '.')" />
+                    <label class="input-group-addon" style="border-left:0px;border-right:0px;">
+                        -
+                    </label>
+                    <input class="form-control" id="{{Filter.PropertyCode+'1'}}" onkeyup="value=value.replace(/^\./g, '').replace(/[^\d\.]/g,'').replace('.', '$#$').replace(/\./g, '').replace('$#$', '.')" />
+                </div>
+                 整数型 范围查询 
+                <div class="input-group" ng-if="Filter.DisplayType==0&& Filter.FilterType==2
+                                               &&(Filter.LogicType=='Int'||Filter.LogicType=='Long')"
+                     style="width:100%;">
+                    <input class="form-control" id="{{Filter.PropertyCode}}" onkeyup="this.value=this.value.replace(/\D/g,'')" onblur="this.value=this.value.replace(/\D/g,'')" />
+                    <label class="input-group-addon" style="border-left:0px;border-right:0px;">
+                        -
+                    </label>
+                    <input class="form-control" id="{{Filter.PropertyCode+'1'}}" onkeyup="this.value=this.value.replace(/\D/g,'')" onblur="this.value=this.value.replace(/\D/g,'')" />
+                </div>
+
+                 时间控件 
+                <input class="input-xs form-control" ion-datetime-picker date ng-model="ggggg" value="gggg"
+                       id="{{Filter.PropertyCode}}"
+                       ng-if="Filter.DisplayType==0 && Filter.LogicType=='DateTime'
+                                               && Filter.FilterType!=2" />
+                 时间控件 范围查询
+                <div class="input-group" ng-if="Filter.DisplayType==0 && Filter.LogicType=='DateTime'
+                                               && Filter.FilterType==2" style="width:100%;">
+                    <span id="{{Filter.PropertyCode}}" class="input-sm form-control" ion-datetime-picker date ng-model="startTime">{{startTime|date:"yyyy-MM-dd"}}</span>
+                    <span class="input-group-addon" style="border-left:0px;border-right:0px;">
+                        -
+                    </span>
+                    <span id="{{Filter.PropertyCode+'1'}}" class="input-sm form-control" ion-datetime-picker date ng-model="endTime">{{endTime|date:"yyyy-MM-dd"}}</span>
+                </div>
+
+                 下拉框 
+                <select class="form-control" id="{{Filter.PropertyCode}}"
+                        ng-if="Filter.DisplayType==1">
+                    <option ng-repeat="option in Filter.SelectedValues"
+                            value="{{option.Value}}">
+                        {{option.Text}}
+                    </option>
+                </select>
+
+                 单选按钮 
+                <div ng-if="Filter.DisplayType==2">
+                    <label ng-repeat="option in Filter.SelectedValues">
+                        <input type="radio" name="{{Filter.PropertyCode}}"
+                               value="{{option.Value}}" />
+                        {{option.Text}}
+                    </label>
+                </div>
+                 复选按钮 
+                <div ng-if="Filter.DisplayType==3">
+                    <label ng-repeat="option in Filter.SelectedValues" style="margin-top:10px;">
+                        <input type="checkbox"
+                               name="{{Filter.PropertyCode}}" value="{{option.Value}}" />
+                        {{option.Text}}
+                    </label>
+                </div>
+                 选人控件 
+                <div ng-if="Filter.DisplayType==5&&(Filter.PropertyCode!='CreatedByParentId'&&Filter.PropertyCode!='OwnerParentId')" style="min-height:30.4px;">
+                    <div ng-click="goSheetUser(Filter.PropertyCode,1)"
+                         id="{{Filter.PropertyCode}}" style="display:block;"></div>
+                </div>
+                 选部门控件 
+                <div ng-if="Filter.DisplayType==5&&(Filter.PropertyCode=='CreatedByParentId'||Filter.PropertyCode=='OwnerParentId')" style="min-height:30.4px;">
+                    <div ng-click="goSheetUser(Filter.PropertyCode,2)"
+                         id="{{Filter.PropertyCode}}" style="display:block;"></div>
+                </div>
+            </div>
+        </div>-->
+    </ion-content>
+    <ion-footer-bar class="bottom-button">
+        <div class="bb-left f16" ng-click="ResetFilter()">{{languages.reset}}</div>
+        <div class="bb-right f16" ng-click="confirmFilter()">{{languages.confirm}}</div>
+    </ion-footer-bar>
+</ion-popover-view>

@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+    <link href="../../css/H3Report/zTreeStyle.css" rel="stylesheet" />
+    <link href="../../css/H3Report/bootstrap.min.css" rel="stylesheet" />
+    <link href="../../css/H3Report/jquery.gritter.css" rel="stylesheet" />
+    <link href="../../css/H3Report/FormRule/FormulaEditor.css" rel="stylesheet" />
+    <script src="../../js/H3Report/JqueryTree/jquery-1.11.1.min.js"></script>
+    <script src="../../js/H3Report/bootstraptable/bootstrap.js"></script>
+    <script src="../../js/H3Report/JqueryTree/jquery.ztree.all.min.js"></script>
+    <script src="../../js/H3Report/JqueryTree/AppTree.js"></script>
+    <script src="../../js/H3Report/Formula/Formula.js"></script>
+    <script src="../../js/H3Report/jquery.gritter.min.js"></script>
+    <script src="../../js/H3Report/H3.plugins.system.js"></script>
+    <script src="../../js/H3Report/NiceScrollBar/jquery.nicescroll.min.js"></script>
+    <script src="../../js/H3Report/Formula/FormulaPage.js"></script>
+    <script>
+        var IntelligentFunctions = [];
+        debugger
+        var ConstVariables = ['AND', 'OR', 'TRUE', 'FALSE'];//用于智能感知
+        var BizDataTypes = '';//函数返回数据类型
+        $(function () {
+            //从缓存中取到数据，该数据在创建IModal时候写入
+            var args = localStorage.getItem('DialogArguments');
+            var argJson = JSON.parse(args);
+            SchemaCode = argJson.FormulaParameter;//|| argJson.WorkflowCode;当前表单对象
+            SchemaCodes = argJson.SchemaCodes;
+            FormulaField = argJson.FormulaField;
+            CustomCodes = argJson.CustomCodes;
+            FormulaType = argJson.FormulaType;
+            FormulaParms = argJson.FormulaParameter;
+            Formula = argJson.Formula;
+            TitleText = argJson.TitleText;
+            initAppTree();
+            initFunction();
+            initEditor(Formula);
+            initFunctionSearch();
+            $('#appTree').niceScroll({ cursorcolor: "#f1f1f1" });
+            $('.li-function').niceScroll({ cursorcolor: "#f1f1f1" });
+        });
+    </script> 
+
+</head>
+<body>
+    <div class="container formula-container">
+        <div class="row body">
+            <div class="col col-md-3 col-sm-3">
+                <!--左侧数据模型-->
+                <div id="appTree"></div>
+            </div>
+            <div class="col col-md-6 col-sm-6">
+                <div class="row">
+                    <input id="txt_title" class="form-control" placeholder="请输入计算结果" />
+                </div>
+                <div class="row formula-area">
+                    <!--编辑区域-->
+                    <div class="formula-editor" spellcheck="false" contenteditable="true" tabindex="0"></div>
+                    <div class="div-intelligent-container">
+                        <table>
+                            <tr>
+                                <td>
+                                    <ul></ul>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="row formula-description">
+                    <!--说明及校验区域-->
+                    <div class="row example">
+                        <!--函数示例-->
+                        函数示例:<span id="formula_example"></span>
+                    </div>
+                    <div class="row description">
+                        <!--函数说明-->
+                        函数说明:<span id="formula_description"></span>
+                    </div>
+                    <div class="row validate">
+                        <!--校验信息-->
+                        校验信息:<span id="formula_validate"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col col-md-3 col-sm-3">
+                <div><input id="function_search" class="form-control" placeholder="搜索" /></div>
+                <!--右侧函数-->
+                <div class="li-function">
+                    <ul></ul>
+                </div>
+            </div>
+        </div>
+        <div class="row footer">
+            <button class="btn btn-success" onclick="save()">确定</button>
+            <button class="btn btn-default" onclick="cancel()">取消</button>
+        </div>
+    </div>
+</body>
+</html>

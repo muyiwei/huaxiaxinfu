@@ -1,0 +1,102 @@
+﻿<script>
+    $(function () {
+        var pageData = {
+            SystemOrgAcl: {"ViewOrgData":true,"Administrator":true},
+            LanData: $.Languages
+        };
+        //构造vue对象
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                }
+            }
+        });
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+        //构造SheetUser
+        $("#divUser").SheetUser({ Editable: true, Visiable: true, GroupVisible: true, IsMultiple: true });
+        $("#divOrgScope").SheetUser({ Editable: true, Visiable: true, OrgUnitVisible: true, UserVisible: false, IsMultiple: true });
+        //保存组织权限变量
+        function saveData() {
+            var UserIDArr = $("#divUser").SheetUIManager().GetValue();
+            pageData.SystemOrgAcl.UserIDArr = UserIDArr;
+            var orgScopeArr = $("#divOrgScope").SheetUIManager().GetValue();
+            pageData.SystemOrgAcl.OrgScopeArr = orgScopeArr;
+
+            $.ajax({
+                url: $.Controller.SystemOrgAcl.SaveSystemOrgAcl,
+                type: "post",
+                dataType: "json",
+                traditional: true,
+                data: pageData.SystemOrgAcl,
+                success: function (result) {
+                    if (result.Success) {
+                        parent.ReloadGrid();
+                        parent.$.H3Dialog.Success({ content: $.Lang("SystemOrgAcl.AddSucced") });
+                        parent.H3DialogManger.Cancel();
+                    } else {
+                        parent.ReloadGrid();
+                        if (result.Extend) {
+                            $.H3Dialog.Warn({ content: $.format($.Lang(result.Message), result.Extend) });
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        }
+                     
+                    }
+                }
+            });
+        }
+    });
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a id="lnkOK" v-on:click="saveData" data-icon="fa fa-save" href="javascript:void(0)" data-lang="GlobalButton.Save">保存</a>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.SystemOrgAcl.BasicInfo}}</span>
+
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.SystemOrgAcl.UserName}}
+                </td>
+                <td >
+                    <div id="divUser" style="width: 250px;"></div>
+                </td>
+            </tr>
+            <tr >
+                <td class="tableLeft">
+                    {{LanData.SystemOrgAcl.OrgScope}}
+                </td>
+                <td style="padding-top:4px" >
+                    <div id="divOrgScope" style="width: 250px;"></div>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.SystemOrgAcl.View}}
+                </td>
+                <td >
+                    <input v-model="SystemOrgAcl.ViewOrgData" type="checkbox" />
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.SystemOrgAcl.Manager}}
+                </td>
+                <td>
+                    <input v-model="SystemOrgAcl.Administrator" type="checkbox" />
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

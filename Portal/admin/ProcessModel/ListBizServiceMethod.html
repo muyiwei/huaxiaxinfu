@@ -1,0 +1,127 @@
+﻿<script>
+    $(function () {
+        $("#H3Toolbar").AspLinkToolBar();
+       // CreateLigerGrid($("#BizServiceGrid"), CreateGirdColums(), "ListBizServiceMethod.aspx?Action=GetDataList&<%=OThinker.H3.Portal.ConstantString.Param_ServiceCode%>=<%=this.ServiceCode%>", true);
+
+        var serviceCode = getUrlParam("ServiceCode");
+        //debugger;
+        // 创建表格
+        CreateLigerGrid(
+            $("#BizServiceGrid"),
+            CreateGirdColums(),
+            $.Controller.BizServiceMethod.GetDataList,
+            true, "98%",
+            null, null, null,
+            {
+                serviceCode: serviceCode
+            }
+           );
+    });
+
+    function CreateGirdColums() {
+        var MethodName =$.Lang("BizServiceMethod.MethodName");
+        var DisplayName =$.Lang("BizServiceMethod.DisplayName");
+        var ReturnType =$.Lang("BizServiceMethod.ReturnType");
+        var MethodSetting =$.Lang("BizServiceMethod.MethodSetting");
+        var Opten =$.Lang("BizServiceMethod.Open");
+
+        return [
+            { display: MethodName, name: "MethodName" },
+            { display: DisplayName, name: "DisplayName" },
+            { display: ReturnType, name: "ReturnType" },
+            { display: MethodSetting, name: "MethodSetting" },
+            {
+                display: "", name: "Open",
+                render: function (row) {
+                    return "<a href='javascript:void(0)' methodName='" + row.MethodName + "' onclick='AddMethod(this)'>" + Opten + "</a>";
+                }
+            }
+            ];
+    }
+
+    function AddMethod(obj) {
+
+        var serviceCode = getUrlParam("ServiceCode");
+        var methodName = $(obj).attr("methodName") == null ? "" : $(obj).attr("methodName");
+        ShowDialog($(obj).text(), _PORTALROOT_GLOBAL+"/admin/TabMaster.html?url=ProcessModel/EditBizServiceMethod.html&ServiceCode=" + serviceCode + "&Method=" + methodName);
+    }
+
+    function DeleteMethod(obj) {
+        var serviceCode = getUrlParam("ServiceCode");
+        var gridManger = $("#BizServiceGrid").ligerGetGridManager();
+        var rows = gridManger.getSelectedRows();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SelectItem") });
+        return;
+        }
+        var names = "";
+        for (var i = 0; i < rows.length; i++) {
+            names = names + rows[i].MethodName + ";";
+        }
+        var ajaxUrl = $.Controller.BizServiceMethod.DeleteData;
+        if (DeleteCheck(serviceCode, names)) {
+            if (ConfirmDel(obj)) {
+                $.ajax({
+                    url: ajaxUrl,
+                    type: "post",
+                    data: { serviceCode: serviceCode, methodNames: names },
+                    success: function (result) {
+                        if (!result.Success) {
+                            if (result.Extend) {
+                                var title = $.Lang(result.Message) + "<br/>";
+                                var content = $.Lang("BizService.ApplyDetail") + "：<br/>";
+                                for (var i = 0; i < result.Extend.length; i++) {
+                                    content += "<p style='margin-left:21px;display:inline-block;white-space:normal;word-wrap:break-word;width:95%'>" + $.Lang("BizService.InstanceName") + "：" + result.Extend[i].Name + "，" + $.Lang("BizService.ApplyMethods") + "：(" + result.Extend[i].Methods.join(',') + ")</p><br/>";
+                                }
+                                $.H3Dialog.Warn({ content: title + content });
+                            } else {
+                                top.$.H3Dialog.Error({ content: $.Lang(result.Message) });
+                            }
+                        }
+                        else {
+                            top.workTab.reload(top.workTab.getSelectedTabItemID());
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    function DeleteCheck(serviceCode, names)
+    {
+        var ajaxUrl = $.Controller.BizServiceMethod.DeleteDataCheck;
+        var canDel = false;
+        $.ajax({
+            url: ajaxUrl,
+            type: "post",
+            data: { serviceCode: serviceCode, methodNames: names },
+            async:false,
+            success: function (result) {
+                if (!result.Success) {
+                    if (result.Extend) {
+                        var title = $.Lang(result.Message) + "<br/>";
+                        var content = $.Lang("BizService.ApplyDetail") + "：<br/>";
+                        for (var i = 0; i < result.Extend.length; i++) {
+                            content += "　 " + $.Lang("BizService.InstanceName") + "：" + result.Extend[i].Name + "，" + $.Lang("BizService.ApplyMethods") + "：(" + result.Extend[i].Methods.join(',') + ")<br/>";
+                        }
+                        $.H3Dialog.Warn({ content: title + content });
+                    } else {
+                        top.$.H3Dialog.Error({ content: $.Lang(result.Message) });
+                    }
+                }
+                else {
+                    canDel = true
+                }
+            }
+        });
+        return canDel;
+    }
+</script>
+
+<div id="H3Toolbar">
+    <a href="javascript:void(0);" data-icon="fa fa-plus" onclick="AddMethod(this)" data-lang="GlobalButton.Add"></a>
+    <a href="javascript:void(0);" data-icon="fa fa-minus" onclick="DeleteMethod(this)" data-lang="GlobalButton.Delete"></a>
+</div>
+
+<div id="BizServiceGrid">
+</div>

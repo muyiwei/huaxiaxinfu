@@ -1,0 +1,91 @@
+﻿<!--
+    分组模式
+     -->
+<!--  ng-init="
+     app.settings.asideFolded=false;
+     app.settings.asideDock=false;" -->
+<div class="hbox hbox-auto-xs hbox-auto-sm">
+    <!-- main -->
+    <div class="col">
+        <!-- main header -->
+        <div class="bg-light lter b-b wrapper-md">
+            <div class="row" style=" padding-right: 15px; ">
+                <div class="col-sm-6 col-xs-12">
+                    <span class="h3" translate="HomePage.Workspace_MyUnfinishedWorkItemByGroup"></span>
+                </div>
+                <!--<div class="col-sm-6 col-xs-12">
+                    列表模式
+                </div>-->
+                <div class="btn-group  pull-right">
+                    <button type="button" class="btn btn-default m-t-n-xs" title="列表模式" ui-sref="app.MyUnfinishedWorkItem">
+                        <i class="fa fa-bars"></i><span style=" margin-left:5px;" translate="QueryTableColumn.ListMode"></span>
+                    </button>
+                    <button type="button" class="btn btn-default m-t-n-xs" title="批量审批" ui-sref="app.MyUnfinishedWorkItemByBatch">
+                        <i class="fa fa-bars"></i><span style=" margin-left:5px;" translate="QueryTableColumn.BatchProcess"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!--流程模板分类主体部分 Start-->
+        <div class="wrapper-md paddingbottomNone">
+            <div>
+                <div class="table-responsive paddingBodyNone workItemGroup" ng-show="workflows.length>0">
+                    <accordion close-others="false">
+                        <accordion-group ng-repeat="workflow in workflows" is-open="workflow.Open" ng-click="saveOpen(workflow.Open,workflow)">
+                            <accordion-heading>
+                                {{workflow.WorkflowName}}
+                                <i class="pull-right fa fa-angle-right" ng-class="{'fa-angle-down': workflow.Open, 'fa-angle-right': !workflow.Open}"></i>
+                                <b class="label bg-info pull-right" style="margin-right: 10px; margin-top:-2px;">{{workflow.TotalCount}}</b>
+                            </accordion-heading>
+                            <table ui-jq="dataTable" ui-options="options(workflow)"
+                                   class="table table-striped m-b-none" style="width:99%;">
+                                <thead>
+                                    <tr>
+                                        <th class="hide1024">
+                                            <span translate="QueryTableColumn.Flag"></span>
+                                        </th>
+                                        <th>
+                                            <span translate="QueryTableColumn.ProcessName"></span>
+                                        </th>
+                                        <th>
+                                            <span translate="QueryTableColumn.Title"></span>
+                                        </th>
+                                        <th class="hide414">
+                                            <span translate="QueryTableColumn.ReceiveTime"></span>
+                                        </th>
+                                        <th class="hide414">
+                                            <span translate="QueryTableColumn.Originator"></span>
+                                        </th>
+                                        <th class="hide1024">
+                                            <span translate="QueryTableColumn.DeptOfOriginator"></span>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </accordion-group>
+                    </accordion>
+                </div>
+
+                <div class="table-responsive paddingBodyNone workItemGroup" ng-show="workflows.length==0">
+                    <div class="wrapper-md paddingbottomNone">
+                        <div class="panel panel-default">
+                            <div class="table-responsive">
+                                <div class="form-inline">
+                                    <div class="btn-group searchContainer fade-in-right" style="float:left;">
+                                        <span translate="uidataTable.sZeroRecords"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--流程模板分类主体部分 End-->
+    </div>
+    <!-- / main -->
+</div>
+
+
+

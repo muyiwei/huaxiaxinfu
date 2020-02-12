@@ -1,0 +1,241 @@
+﻿<script>
+    var SetItemValue = function (_ItemName, _ItemValues, _DisplayText) {
+        parent.SetItemValue(_ItemName, _ItemValues, _DisplayText);
+    }
+
+    var SetActivityValue = function (_ActivityCode, _ItemValues, _DisplayText) {
+        parent.SetActivityValue(_ActivityCode, _ItemValues, _DisplayText);
+    }
+
+    function DocumentReady() {
+        $(".H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+    }
+
+    var ItemName = getUrlParam("ItemName");
+    var WorkflowCode =getUrlParam("WorkflowCode");
+    var ActivityCode = getUrlParam("ActivityCode");
+    var SimulationID = getUrlParam("SimulationID");
+    var Value = decodeURI(getUrlParam("v"));
+    //需要返回
+    var pageData = {
+        DisplayName: "",//数据项显示名称
+        LogicTypeDisplay: "",//数据项类型显示名称
+        LogicType: ""//数据类型，页面判断使用哪种控件
+    };
+   
+
+    function LoadData() {
+        var loadUrl = _PORTALROOT_GLOBAL + $.Controller.Simulation.LoadEditSimulationData;
+        $.ajax({
+            url: loadUrl,
+            type: "post",
+            dataType: "json",
+            async:false,
+            data: { WorkflowCode: WorkflowCode, ActivityCode: ActivityCode, ItemName: ItemName, Value: Value },
+            success: function (result) {
+                //debugger;
+                if (result.Success) {
+                    pageData.DisplayName = result.Extend.DisplayName;
+                    pageData.LogicType = result.Extend.LogicType;
+                    pageData.LogicTypeDisplay = result.Extend.LogicTypeDisplay;
+                } else {
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                }
+            }
+        });
+    }
+
+    function DisplayControl(value)
+    {
+        //debugger;
+        var values = JSON.parse(value);
+        var resultValue = "";
+
+        if (values && values.length > 1) {
+            for (var i = 0; i < values.length; i++) {
+                resultValue += values[i] + ";";
+            }
+        } else if (values && values.length == 1) {
+            resultValue = values[0];
+        }
+
+        //如果是设置节点参与者
+        if (ActivityCode && ActivityCode.length > 0) {
+            $("#usParticipants").show();
+            $("#usParticipants").SheetUser({ Editable: true, Visiable: true, UserVisible: true, OrgUnitVisible: false, IsMultiple: true });
+
+            $("#usParticipants").SheetUIManager().SetValue(values);
+        }
+        else {
+
+            //如果是设置数据项，判断
+            if (pageData.LogicType == "SingleParticipant" || pageData.LogicType == "MultiParticipant") {
+                var ismulti=(pageData.LogicType == "MultiParticipant");
+                $("#usParticipants").show();
+                $("#usParticipants").SheetUser({ Editable: true, Visiable: true, UserVisible: true, OrgUnitVisible: true, IsMultiple: ismulti });
+                if (ismulti)
+                {
+                    $("#usParticipants").SheetUIManager().SetValue(values);
+                } else {
+                    $("#usParticipants").SheetUIManager().SetValue(resultValue);
+                }
+                
+            } else if (pageData.LogicType == "Bool") {
+                $("#chk").show();
+                if (value) { $("#chk").attr("checked",resultValue); }
+
+            } else if (pageData.LogicType == "DateTime") {
+                //debugger;
+                $("#st").show();
+                $("#st").val(resultValue);
+
+            } else {
+                $("#divtxtArea").show();
+                $("#txtValues").val(resultValue);
+            }
+        }
+    }
+
+    function GetControlValue()
+    {
+        var value = [];
+        var itemValue = [];
+        //如果是设置节点参与者
+        if (ActivityCode && ActivityCode.length > 0) {
+            
+            value.push($("#usParticipants").SheetUIManager().GetValue());
+            value.push($("#usParticipants").SheetUIManager().GetText());
+        }
+        else {
+            //如果是设置数据项，判断
+            if (pageData.LogicType == "SingleParticipant" || pageData.LogicType == "MultiParticipant") {
+                var v = $("#usParticipants").SheetUIManager().GetValue();
+                itemValue.push(v);
+                if (pageData.LogicType == "MultiParticipant") { itemValue = v;}
+                value.push(itemValue);
+                var display = $("#usParticipants").SheetUIManager().GetText();
+                value.push(display);
+            } else if (pageData.LogicType == "Bool") {
+                itemValue.push($("#chk").prop("checked"));//value
+                value.push(itemValue);
+                value.push($("#chk").prop("checked"));//display
+
+            } else if (pageData.LogicType == "DateTime") {
+                itemValue.push($("#st").val());
+                value.push(itemValue);
+                value.push($("#st").val());
+
+            } else {
+
+                var v = $("#txtValues").val();
+                if (pageData.LogicType == "Int" || pageData.LogicType == "Long")
+                {
+                    if (!isInteger(v)) { $.H3Dialog.Warn({ content: "请输入整数" }); return; }
+                   
+                }
+                if (pageData.LogicType == "Decimal" || pageData.LogicType == "Double") {
+                    if (!isNumberic(v)) { $.H3Dialog.Warn({ content: "请输入数值" }); return; } 
+                }
+                itemValue.push($("#txtValues").val());
+                //if (v.indexOf(";") > -1) { itemValue = v.split(';');}
+                value.push(itemValue);
+                value.push($("#txtValues").val());
+            }
+        }
+
+        return value;
+    }
+
+    ///判断是否整数
+    function isInteger(obj) {
+        if (parseInt(obj) == obj)
+            return true;
+        else return false;
+    }
+
+    ///判断是否数值类型
+    function isNumberic(a) {
+        return !isNaN(a);
+    }
+
+    function SaveData() {
+        //debugger;
+        var value = GetControlValue();
+        //如果是设置节点参与者
+        if (ActivityCode && ActivityCode.length > 0) {
+            SetActivityValue(ActivityCode, value[0], value[1]);
+        }
+        else {
+            SetItemValue(ItemName, value[0], value[1]);
+        }
+
+        parent.closeDialog();
+    }
+
+    $(function () {
+        LoadData();
+
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {}
+        });
+        //显示对应控件
+        DisplayControl(Value);
+        //格式化工具栏
+        DocumentReady();
+    });
+
+
+
+</script>
+<style type="text/css">
+    span.tip {
+        display: none;
+    }
+
+    textarea + span.tip {
+        display: block;
+    }
+</style>
+
+<div class="H3ToolBar">
+    <a id="lbtnSave" href="javascript:void(0)" onclick="SaveData();" data-icon="fa fa-save" data-lang="GlobalButton.Save"></a>
+</div>
+<div class="H3Panel">
+    <span data-lang="Simulation.EditSimulationData_DataInfor"></span>
+    <table>
+        <tr>
+            <td data-lang="Simulation.Report_Data_Name"></td>
+            <td>
+             
+                <input type="text" id="lblDisplayName" disabled="disabled" v-model="DisplayName"/>
+            </td>
+        </tr>
+        <tr>
+            <td data-lang="Simulation.PortalWebPartPubAttr_Type">
+            </td>
+            <td>
+                <input type="text" id="lblLogicType" disabled="disabled" v-model="LogicTypeDisplay" />
+            </td>
+        </tr>
+        <tr>
+            <td data-lang="Simulation.SimulationDetail_DefaultValue"> </td>
+            <td>
+                <!--一般类型-->
+                <div id="divtxtArea" style="display:none">
+                    <textarea id="txtValues"></textarea>
+                    <span class="tip" data-lang="Simulation.EditSimulationData_Mulitple"></span>
+                </div>
+                <!--逻辑型-->
+                <input type="checkbox" id="chk" style="display:none" />
+                <!--日期类型-->
+                <input type="text" id="st" onclick="InitWdatePicker(this)" style="display:none" />
+                <!--参与者类型-->
+                <div id="usParticipants" style="display: none; width: 255px"></div>
+               </td>
+        </tr>
+    </table>
+</div>
+

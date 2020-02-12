@@ -1,0 +1,104 @@
+﻿
+<!--<link href="../../WFRes/css/PortalStyle0.css" rel="stylesheet" type="text/css" />-->
+<script>
+    $(function () {
+
+        $("#ToolBar").AspLinkToolBar();
+        var actionUrl = $.Controller.BizDbConfig.LoadDbConfigList;
+        CreateLigerGrid(
+            $("#DataSourceList"),
+            GetDbConfigColumns(),
+            actionUrl,
+            true, "98%",
+            null, null, null,
+            null
+           )
+
+    })
+
+    function GetDbConfigColumns() {
+        var DbCode_Engine = $.Lang("BizDbConnectionConfig.DbCode_Engine");
+        var DbCode_Log =$.Lang("BizDbConnectionConfig.DbCode_Log");
+        var Code =$.Lang("BizDbConnectionConfig.Code");
+        var DisplayName =$.Lang("BizDbConnectionConfig.DisplayName");
+        var DbType =$.Lang("BizDbConnectionConfig.DbType");
+        var ConnectionString =$.Lang("BizDbConnectionConfig.ConnectionString");
+        var Description =$.Lang("BizDbConnectionConfig.Description");
+        var Edit = $.Lang("GlobalButton.Edit");
+        return [
+            { display: Code, name: "DbCode", width: "15%" },
+            { display: DisplayName, name: "DisplayName", width: "15%" },
+            {
+                display: DbType, name: "DbType", width: "15%", render: function (row) {
+                    if (row.DbType == 1) { return "SqlServer";}
+                    else if (row.DbType == 2) {  return "Oracle"; }
+                    else if (row.DbType == 3) { return "MySql"; }
+                    else return row.DbType;
+                }
+            },
+            { display: ConnectionString, name: "DbConnectionString", width: "25%" },
+            { display: Description, name: "Description", width: "15%" },
+            {
+                display: Edit, name: "", width: "10%", render: function (row) {
+                //默认连接不可编辑
+                if (row.DbCode === DbCode_Engine || row.DbCode === DbCode_Log) {
+                    return "";
+                }
+                else {
+                    return "<a href='#' id='" + row.DbCode + "'  onclick='RowEditClick(this)'>"+Edit+"</a> ";
+                }
+            }
+            },];
+    }
+
+    function AddFun() {
+        var DatabaseConn = $.Lang("BizDbConnectionConfig.DatabaseConn");
+        ShowDialog(DatabaseConn, _PORTALROOT_GLOBAL+"/admin/TabMaster.html?url=BizBus/EditBizDbConfigDetail.html",620);
+        
+    }
+    function RowEditClick(obj) {
+        var DatabaseConn = $.Lang("BizDbConnectionConfig.DatabaseConn");
+        ShowDialog(DatabaseConn, _PORTALROOT_GLOBAL+"/admin/TabMaster.html?url=BizBus/EditBizDbConfigDetail.html&code=" + obj.id,620);
+    }
+
+    function DeleteFun(obj) {
+        var SelectContent = $.Lang("BizDbConnectionConfig.SelectContent");
+        var rows = H3GridManager.getSelectedRows();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: SelectContent });
+            return false;
+        }
+        var ids = "";
+        for (var i = 0; i < rows.length; i++) {
+            ids = ids + rows[i].DbCode + ";";
+        }
+        $("#hfSelectedId").val(ids);
+        var deleteConfirm = $.Lang("BizDbConnectionConfig.DeleteConfirm");
+        $.ligerDialog.confirm(deleteConfirm, function (result) {
+            if (result) {
+                //debugger;
+                $.ajax({
+                    url: $.Controller.BizDbConfig.DeleteDbConfig,
+                    type: 'post',
+                    dataType: "json",
+                    data: { ids: ids },
+                    async: false,//同步执行
+                    success: function (result) {
+                        //刷新页面
+                        top.workTab.reload(top.workTab.getSelectedTabItemID());
+                    }
+                });
+            }
+        });
+        return false;
+    }
+
+</script>
+
+<div id="ToolBar">
+    <a id="lnkAdd" href="#" onclick="AddFun()" data-icon="fa fa-plus" data-lang="GlobalButton.Add"></a>
+    <a  id="lnkDelete" onclick="return DeleteFun(this)" data-icon="fa fa-minus" data-lang="GlobalButton.Delete"></a>
+</div>
+
+<div id="DataSourceList"></div>
+<input type="hidden" ID="hfSelectedId" />

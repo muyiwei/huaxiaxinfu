@@ -1,0 +1,162 @@
+<ion-view view-title="{{languages.tabs.InitiateProcess}}" align-title="center" hide-nav-bar="true" class="tab-startwf">
+    <script type="text/ng-template" id="repeatTemplate" ng-app="">
+        <div ng-repeat="item in item.children">
+            <div ng-if="item.IsLeaf" class="workflowItem">
+                <div class="wi-left" ng-click="ChangeFrequence(item.Code,item.Frequent)">
+                    <i class="icon-star f16" ng-if="item.Frequent==1"></i>
+                    <i class="icon-shoucaang_2  f16" ng-if="item.Frequent==0"></i>
+                </div>
+                <div class="wi-middle" ng-click="startWorkflow(item.Code)">
+                    <span class="f16">
+                        {{ item.DisplayName}}
+                    </span>
+                    <span class="sample f12" ng-if="sampleData">{{languages.sampleData}}</span>
+                </div>
+                <div class="wi-right">
+                    <i class="ion-chevron-right f12"></i>
+                </div>
+            </div>
+        </div>
+        <div ng-repeat="item in item.children">
+            <div ng-if="!item.IsLeaf">
+                <div class="workflowCategory" ng-click="showMore(item.Code)">
+                    <div class="wc-left">
+                        <div class="v-line"></div>
+                    </div>
+                    <div class="wc-middle">{{item.Title}}</div>
+                    <div class="wc-right">
+                        <i class="ion-chevron-up f12" ng-if="item.showChildren"></i>
+                        <i class="ion-chevron-down f12" ng-if="!item.showChildren"></i>
+                    </div>
+                </div>
+                <div ng-include="'repeatTemplate'" ng-if="item.showChildren"></div>
+            </div>
+        </div>
+    </script>
+
+
+
+
+    <div class="menu-tittle {{$root.dingMobile.dingHeaderClass}} ">
+
+        <div class="menu-tittle-left f14" ng-click="CancelSearch()" ng-if="searchMode">
+            <i class="ion-chevron-left f17 blue"></i><span class="blue f17">{{languages.back}}</span>
+        </div>
+        <div class="menu-tittle-left f14" ng-if="!searchMode">
+        </div>
+
+        <div class="menu-tittle-middle f17">{{languages.tabs.InitiateProcess}}</div>
+    </div>
+    <div class="tab-startwf-head">
+        <div class="searchContainer">
+            <label class="item-input-wrapper startwfSearch" ng-class="{'placeholder-icon-focus':focus,'placeholder-icon-unfocus':!focus}">
+                <i class="icon-search f13"></i>
+                <input ng-trim="false" type="search" placeholder="{{languages.tabMyInstances.searchProcessname}}"
+                       class="input-placeholder f14"
+                       ng-model="searchKey"
+                       ng-focus="focusIn()" ng-blur="blurOut()" style="background: transparent;">
+                <i class="icon ion-close-circled placeholder-icon  f16" style="vertical-align: middle;"
+                   on-tap="CancelSearch()" ng-if="searchKey.length"></i>
+            </label>
+            <span ng-click="search()">
+                {{languages.search}}
+            </span>
+        </div>
+    </div>
+
+    <div class="tab-bar" ng-if="!searchMode">
+        <div ng-repeat="d in tabNames" ng-click="activeSlide($index)" ng-class="slectIndex==$index?'tab_selected tab-bar-item':'tab-bar-item'">
+            <span class="f15 rel db">
+                <i>{{d}}</i>
+            </span>
+            <div class="vertical-line"></div>
+        </div>
+    </div>
+    <div class="tab-bar" ng-if="searchMode">
+        <div class="tab-bar-item" style="flex-basis: 100%;">
+            <span class="f15 rel db">
+                <i>{{languages.allSearchResults}}</i>
+            </span>
+            <div class="vertical-line"></div>
+        </div>
+    </div>
+
+
+    <ion-content class="{{$root.dingMobile.dingContentClass}}" delegate-handle="startWorkFlow">
+        <!--常用流程  -->
+        <div ng-show="slectIndex==0&&!searchMode">
+            <div ng-if="frequentFlow.length>0" class="category">
+                <div ng-repeat="item in frequentFlow" class="workflowItem">
+                    <div class="wi-left" ng-click="ChangeFrequence(item.Code,item.Frequent)">
+                        <i class="icon-star f16" ng-if="item.Frequent==1"></i>
+                        <i class="icon-shoucaang_2  f16" ng-if="item.Frequent==0"></i>
+                    </div>
+                    <div class="wi-middle" ng-click="startWorkflow(item.Code)">
+                        <span class="f16">
+                            {{ item.DisplayName}}
+                        </span>
+                        <span class="sample f12" ng-if="sampleData">{{languages.sampleData}}</span>
+                    </div>
+                    <div class="wi-right">
+                        <i class="ion-chevron-right f12"></i>
+                    </div>
+                </div>
+            </div>
+            <!--<div class="list-showEmpty" ng-show="frequentFlow.length==0&&slectIndex==0">
+                <img ng-show="{{!languages.inEnShow}}" src="img/empty.svg">
+                <img ng-show="{{languages.inEnShow}}" src="img/emptyEng.svg">
+            </div>-->
+            <div class="no-data f12" ng-if="frequentFlow.length==0&&slectIndex==0&&!languages.inEnShow"><span>暂未有常用流程,请在全部流程中设置!</span></div>
+            <div class="no-data f12" ng-if="frequentFlow.length==0&&slectIndex==0&&languages.inEnShow"><span>There are no commonly userd workflows,please set up in th entire workflows.</span></div>
+        </div>
+        <!--全部流程  -->
+        <div ng-show="!slectIndex==0&&!searchMode">
+            <div class="category" ng-if="listOfCategory.children.length>0">
+                <div class="" ng-repeat="item in listOfCategory.children">
+                    <div class="workflowCategory" ng-click="showMore(item.Code)">
+                        <div class="wc-left">
+                            <div class="v-line"></div>
+                        </div>
+                        <div class="wc-middle">{{item.DisplayName}}</div>
+                        <div class="wc-right">
+                            <i class="ion-chevron-down f12" ng-if="!item.showChildren"></i>
+                            <i class="ion-chevron-up f12" ng-if="item.showChildren"></i>
+                        </div>
+                    </div>
+                    <div ng-include="'repeatTemplate'" ng-if="item.showChildren"></div>
+                </div>
+            </div>
+            <div class="list-showEmpty" ng-show="listOfCategory.children.length==0&&!slectIndex==0">
+                <img ng-show="!languages.inEnShow" src="img/empty.svg">
+                <img ng-show="languages.inEnShow" src="img/emptyEng.svg">
+            </div>
+        </div>
+    
+        <!--搜索结果-->
+        <div ng-show="searchMode">
+            <div ng-if="presentResults.length>0" class="category">
+                <div ng-repeat="item in presentResults track by $index" class="workflowItem">
+                    <div class="wi-left" ng-click="ChangeFrequence(item.Code,item.Frequent)">
+                        <i class="icon-star f16" ng-if="item.Frequent==1"></i>
+                        <i class="icon-shoucaang_2  f16" ng-if="item.Frequent==0"></i>
+                    </div>
+                    <div class="wi-middle" ng-click="startWorkflow(item.Code)">
+                        <span class="f16">
+                            {{ item.DisplayName}}
+                        </span>
+                        <span class="sample f12" ng-if="sampleData">{{languages.sampleData}}</span>
+                    </div>
+                    <div class="wi-right">
+                        <i class="ion-chevron-right f12"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="list-showEmpty" ng-show="presentResults.length==0">
+                <img ng-show="!languages.inEnShow" src="img/empty.svg">
+                <img ng-show="languages.inEnShow" src="img/emptyEng.svg">
+            </div>
+        </div>
+
+    </ion-content>
+
+</ion-view>

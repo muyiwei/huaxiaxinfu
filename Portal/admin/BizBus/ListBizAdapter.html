@@ -1,0 +1,38 @@
+﻿<!--<link href="../WFRes/css/PortalStyle0.css" rel="stylesheet" type="text/css" />-->
+<script>
+    $(function () {
+        $("#ToolBar").AspLinkToolBar();
+        var actionUrl = $.Controller.Adapter.LoadBizAdapterList;
+        //创建表格
+        CreateLigerGrid(
+            $("#AdapterList"),
+            CreateColumns(),
+            actionUrl,
+            false, "98%",
+            null, null, null,
+            {adapterType:0}
+           )
+    })
+
+    function CreateColumns() {
+        var DisplayName = $.Lang("Adapter.DisplayName");
+        var Description = $.Lang("Adapter.Description");
+        return [
+            { display: DisplayName, name: 'DisplayName', width: '15%' },
+            { display: Description, name: 'Description' }
+         
+        ];
+    }
+
+    function RegisterFun(obj) {
+        var register = $.Lang("Adapter.Register");
+       
+        ShowDialog(register, _PORTALROOT_GLOBAL+"/admin/TabMaster.html?url=BizBus/RegisterBizAdapter.html",400,500);
+    }
+</script>
+
+<div id="ToolBar">
+    <a href="#" id="register" onclick="RegisterFun(this)" data-icon="fa fa-tag" data-lang="Adapter.Register"></a>
+</div>
+
+<div id="AdapterList"></div>

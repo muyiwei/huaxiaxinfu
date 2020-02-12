@@ -1,0 +1,90 @@
+﻿<script>
+    $(function () {
+        var pageData = {
+            GlobalData: {},
+            LanData: $.Languages
+        };
+        //初始化页面数据
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                }
+            }
+        });
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+        //初始化页面数据
+        function initPageData() {
+            var itemName = getUrlParam("itemName");
+            if (itemName) {
+                $.ajax({
+                    url: $.Controller.GlobalData.GetGlobalData,
+                    type: 'get',
+                    dataType: "json",
+                    data: { itemName: itemName },
+                    async: false,//同步执行
+                    success: function (result) {
+                        pageData.GlobalData = result;
+                    }
+                });
+            }
+        };
+        //保存全局变量
+        function saveData() {
+            $.ajax({
+                url: $.Controller.GlobalData.SaveGlobalData,
+                type: "post",
+                dataType: "json",
+                data: pageData.GlobalData,
+                success: function (result) {
+                    if (result.Success) {
+                        parent.H3DialogManger.Close();
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        }
+    });
+
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a id="lnkOK" v-on:click="saveData" data-icon="fa fa-save" href="javascript:void(0)" data-lang="GlobalButton.Save">保存</a>
+    </div>
+    <div class="H3Panel">
+        <span data-lang="msgGlobalString.Msg_BasciInfor"></span>
+        <input v-model="GlobalData.ObjectID" hidden="hidden" />
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft" data-lang="EditGlobalData.DataItemName"></td>
+                <td>
+                    <input v-model="GlobalData.ItemName" detect-change="on" detect-blur="on" initial="off" v-validate:item-name="['space','required']" type="text" v-bind:disabled="GlobalData.ObjectID" />
+                    <span style="color:Red;" v-if="$formValidator.itemName.invalid" data-lang="msgGlobalString.NotSpace"></span>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft" data-lang="EditGlobalData.Value"></td>
+                <td>
+                    <textarea v-model="GlobalData.ItemValue" detect-change="on" detect-blur="on" initial="off" v-validate:item-value="['space','required']" rows="2" cols="20"></textarea>
+                    <span style="color:Red;" v-if="$formValidator.itemValue.invalid" data-lang="msgGlobalString.NotSpace"></span>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft" data-lang="EditGlobalData.Description"></td>
+                <td>
+                    <textarea v-model="GlobalData.Description" rows="2" cols="20"></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

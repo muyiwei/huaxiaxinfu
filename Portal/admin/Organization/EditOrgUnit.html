@@ -1,0 +1,427 @@
+﻿
+<script>
+    $(function () {
+        //TODO 读写权限控制
+        var pageData = {
+            EditUnitData: { SortKey: 0, Edit: true, View: true, VisibleType: "1", State: 1 },
+            OrgCategoryList: {},
+            CalendarList: {},
+            LanData: $.Languages
+        };
+
+        //初始化页面数据
+        initPageData();
+        //debugger;
+        //页面控件可编辑、功能按钮是否能使用
+        //pageData.EditUnitData.Edit = false; pageData.EditUnitData.View = true;//测试
+        SetPageControlDisabled(pageData.EditUnitData.Edit);
+        if (!pageData.EditUnitData.ObjectID) {
+            setControlUsable("0", $("a.ShowAfterSave"))
+        }
+
+        //绑定Vue
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        SaveData();
+                    }
+                },
+                deleteData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        DeleteData();
+                    }
+                },
+                addOrgUnit: function (event) {
+                    var text = $.Lang("Orgnization.AddOU");
+                    return AddOrgUnit(text, "EditOrgUnit.html");
+                },
+                addUser: function (event) {
+                    var text = $.Lang("Orgnization.AddUser");
+                    return AddOrgUnit(text, "EditUser.html");
+                },
+                addGroup: function (event) {
+                    var text = $.Lang("Orgnization.AddGroup");
+                    return AddOrgUnit(text, "EditGroup.html");
+                },
+                setAcl: function (event) {
+                    var setAclName = $.Lang("msgGlobalString.UpdateAcl");
+                    var objId = pageData.EditUnitData.ObjectID;
+                    ShowDialog(setAclName, _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=Organization/FunctionAclByUnit.html&unitid=" + objId);
+                },
+                StateChange: function (event) {
+                    CheckUserCount();
+                }
+            }
+        });
+
+        //放到Vue后面，否则Panel隐藏 显示功能不起作用
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel({ excludeIDs: ["OrgJobList"] });
+
+        InitSelectUserControl(pageData.EditUnitData.Edit);
+
+        //根据传递的参数获取对应的数据，Vue绑定数据使用
+        function initPageData() {
+            var id = getUrlParam("ID");
+            var mode = getUrlParam("Mode");
+            pageData.Mode = mode;
+            if (id && id != "") {
+                $.ajax({
+                    url: $.Controller.OrgUnit.GetOrgInfo,
+                    type: 'get',
+                    dataType: "json",
+                    data: { unitID: id },
+                    async: false,//同步执行
+                    success: function (result) {
+                        if (result.Success) {
+                            pageData.EditUnitData = result.Extend;
+                        } else {
+                            pageData.EditUnitData.Edit = false;
+                            pageData.EditUnitData.View = false;
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        }
+
+                    }
+                });
+            }
+
+            //组织类型
+            $.ajax({
+                url: $.Controller.OrgCategory.GetCategoryList,
+                type: 'post',
+                dataType: "json",
+                data: {},
+                async: false,//同步执行
+                success: function (result) {
+                    pageData.OrgCategoryList = result;
+                }
+            });
+
+            //工作日历
+            $.ajax({
+                url: $.Controller.OrgUnit.LoadWorkCalendar,
+                type: 'post',
+                dataType: "json",
+                data: {},
+                async: false,//同步执行
+                success: function (result) {
+                    pageData.CalendarList = result;
+                }
+            });
+        };
+
+        function SaveData() {
+            //debugger;
+            //读取选人控件的值
+            var parent = $("#dvParent").SheetUIManager().GetValue();
+            var manager = $("#dvManager").SheetUIManager().GetValue();
+            if (parent == "") {
+                $.H3Dialog.Warn({ content: $.Lang("EditOrgUnit.ParentNotNull") });
+                return;
+            }
+            //所属组织不能选择自己
+            if (parent == pageData.EditUnitData.ObjectID) {
+                $.H3Dialog.Warn({ content: $.Lang("EditOrgUnit.ParentInvalid") });
+                return;
+            }
+
+            var oldParentUnit = pageData.EditUnitData.ParentUnit;
+            pageData.EditUnitData.ParentUnit = parent;
+            pageData.EditUnitData.Manager = manager;
+
+            if (parent) {
+                $.ajax({
+                    url: $.Controller.OrgUnit.SaveOrgInfo,
+                    type: "post",
+                    dataType: "json",
+                    data: pageData.EditUnitData,
+                    success: function (result) {
+                        debugger
+                        if (result.Success) {
+                            top.ReloadNode(pageData.EditUnitData.ParentUnit); //刷新组织树
+                            if (oldParentUnit != pageData.EditUnitData.ParentUnit) { top.ReloadNode(oldParentUnit); }
+                            if (pageData.EditUnitData.ObjectID == undefined) {
+                                var unitid = result.Extend.UnitID;
+                                ChangeCurrentTabId(unitid);
+                                //设置标签显示名称
+                                top.workTab.setHeader(top.workTab.getSelectedTabItemID(), pageData.EditUnitData.UnitName);
+                                var newUrl = _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=Organization/EditOrgUnit.html&Mode=View&ID=" + unitid + "&Parent=" + parent + "&code=" + unitid;
+                                ChangeCurrentTabIframe(unitid, newUrl);
+                            }
+                            $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        }
+                    }
+                });
+            }
+        }
+
+        //修改TabID
+        function ChangeCurrentTabId(newTabId) {
+            top.$("div[tabid='" + top.workTab.getSelectedTabItemID() + "']").attr("tabid", newTabId);
+            top.$("iframe[id='" + top.workTab.getSelectedTabItemID() + "']").attr("id", newTabId);
+            top.$("iframe[name='" + top.workTab.getSelectedTabItemID() + "']").attr("name", newTabId);
+            top.$("li[tabid='" + top.workTab.getSelectedTabItemID() + "']").attr("tabid", newTabId);
+        }
+
+        //修改页面地址
+        function ChangeCurrentTabIframe(tabID, newUrl) {
+            top.$("iframe[id='" + tabID + "']").attr("src", newUrl);
+        }
+
+        function DeleteData() {
+            var id = getUrlParam("ID");
+            var parent = getUrlParam("Parent");
+            var deleteConfirm = $.Lang("msgGlobalString.DeleteConfrim");
+            if (id && id != "") {
+                $.ajax({
+                    type: "post",
+                    url: $.Controller.OrgUnit.CanDeleOrgInfo,
+                    dataType: "json",
+                    data: { id: id },
+                    success: function (result) {
+                        if (result.Success) {
+                            $.ligerDialog.confirm(deleteConfirm, function (result) {
+                                if (result) {
+                                    $.ajax({
+                                        url: $.Controller.OrgUnit.DeleteOrg,
+                                        type: "post",
+                                        dataType: "json",
+                                        data: { id: id },
+                                        success: function (result) {
+                                            //debugger;
+                                            if (result.Success) {
+                                                //$.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                                                top.ReloadNode(parent); //刷新组织树
+                                                top.workTab.removeTabItem(top.workTab.getSelectedTabItemID()); //关闭当前标签页
+                                            } else {
+                                                $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        }
+                    }
+                })
+
+
+            }
+        }
+
+        function InitSelectUserControl(edit) {
+            //debugger;
+            //选人控件初始化
+            $("#dvManager").SheetUser({ Editable: edit, Visiable: true });
+            $("#dvParent").SheetUser({ Editable: edit, Visiable: true, UserVisible: false, OrgUnitVisible: true, IsMultiple: false });
+
+            var parent = getUrlParam("Parent");
+            if (pageData.EditUnitData.ParentUnit) { parent = pageData.EditUnitData.ParentUnit; }
+            $("#dvManager").SheetUIManager().SetValue(pageData.EditUnitData.Manager);
+            $("#dvParent").SheetUIManager().SetValue(parent);
+        }
+
+        function AddOrgUnit(text, pageName) {
+            var editID = getUrlParam("ID");
+            top.f_addTab(
+                {
+                    tabid: new Date().getTime(),
+                    text: text,
+                    url: "Organization/" + pageName + "&Mode=Add&Parent=" + editID
+                });
+            return false;
+        }
+
+        ///判断当前组织是否存在用户
+        function CheckUserCount() {
+            if (pageData.EditUnitData.ObjectID != null && pageData.EditUnitData.ObjectID != "") {
+                $.ajax({
+                    url: $.Controller.OrgUnit.CheckOrgUser,
+                    type: 'post',
+                    dataType: "json",
+                    data: {
+                        orgObjectId: pageData.EditUnitData.ObjectID
+                    },
+                    success: function (result) {
+                        if (result.Success) {
+                            $.H3Dialog.Warn({ content: $.Lang("EditOrgUnit.InActiveWarn") });
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        }
+
+                    }
+                });
+            }
+        }
+
+    });
+</script>
+
+<style>
+    option {
+        font-size: 13px;
+    }
+</style>
+
+<validator name="formValidator">
+    <div id="H3ToolBar">
+        <a id="SaveBtn" v-on:click="saveData" data-icon="fa fa-save" data-lang="GlobalButton.Save"></a>
+        <a id="DeleteBtn" v-on:click="deleteData" class="ShowAfterSave" data-icon="fa fa-minus" data-lang="GlobalButton.Delete"></a>
+        <a id="AddOUBtn" v-on:click="addOrgUnit" class="ShowAfterSave" data-icon="fa icon-zuzhitubiao" data-lang="Orgnization.AddOU"></a>
+        <a id="AddUserBtn" v-on:click="addUser" class="ShowAfterSave" data-icon="fa fa-user" data-lang="Orgnization.AddUser"></a>
+        <a id="AddGroupBtn" v-on:click="addGroup" class="ShowAfterSave" data-icon="fa fa-users" data-lang="Orgnization.AddGroup"></a>
+        <a id="UnitAclBtn" v-on:click="setAcl" class="ShowAfterSave" data-icon="fa icon-quanxianshezhi" data-lang="Orgnization.UnitAcl"></a>
+    </div>
+    <!--基本信息-->
+    <div class="H3Panel">
+        <span>{{LanData.msgGlobalString.Msg_BasciInfor}}</span>
+        <table class="tableList">
+            <!--显示名称-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditOrgUnit.UnitName}}
+                </td>
+                <td>
+                    <input type="text" id="txtName" v-model="EditUnitData.UnitName" detect-change="on" detect-blur="on" initial="off" v-validate:item-code="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.itemCode.required">{{LanData.msgGlobalString.EnumValueRequired}}</span>
+                </td>
+            </tr>
+            <!--主管-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditOrgUnit.Manager}}
+                </td>
+                <td style="padding-left: 0px">
+                    <div id="dvManager" style="width: 250px;">
+                    </div>
+                </td>
+            </tr>
+            <!--所属机构-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditOrgUnit.ParentUnit}}
+                </td>
+                <td style="padding-left: 0px">
+                    <div id="dvParent" style="width: 250px;">
+                    </div>
+                </td>
+            </tr>
+            <!--启用状态-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditOrgUnit.State}}
+                </td>
+                <td>
+                    <input type="radio" id="Active" value="1" v-model="EditUnitData.State" />
+                    <label for="Active"> {{LanData.EditOrgUnit.State_Active}}</label>
+                    <input v-on:change="StateChange()" type="radio" id="InActive" value="0" v-model="EditUnitData.State" />
+                    <label for="InActive"> {{LanData.EditOrgUnit.State_InActive}}</label>
+
+                </td>
+            </tr>
+
+            <!--排序值-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditOrgUnit.SortKey}}
+                </td>
+                <td>
+                    <input v-model="EditUnitData.SortKey" detect-change="on" detect-blur="on" initial="off" v-validate:sort-key="['number']" type="text" />
+                    <span style="color:Red;" v-if="$formValidator.sortKey.number">{{LanData.msgGlobalString.NumberValidate}}</span>
+                </td>
+            </tr>
+
+        </table>
+    </div>
+
+    <!--高级信息-->
+    <div class="H3Panel">
+        <span>{{LanData.msgGlobalString.Msg_Advanced}}</span>
+        <table>
+            <!--可见类型-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditOrgUnit.VisibleType}}
+                </td>
+                <td>
+                    <input type="radio" id="normal" value="1" v-model="EditUnitData.VisibleType" />
+                    <label for="normal">{{LanData.EditOrgUnit.VisibleType_Normal}}</label>
+                    <input type="radio" id="onlyAdmin" value="2" v-model="EditUnitData.VisibleType" />
+                    <label for="onlyAdmin">{{LanData.EditOrgUnit.VisibleType_Admin}}</label>
+                    <input type="radio" id="onlyOrganization" value="4" v-model="EditUnitData.VisibleType" />
+                    <label for="onlyOrganization">{{LanData.EditOrgUnit.VisibleType_Org}}</label>
+                </td>
+            </tr>
+            <!--流程编码-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditOrgUnit.WorkflowCode}}
+                </td>
+                <td>
+                    <input type="text" v-model="EditUnitData.WorkflowCode" />
+                </td>
+            </tr>
+            <!--工作日历-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditOrgUnit.Calendar}}
+                </td>
+                <td>
+                    <select v-model="EditUnitData.Calendar">
+                        <option value=""></option>
+                        <option v-for="option in CalendarList" v-bind:value="option.Value">
+                            {{option.Text}}
+                        </option>
+                    </select>
+                </td>
+            </tr>
+            <!--组织类型-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditOrgUnit.OrgCategory}}
+                </td>
+                <td>
+                    <select v-model="EditUnitData.OrgCategory">
+                        <option value="">
+                            {{LanData.EditOrgUnit.SelectOrgCategory}}
+                        </option>
+                        <option v-for="option in OrgCategoryList.Rows" v-bind:value="option.Code">
+                            {{option.DisplayName}}
+                        </option>
+                    </select>
+                </td>
+            </tr>
+            <!--完整路径-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditOrgUnit.FullPath}}
+                </td>
+                <td>
+                    <input type="text" id="fullPath" disabled="disabled" v-model="EditUnitData.FullPath" />
+                </td>
+            </tr>
+            <!--描述内容-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditOrgUnit.Description}}
+                </td>
+                <td>
+                    <textarea v-model="EditUnitData.Description" id="txtDescription"></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+</validator>

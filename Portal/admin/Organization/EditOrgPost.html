@@ -1,0 +1,144 @@
+﻿
+<script>
+    $(function () {
+        var pageData = {
+            OrgJobData: { Sortkey: 1,RoleLevel:1 },
+            RoleList: {},
+            LanData: $.Languages
+        };
+
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+
+        initPageData();
+
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        //$.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                }
+            }
+        });
+
+        function saveData() {
+            $.ajax({
+                url: $.Controller.ListOrgJob.SaveRole,
+                type: "post",
+                dataType: "json",
+                data: pageData.OrgJobData,
+                success: function (result) {
+                    if (result.Success) {
+                        parent.H3DialogManger.Close();
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        };
+
+        //根据传递的参数获取对应的数据，Vue绑定数据使用
+        function initPageData() {
+            var id = getUrlParam("ID");
+            //岗位信息
+            if (id && id != "") {
+                $.ajax({
+                    url: $.Controller.ListOrgJob.GetRoleByID,
+                    type: 'get',
+                    dataType: "json",
+                    data: { roleId: id },
+                    async: false,//同步执行
+                    success: function (result) {
+                        pageData.OrgJobData = result;
+                    }
+                });
+            }
+            //角色列表
+            $.ajax({
+                url: $.Controller.ListOrgJob.GetRoleListSelect,
+                type: 'get',
+                dataType: "json",
+                data: { roleId: id },
+                async: false,//同步执行
+                success: function (result) {
+                    pageData.RoleList = result;
+                }
+            });
+        };
+
+        //上级岗位下拉框
+        $("#dropDownParentPostObjectID").ligerComboBox({
+            initValue: pageData.OrgJobData.ParentPostObjectID,
+            initText: pageData.OrgJobData.ParentPostName,
+            isShowCheckBox: false, isMultiSelect: false,
+            data: pageData.RoleList,
+            onSelected: function (newvalue) {
+                pageData.OrgJobData.ParentPostObjectID = newvalue;
+            }
+        });
+    });
+</script>
+
+
+<validator name="formValidator">
+    <div id="H3ToolBar">
+        <a id="SaveBtn" v-on:click="saveData" data-icon="fa fa-save" data-lang="GlobalButton.Save"></a>
+    </div>
+
+    <div class="H3Panel">
+        <span>{{LanData.msgGlobalString.Msg_BasciInfor}}</span>
+        <input type="hidden" v-model="OrgJobData.ObjectID" />
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft">{{LanData.ListOrgJob.Code}}</td>
+                <td>
+                    
+                    <input type="text" id="txtCode" v-model="OrgJobData.Code" v-bind:disabled="OrgJobData.ObjectID" detect-change="on" detect-blur="on" initial="off" v-validate:item-code="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.itemCode.required" data-lang="msgGlobalString.EnumValueRequired"></span>
+                   
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.ListOrgJob.DisplayName}}</td>
+                <td>
+                    <input type="text" id="txtName" v-model="OrgJobData.DisplayName" detect-change="on" detect-blur="on" initial="off" v-validate:item-name="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.itemName.required" data-lang="msgGlobalString.EnumValueRequired"></span>
+
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.ListOrgJob.ParentPostName}}</td>
+                <td>
+                    <input type="hidden" id="txtParentPostObjectID" v-model="OrgJobData.ParentPostObjectID"><!---存储上级岗位-->
+                    <input type="text" id="dropDownParentPostObjectID" />
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.ListOrgJob.RoleLevel}}</td>
+                <td>
+                    <input v-model="OrgJobData.RoleLevel" detect-change="on" detect-blur="on" initial="off" v-validate:role-level="['number']" type="text" />
+                    <span style="color:Red;" v-if="$formValidator.roleLevel.number">{{LanData.msgGlobalString.NumberValidate}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.ListOrgJob.Sort}}</td>
+                <td>
+                    <input v-model="OrgJobData.Sortkey" detect-change="on" detect-blur="on" initial="off" v-validate:sort-key="['number']" type="text" />
+                    <span style="color:Red;" v-if="$formValidator.sortKey.number">{{LanData.msgGlobalString.NumberValidate}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.ListOrgJob.Description}}</td>
+                <td>
+                    <textarea v-model="OrgJobData.Description"></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

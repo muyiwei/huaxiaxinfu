@@ -1,0 +1,39 @@
+﻿<ion-view view-title="{{title}}" hide-nav-bar="{{$root.dingMobile.hideHeader}}" cache-view="false">
+    <ion-nav-bar class="bar">
+        <ion-nav-buttons side="left">
+            <button class="button button-icon button-clear ion-ios-arrow-left"
+                    ng-click="$ionicGoBack()">
+                返回
+            </button>
+        </ion-nav-buttons>
+        <ion-nav-buttons side="right">
+            <button class="button button-icon button-clear" ng-click="LoadQueryData(true)">查询</button>
+        </ion-nav-buttons>
+    </ion-nav-bar>
+
+    <ion-content class="scroll-content ionic-scroll {{$root.dingMobile.dingHeaderClass}} has-footer">
+        <div id="divFilter">
+
+        </div>
+        <!--下拉刷新-->
+        <!--<ion-refresher on-refresh="LoadQueryData()">
+        </ion-refresher>-->
+        <div class="list">
+            <div class="item item-custom" ng-repeat="Item in viewModel track by $index" ng-click="SetQueryValue(Item)">
+                <!--<h2>
+                    <span>{{Item.itemName}}</span>
+                </h2>-->
+                <pre ng-trim="true" ng-bind-html="Item.summary"></pre>
+            </div>
+            <ion-item ng-if="LoadFinished"
+                      style="cursor:pointer">
+                <div class="item-icon-left" style="padding-left:20px;">
+                    <i class="icon ion-android-happy"></i>
+                    <h2 style="margin-left:15px">全部加载完成</h2>
+                </div>
+            </ion-item>
+        </div>
+        <!--上拉加载更多-->
+        <ion-infinite-scroll ng-if="!LoadFinished" immediate-check="false" on-infinite="RefreshData()" distance="5%"></ion-infinite-scroll>
+    </ion-content>
+</ion-view>

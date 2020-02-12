@@ -1,0 +1,553 @@
+﻿<script>
+    $(function () {
+        var pageData = {};
+
+        //初始化页面数据
+        initPageData();
+
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                },
+                ftpValidate: function (event) {
+                    this.$validate(true);//表单验证
+                    if (false) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        ftpValidate();
+                    }
+                },
+                weChatSync: function (event) {
+                    weChatSync();
+                },
+                DDSync: function (event) {
+                    DDSync();
+                },
+                DDPublish: function (event) {
+
+                    ShowDialog(pageData.LanData.CommonParam.EditDD, _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=SysParam/EditDingApp.html", 630, 900);
+                }
+            }
+        });
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+        $("#divExceptionManager").SheetUser({ Editable: true, Visiable: true, Originate: true, DefaultValue: pageData.CommonParam.ExceptionManager });
+        //初始化页面数据
+        function initPageData() {
+            $.ajax({
+                url: $.Controller.CommonParam.GetCommonParam,
+                type: 'get',
+                dataType: "json",
+                async: false,//同步执行
+                success: function (result) {
+                    if (result.Success) {
+                        pageData = result.Extend;
+                        $.LangArray(pageData, "Text");
+                        pageData.LanData = $.Languages;
+                        pageData.OvertimeCheckIntervals = [{ Text: "00:05:00", Value: "00:05:00" }, { Text: "00:10:00", Value: "00:10:00" }, { Text: "00:15:00", Value: "00:15:00" }, { Text: "00:30:00", Value: "00:30:00" }, { Text: "00:45:00", Value: "00:45:00" }, { Text: "01:00:00", Value: "01:00:00" }, { Text: "02:00:00", Value: "02:00:00" }, { Text: "04:00:00", Value: "04:00:00" }, { Text: "06:00:00", Value: "06:00:00" }, { Text: "12:00:00", Value: "12:00:00" }];//前端构造
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        };
+
+        //保存全局变量
+        function saveData() {
+            var exceptionManagerID = $("#divExceptionManager").SheetUIManager().GetValue();
+            pageData.CommonParam.ExceptionManager = exceptionManagerID;
+            $.ajax({
+                url: $.Controller.CommonParam.SaveCommonParam,
+                type: "post",
+                dataType: "json",
+                data: pageData.CommonParam,
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        };
+
+        //验证FTP
+        function ftpValidate() {
+            $.ajax({
+                url: $.Controller.CommonParam.FtpValidate,
+                type: "post",
+                dataType: "json",
+                data: pageData.CommonParam,//TODO可以单独提取FTP对象
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.FtpValidateSuccess") });
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FtpValidateFailed") });
+                    }
+                }
+            });
+        };
+
+        //微信组织同步
+        function weChatSync() {
+            $.ajax({
+                url: $.Controller.OrgUnit.WeChatSync,
+                type: "post",
+                dataType: "json",
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.SyncSuccess") });
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SyncFailed") });
+                    }
+                }
+            });
+        };
+
+        //钉钉组织同步
+        function DDSync() {
+            $.ajax({
+                url: $.Controller.OrgUnit.DDSync,
+                type: "post",
+                dataType: "json",
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.SyncSuccess") });
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SyncFailed") });
+                    }
+                }
+            });
+        }
+
+    });
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a v-on:click="saveData" data-icon="fa fa-save" href="javascript:void(0)" data-lang="GlobalButton.Save">保存</a>
+    </div>
+    <!-- 微信 -->
+    <div class="H3Panel">
+        <span>{{LanData.CommonParam.WeChat}}</span>
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft" style="width: 120px;">
+                    {{LanData.CommonParam.CorpID}}
+                </td>
+                <td style="width: 250px;">
+                    <input type="text" v-model="CommonParam.CorpID" />
+                </td>
+                <td class="tableDesCol">{{LanData.CommonParam.WeChatSource}}<span style="margin-left: 40px; font-style: normal;"><a v-on:click="weChatSync" href="javascript:void(0)">{{LanData.CommonParam.WeChatSync}}</a></span></td>
+            </tr>
+            <tr>
+                <td class="tableLeft" style="width: 120px;">
+                    {{LanData.CommonParam.Secret}}
+                </td>
+                <td style="width: 250px;">
+                    <input type="text" v-model="CommonParam.Secret" />
+                </td>
+                <td class="tableDesCol">{{LanData.CommonParam.WeChatSource}}</td>
+            </tr>
+
+
+            <tr>
+                <td class="tableLeft" style="width: 120px;">
+                    {{LanData.CommonParam.MessageSecret}}
+                </td>
+                <td style="width: 250px;">
+                    <input type="text" v-model="CommonParam.MessageSecret" />
+                </td>
+                <td class="tableDesCol">
+                    {{LanData.CommonParam.WeChatSource}}
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft" style="width: 120px;">
+                    {{LanData.CommonParam.WeChatProID}}
+                </td>
+                <td style="width: 250px;">
+                    <input type="text" v-model="CommonParam.WeChatProID" />
+                </td>
+                <td class="tableDesCol">{{LanData.CommonParam.WeChatSource}}</td>
+            </tr>
+            <tr>
+                <td class="tableLeft" style="width: 120px;">
+                    {{LanData.CommonParam.WeChatMsgUrl}}
+                </td>
+                <td style="width: 250px;">
+                    <input type="text" v-model="CommonParam.WeChatMsgUrl" />
+                </td>
+                <td class="tableDesCol">http://localhost:8010/Portal/MobileMsgSheets.html?loginfrom=wechat&WorkItemID={WorkItemID}</td>
+            </tr>
+        </table>
+    </div>
+    <!-- 钉钉 -->
+    <div class="H3Panel">
+        <span>{{LanData.CommonParam.DD}}</span>
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft" style="width: 120px;">
+                    {{LanData.CommonParam.CorpID}}
+                </td>
+                <td style="width: 250px;">
+                    <input type="text" v-model="CommonParam.DDCorpID" />
+                </td>
+                <td class="tableDesCol">
+                    {{LanData.CommonParam.DDSource}}
+                    <span style="margin-left: 40px; font-style: normal;">
+                        <a v-on:click="DDSync" href="javascript:void(0)">{{LanData.CommonParam.DDSync}}</a>
+                    </span>
+                    <span style="margin-left: 40px; font-style: normal;display:none;">
+                        <a v-on:click="DDPublish" href="javascript:void(0)">{{LanData.CommonParam.DDPublish}}</a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft" style="width: 120px;">
+                    {{LanData.CommonParam.CorpSecret}}
+                </td>
+                <td style="width: 250px;">
+                    <input type="text" v-model="CommonParam.DDSecret" />
+                </td>
+                <td class="tableDesCol">
+                    {{LanData.CommonParam.DDSource}}
+
+                </td>
+
+            </tr>
+
+            <tr>
+                <td class="tableLeft" style="width: 120px;">
+                    AppKey
+                </td>
+                <td style="width: 250px;">
+                    <input type="text" v-model="CommonParam.DDAppKey" />
+                </td>
+                <td class="tableDesCol">{{LanData.CommonParam.DDSource}}</td>
+            </tr>
+
+            <tr>
+                <td class="tableLeft" style="width: 120px;">
+                    AppSecret
+                </td>
+                <td style="width: 250px;">
+                    <input type="text" v-model="CommonParam.DDAppSecret" />
+                </td>
+                <td class="tableDesCol">{{LanData.CommonParam.DDSource}}</td>
+            </tr>
+            <tr>
+                <td class="tableLeft" style="width: 120px;">
+                    {{LanData.CommonParam.WeChatProID}}
+                </td>
+                <td style="width: 250px;">
+                    <input type="text" v-model="CommonParam.DDProID" />
+                </td>
+                <td class="tableDesCol">{{LanData.CommonParam.DDSource}}</td>
+            </tr>
+            <tr>
+                <td class="tableLeft" style="width: 120px;">
+                    {{LanData.CommonParam.DDPcMsgUrl}}
+                </td>
+                <td style="width: 250px;">
+                    <input type="text" v-model="CommonParam.DDPcMsgUrl" />
+                </td>
+                <td class="tableDesCol">http://SERVER:PORT/Portal/template/ddhome.html?loginfrom=dingtalk&WorkItemID={WorkItemID}</td>
+            </tr>
+            <tr>
+                <td class="tableLeft" style="width: 120px;">
+                    {{LanData.CommonParam.DDMsgUrl}}
+                </td>
+                <td style="width: 250px;">
+                    <input type="text" v-model="CommonParam.DDMsgUrl" />
+                </td>
+                <td class="tableDesCol">http://SERVER:PORT/Portal/MobileMsgSheets.html?loginfrom=dingtalk&WorkItemID={WorkItemID}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="H3Panel">
+        <span>{{LanData.CommonParam.AppPush}}</span>
+        <table class="tableList">
+            <tr>
+                <td>
+                    {{LanData.CommonParam.AppKey}}
+                </td>
+                <td style="width: 250px;">
+                    <input type="text" v-model="CommonParam.AppKey" />
+                </td>
+                <td class="tableDesCol">&nbsp;</td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.CommonParam.MasterSecret}}
+                </td>
+                <td style="width: 250px;">
+                    <input type="text" v-model="CommonParam.MasterSecret" />
+                </td>
+                <td class="tableDesCol">&nbsp;</td>
+            </tr>
+
+            <tr>
+                <td>
+                    {{LanData.CommonParam.AppName}}
+                </td>
+                <td style="width: 250px;">
+                    <input type="text" v-model="CommonParam.AppName" />
+                </td>
+                <td class="tableDesCol">&nbsp;</td>
+            </tr>
+        </table>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.CommonParam.FileStorage}}</span>
+        <table class="tableList">
+            <tr>
+                <td>
+                    {{LanData.CommonParam.StorageMethod}}
+                </td>
+                <td colspan="2" class="tableNoCss">
+                    <table border="0">
+                        <tr>
+                            <td v-for="item in StorageMethods" style="padding-right:50px;">
+                                <input type="radio" name="StorageMethod" value="{{item.Value}}" v-model="CommonParam.StorageMethod" />
+                                <label>{{item.Text}}</label>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td class="tableDesCol">&nbsp;</td>
+            </tr>
+            <tbody v-show="CommonParam.StorageMethod=='0'">
+                <tr>
+                    <td>
+                        {{LanData.CommonParam.SQLPool}}
+                    </td>
+                    <td style="width: 250px;">
+                        <select v-model="CommonParam.SQLPool">
+                            <option v-for="option in SQLPools" v-bind:value="option.Value">{{option.Text}}</option>
+                        </select>
+                    </td>
+                    <td class="tableDesCol">&nbsp;</td>
+                </tr>
+            </tbody>
+            <tbody v-show="CommonParam.StorageMethod!='0'">
+                <tr>
+                    <td>
+                        {{LanData.CommonParam.FTPServer}}
+                    </td>
+                    <td style="width: 250px;float:none">
+                        <input type="text" v-model="CommonParam.FTPServer" />
+                    </td>
+                    <td style="width: 50px; padding-left:10px"><span>{{LanData.CommonParam.FTPServerPort}}</span></td>
+                    <td style="width:50px">
+                        <input style="width: inherit" type="text" v-model="CommonParam.FTPServerPort" />
+                    </td>
+                    <td class="tableDesCol">{{LanData.CommonParam.FTPDefaultPort}}</td>
+                </tr>
+
+                <tr>
+                    <td>
+                        {{LanData.CommonParam.FTPAcount}}
+                    </td>
+                    <td style="width: 250px;">
+                        <input type="text" v-model="CommonParam.FTPAcount" />
+                    </td>
+                    <td class="tableDesCol"></td>
+                </tr>
+
+                <tr>
+                    <td>
+                        {{LanData.CommonParam.FTPPassWord}}
+                    </td>
+                    <td style="width: 250px;">
+                        <input type="password" v-model="CommonParam.FTPPassWord" />
+                    </td>
+                    <td style=" padding-left: 10px"><a href="javascript:void(0)" v-on:click="ftpValidate">{{LanData.CommonParam.FTPValidate}}</a></td>
+                    <td class="tableDesCol"></td>
+                </tr>
+                <tr>
+                    <td>
+                        {{LanData.CommonParam.FTPRootPath}}
+                    </td>
+                    <td style="width: 250px;">
+                        <input type="text" v-model="CommonParam.BasePath" />
+                    </td>
+                    <td class="tableDesCol"></td>
+                </tr>
+                <tr>
+                    <td>
+                        {{LanData.CommonParam.ClientMethod}}
+                    </td>
+                    <td colspan="2" class="tableNoCss">
+                        <table border="0">
+                            <tr>
+                                <td v-for="item in ClientMethods" style="padding-right:50px;">
+                                    <input type="radio" name="ClientMethod" value="{{item.Value}}" v-model="CommonParam.ClientMethod" />
+                                    <label>{{item.Text}}</label>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td class="tableDesCol">&nbsp;</td>
+                </tr>
+
+                <tr v-show="CommonParam.ClientMethod==1">
+                    <td>
+                        {{LanData.CommonParam.FTPUrl}}
+                    </td>
+                    <td style="width: 250px;">
+                        <input type="text" v-model="CommonParam.FTPUrl" />
+                    </td>
+                    <td class="tableDesCol"></td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+    <div class="H3Panel">
+        <span>{{LanData.CommonParam.InstanceSequenceNo}}</span>
+        <table class="tableList">
+            <tr>
+                <td>
+                    {{LanData.CommonParam.Mode}}
+                </td>
+                <td style="width: 250px;">
+                    <select v-model="CommonParam.SequenceNoModal">
+                        <option v-for="option in SequenceNoModals" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+                <td class="tableDesCol">
+                    {{LanData.CommonParam.InstanceSequenceHint}}
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.CommonParam.DateFormat}}
+                </td>
+                <td>
+                    <select v-model="CommonParam.SequenceNoDateFormat">
+                        <option v-for="option in SequenceNoDateFormats" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+                <td class="tableDesCol"></td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.CommonParam.SequenceNoOrder}}
+                </td>
+                <td>
+                    <select v-model="CommonParam.SequenceNoOrder">
+                        <option v-for="option in SequenceNoOrders" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+                <td class="tableDesCol"></td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.CommonParam.Numberlength}}
+                </td>
+                <td>
+                    <select v-model="CommonParam.SequenceNoLength">
+                        <option v-for="option in SequenceNoLengths" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+                <td class="tableDesCol"></td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.CommonParam.SequenceNoResetType}}
+                </td>
+                <td>
+                    <select v-model="CommonParam.SequenceNoResetType">
+                        <option v-for="option in SequenceNoResetTypes" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+                <td class="tableDesCol"></td>
+            </tr>
+        </table>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.CommonParam.System}}</span>
+        <table class="tableList">
+            <tr v-show="CommonParam.SequenceNoModal=='Global'">
+                <td>
+                    {{LanData.CommonParam.NewInstanceSeq}}
+                </td>
+                <td style="width: 250px;">
+                    <span>{{CommonParam.NextInstanceID}}</span>
+                </td>
+                <td class="tableDesCol"></td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.CommonParam.OvertimeCheckInterval}}
+                </td>
+                <td>
+                    <select v-model="CommonParam.OvertimeCheckInterval">
+                        <option v-for="option in OvertimeCheckIntervals" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+                <td class="tableDesCol">
+                    {{LanData.CommonParam.SuggestMins}}
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.CommonParam.NewPassword}}</td>
+                <td style="width: 250px;">
+                    <input type="password" v-model="CommonParam.Password" />
+                </td>
+                <td class="tableDesCol">{{LanData.CommonParam.NewPasswordDesc}}</td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.CommonParam.ExceptionManager}}
+                </td>
+                <td style="width: 250px;">
+                    <div id="divExceptionManager" style="width: 250px;"></div>
+                </td>
+                <td class="tableDesCol">
+                    {{LanData.CommonParam.ParticipantErrorPolicy}}
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.CommonParam.ManagementLog}}
+                </td>
+                <td style="width: 250px;">
+                    <input id="chkManagementLog" type="checkbox" v-model="CommonParam.ManagementLog" />
+                    <label for="chkManagementLog">{{LanData.CommonParam.ManagementLogDesc}}</label>
+                </td>
+                <td class="tableDesCol"></td>
+            </tr>
+            <tr style="display:none;">
+                <td class="tableLeft" style="width: 120px;">
+                    {{LanData.CommonParam.SiteUrl}}
+                </td>
+                <td style="width: 250px;">
+                    <input type="text" v-model="CommonParam.WikiUrl" />
+                </td>
+                <td class="tableDesCol">http://host:port/website/page.html?code=</td>
+            </tr>
+            <tbody hidden="hidden">
+                <tr>
+                    <td>
+                        {{LanData.CommonParam.ServerUrl}}
+                    </td>
+                    <td>
+                        <input type="text" v-model="CommonParam.RemoteHubAddress" />
+                    </td>
+                    <td class="tableDesCol"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</validator>

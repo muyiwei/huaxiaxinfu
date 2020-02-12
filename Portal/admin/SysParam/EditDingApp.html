@@ -1,0 +1,144 @@
+﻿<script src="../WFRes/_Scripts/jquery/ajaxfileupload.js"></script>
+<script src="../WFRes/_Scripts/jquery/plugin/imagepreview/jquery.imagepreview.js"></script>
+<script>
+    var pageData = {
+        DingAppInfo: {},
+        LanData: $.Languages
+    };
+    $(function () {
+        //初始化页面数据
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                publishApp: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        publishApp();
+                    }
+                }
+            }
+        });
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+
+        $("#fileDingAppImg").uploadPreview({ Img: "dingAppImg" });
+        //初始化页面数据
+        function initPageData() {
+            $.ajax({
+                url: $.Controller.CommonParam.GetDingAppInfo,
+                type: 'get',
+                dataType: "json",
+                async: false,//同步执行
+                success: function (result) {
+                    if (result.Success) {
+                        pageData.DingAppInfo = result.Extend;
+                        if (pageData.DingAppInfo.ImageUrl) $("#dingAppImg").attr("src", pageData.DingAppInfo.ImageUrl);
+                    }
+                }
+            });
+        };
+
+        //发布应用到钉钉
+        function publishApp() {
+            $.ajaxFileUpload({
+                url: $.Controller.CommonParam.PublishDingApp,
+                fileElementId: "fileDingAppImg",
+                secureuri: false,
+                type: "post",
+                dataType: "json",
+                data: pageData.DingAppInfo,
+                success: function (result) {
+                    if (result.Success) {
+                        pageData.DingAppInfo.AgentId = result.Extend.AgentId;
+                        parent.$.H3Dialog.Success({ content: $.Lang("msgGlobalString.PublishSucced") });
+                    } else {
+                        var msg = $.Lang(result.Message);
+                        if (result.Extend&&result.Extend.errmsg)
+                             msg +=result.Extend.errmsg;
+                        $.H3Dialog.Warn({ content: msg });
+                    }
+                    $("#fileDingAppImg").uploadPreview({ Img: "dingAppImg" });
+                }
+            });
+        }
+    });
+
+</script>
+<validator name="formValidator">
+    <div id="ToolBar" v-if="!DingAppInfo.AgentId">
+        <a v-on:click="publishApp" data-icon="fa fa-save">{{LanData.GlobalButton.Publish}}</a>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.msgGlobalString.Msg_BasciInfor}}</span>
+        <input v-model="SlideShow.ObjectID" hidden="hidden" />
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.CommonParam.DingTalk.Image}}
+                </td>
+                <td style="padding-left: 0px">
+                    <table>
+                        <tr>
+                            <td width="120px">
+                                <label class="col-md-10 control-label alignLeft">
+                                    <input type="file" id="fileDingAppImg" name="fileUserFace" style="display:none" />
+                                    <div>
+                                        <img id="dingAppImg" style="cursor:pointer" width="76" height="76" src="../WFRes/images/person.gif" alt="点击图片上传" title="点击图片上传" />
+                                    </div>
+                                </label>
+                            </td>
+                            <td class="tableDesCol">
+                                (图片大小640*640px)
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.CommonParam.DingTalk.Name}}</td>
+                <td>
+                    <input v-model="DingAppInfo.AppName" detect-change="on" detect-blur="on" initial="off" v-validate:name="['space','required']" type="text" v-bind:disabled="SlideShow.ObjectID" />
+                    <span style="color:Red;" v-if="$formValidator.name.invalid">{{LanData.msgGlobalString.NotSpace}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.CommonParam.DingTalk.AgentId}}</td>
+                <td>
+                    <input v-model="DingAppInfo.AgentId" type="text" disabled="disabled" />
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.CommonParam.DingTalk.PcUrl}}</td>
+                <td>
+                    <input v-model="DingAppInfo.PcUrl" type="text" />
+                </td>
+                <td class="tableDesCol">http://Server:Port/Portal/template/ddhome.html?loginfrom=dingtalk</td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.CommonParam.DingTalk.HomeUrl}}</td>
+                <td>
+                    <input v-model="DingAppInfo.HomeUrl" detect-change="on" detect-blur="on" initial="off" v-validate:home-url="['space','required']" type="text" />
+                    <span style="color:Red;" v-if="$formValidator.homeUrl.invalid">{{LanData.msgGlobalString.NotSpace}}</span>
+                </td>
+                <td class="tableDesCol">http://Server:Port//Portal/Hybrid/index.html?target=home.unfinishedworkitem&state=DefaultEngine&loginfrom=dingtalk</td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.CommonParam.DingTalk.OmpLink}}</td>
+                <td>
+                    <input v-model="DingAppInfo.OmpLink" type="text" />
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.CommonParam.DingTalk.Desc}}</td>
+                <td>
+                    <textarea v-model="DingAppInfo.AppDesc" detect-change="on" detect-blur="on" initial="off" v-validate:desc="['space','required']" rows="2" cols="20"></textarea>
+                    <span style="color:Red;" v-if="$formValidator.desc.invalid">{{LanData.msgGlobalString.NotSpace}}</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

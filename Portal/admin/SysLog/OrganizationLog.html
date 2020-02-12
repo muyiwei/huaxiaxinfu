@@ -1,0 +1,118 @@
+﻿<style type="text/css"> 
+    body { 
+        overflow-x: auto !important;
+    }
+</style>
+<script>
+    $(function () {
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Pannel").BuildPanel({ excludeIDs: ["OrganizationLogList"] });
+        $("#divUser").SheetUser({ Editable: true, Visiable: true, OrgUnitVisible: true, UserVisible: true, Originate: true, GroupVisible :true ,RootSelectable: false });
+        initDefaultDate();
+        
+        var startTime = $("input[id=startTime]").val();
+        var endTime = $("input[id=endTime]").val();
+        var unitID = $("#divUser").SheetUIManager().GetValue();
+        if (startTime > endTime) {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.Portal_TimeMsg") });
+        }
+        else {
+            CreateLigerGrid(
+             $("#OrganizationLogList"),
+             GetInvokingLogColumns(),
+             $.Controller.OrganizationLog.GetOrganizationLogList,
+             false, "98%", null, null, null,
+             {
+                 startTime: startTime,
+                 endTime: endTime,
+                 unitID: unitID
+             }
+
+            );
+        }
+    })
+
+    function GetInvokingLogColumns() {
+        var user = $.Lang("OrganizationLog.User");
+        var time = $.Lang("OrganizationLog.Time");
+        var operation = $.Lang("OrganizationLog.Operation");
+        var unitId = $.Lang("OrganizationLog.UnitID");
+        var content = $.Lang("OrganizationLog.Content");
+        return [
+            { display: user, name: 'Modifier', width: "10%" },
+            { display: time, name: 'Time', width: '15%' },
+            { display: operation, name: 'Operation', width: '5%' },
+            { display: unitId, name: 'UnitID', width: '20%' },
+            {
+                display: content, name: 'Content', width: '45%', render: function (rowData) {
+                    return "<div title='" + rowData.Content + "'>" + rowData.Content + "</div>";
+                }
+            }
+        ];
+    }
+
+    function QueryFun() {
+        var startTime = $("input[id=startTime]").val();
+        var endTime = $("input[id=endTime]").val();
+        var unitID = $("#divUser").SheetUIManager().GetValue();
+        if (startTime > endTime) {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.Portal_TimeMsg") });
+        }
+        var manager = $("#OrganizationLogList").ligerGetGridManager();
+        manager.set({
+            parms: {
+                startTime: startTime,
+                endTime: endTime,
+                unitID: unitID
+            }
+        });
+        manager.reload();
+    }
+</script>
+
+<div id="ToolBar">
+    <a href="#" id="lnkQuery" onclick="QueryFun()" data-icon="fa fa-search" data-lang="OrganizationLog.Button_Q">
+        查询
+    </a>
+</div>
+
+<div class="H3Pannel">
+    <table class="tableList">
+        <tr>
+            <td data-lang="OrganizationLog.Query_date">
+                查询时间&nbsp;&nbsp;&nbsp;
+            </td>
+            <td>
+                <div class="tableNoCss">
+                    <table>
+                        <tr>
+                            <td class="tableNoCss" style="width:25px" data-lang="OrganizationLog.From">
+                                从
+                            </td>
+                            <td class="tableNoCss">
+                                <input name="startTime" type="text" id="startTime" onclick="InitWdatePicker(this)" style="width:95px;" data-datetime="start">
+                            </td>
+                            <td class="tableNoCss" style="width: 21px; padding-left: 10px" data-lang="OrganizationLog.To">
+                                到
+                            </td>
+                            <td class="tableNoCss">
+                                <input name="endTime" type="text" id="endTime" onclick="InitWdatePicker(this)" style="width:95px;" data-datetime="end">
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+            <td data-lang="OrganizationLog.QueryOrg">
+                查询组织
+            </td>
+            <td >
+                <div id="divUser" style="width: 250px;"></div>
+            </td>
+            <td></td>
+        </tr>
+    </table>
+</div>
+<div class="H3Pannel">
+    <span data-lang="OrganizationLog.ListName"></span>
+    <div id="OrganizationLogList"></div>
+</div>

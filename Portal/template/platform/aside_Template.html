@@ -1,0 +1,29 @@
+﻿<div class="aside-wrap {{app.settings.asideColor}}">
+    <!-- if you want to use a custom scroll when aside fixed, use the slimScroll
+      <div class="navi-wrap" ui-jq="slimScroll" ui-options="{height:'100%', size:'8px'}">
+    -->
+    <div class="navi-wrap" ui-jq="slimScroll" ui-options="{height:'100%', size:'8px'}">
+        <!--<div class="navi-wrap">-->
+        <!-- nav -->
+        <nav ui-nav class="navi">
+            <!-- list -->
+            <ul class="nav" style="font-size: 12px;">
+                <li id="functionNode_switch" class="hidden-folded padder m-t m-b-sm text-muted text-xs">
+                    <span translate="PortalTemplates.PortalManager">门户管理</span>
+                </li>
+                <li class="active">
+                    <a class="auto" ui-sref="appTemplate.PortalTemplates">
+                        <i class="menu-icon fa fa-columns"></i>
+                        <span translate="PortalTemplates.ManageTemplate">模板管理</span>
+                    </a>
+                </li>
+                <li class="active">
+                    <a class="auto" ui-sref="appTemplate.PortalPageManeger">
+                        <i class="menu-icon fa fa-file-o"></i>
+                        <span translate="PortalTemplates.ManagePage">页面管理</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>

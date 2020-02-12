@@ -1,0 +1,207 @@
+﻿<ion-view view-title="通讯录" cache-view="true" hide-nav-bar="{{$root.dingMobile.hideHeader}}"
+    class="bpm-organization">
+    <ion-nav-bar class="bar-stable">
+        <ion-nav-buttons side="left">
+            <button class="button button-icon button-clear ion-ios-arrow-left"
+                    ng-click="openUnit(parentParentId)">
+                返回
+            </button>
+            <a class="button button-icon button-clear ng-hide" ng-show="parentParentId!=''"
+               href="#/home/index">
+                关闭
+            </a>
+        </ion-nav-buttons>
+    </ion-nav-bar>
+    <div class="bar {{$root.dingMobile.dingHeaderClass}}  item-input-inset">
+        <label class="item-input-wrapper"
+               ng-class="{'placeholder-icon-focus':focus,'placeholder-icon-unfocus':!focus}"
+               style="transition: all linear 0.1s;">
+            <i class="icon ion-ios-search-strong"></i>
+            <input type="search" placeholder="搜索"
+                   class="input-placeholder"
+                   ng-model="searchKey" ng-change="doSearch()"
+                   ng-focus="focus=true" ng-blur="searchKey==''?focus=false:focus=true">
+            <i class="icon ion-close-circled placeholder-icon" style="vertical-align: middle;"
+               on-tap="clearSearch()" ng-if="searchKey.length"></i>
+        </label>
+    </div>
+
+    <div ng-if="!isCompany&&searchKey==''" class="bar1">
+        <div ng-if="!isCompany" class="item item-divider"
+             style="position:absolute;right:0;left:0;z-index:9;padding:5px;
+                height:44px;background-color:#fff;"
+             ng-style="bpmbreadcrumb">
+            <ion-scroll direction="x" scrollbar-x="false">
+                <ul class="breadcrumb-wrapper">
+                    <li class="breadcrumb"
+                        ng-repeat="parentUnit in parentUnits.slice().reverse()"
+                        ng-click="openUnit('{{parentUnit.ObjectID}}')">
+                        <a href="#">
+                            {{parentUnit.Name}}
+                        </a>
+                    </li>
+                    <li class="breadcrumb">
+                        <span>{{ParentName}}</span>
+                    </li>
+                </ul>
+            </ion-scroll>
+        </div>
+    </div>
+
+    <ion-content ng-show="searchKey==''"
+                 ng-class="{'has-header':$root.dingMobile.isDingMobile,
+                            'has-subheader':!$root.dingMobile.isDingMobile,
+                            'has-breadcrumb':!isCompany&&searchKey==''}"
+                 ng-style="bpmcontent">
+        <ion-item ng-if="OrgUnits.length == 0 && OrgUsers==0 && loadComplete">
+            <div class="item-icon-left" style="padding-left:20px;">
+                <i class="icon ion-information-circled"></i>
+                <h2>当前组织没有用户</h2>
+            </div>
+        </ion-item>
+        <ion-list ng-show="isCompany">
+            <ion-item class="item-icon-right"
+                      style="cursor:pointer" ng-click="openUserOU()">
+                <h2>{{userOU.name}}<span class="h6">(所在部门)</span></h2>
+                <i class="icon ion-chevron-right icon-accessory"></i>
+            </ion-item>
+        </ion-list>
+        <div class="item item-divider" style="padding-top:5px;padding-bottom:3px;" ng-show="DividerDisplay">
+            <i class="icon ion-ios-star dividerIcon"></i>组织
+        </div>
+        <ion-list>
+            <ion-item ng-repeat="orgUnit in OrgUnits"
+                      class="item-icon-right"
+                      style="cursor:pointer" ng-click="openUnit('{{orgUnit.ObjectID}}')">
+                <h2 >{{orgUnit.Name}}</h2>
+                <i class="icon ion-chevron-right icon-accessory"></i>
+            </ion-item>
+        </ion-list>
+        <div class="item item-divider" style="padding-top:5px;padding-bottom:3px;" ng-show="DividerDisplay">
+            <i class="icon ion-person dividerIcon"></i>用户
+        </div>
+        <ion-list>
+            <ion-item style="padding:1px 10px;"
+                      class="item-icon-right"
+                      ng-repeat="orgUser in OrgUsers"
+                      ng-click="openUser('{{orgUser.ObjectID}}',$index)">
+                <div class="user-item">
+                    <div class="avatar-wrap">
+                        <div class="normal user-avatar"
+                             ng-class="{'user-a':$index%4==0,'user-b':$index%4==1,'user-c':$index%4==2,'user-d':$index%4==3}">
+                            <div class="avatar-text">
+                                {{orgUser.Name|limitTo :-2}}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="item-content">
+                        <div class="title-wrap">
+                            <div class="name-wrap">
+                                <p class="name" ng-bind="orgUser.Name"></p>
+                            </div>
+                        </div>
+                        <div class="ou-wrap">
+                            <div class="name-wrap">
+                                <p class="name" ng-bind="orgUser.DepartmentName"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tel">
+                        <a href="tel:{{orgUser.OfficePhone}}" class="item-note" ng-click="openTel();" style="padding-top:2px;margin-right:10px;">{{orgUser.OfficePhone}}</a>
+                    </div>
+                </div>
+                <i class="icon ion-chevron-right icon-accessory"></i>
+            </ion-item>
+        </ion-list>
+    </ion-content>
+
+    <ion-content ng-show="searchKey!=''"
+                 ng-class="{'has-header':$root.dingMobile.isDingMobile,
+                            'has-subheader':!$root.dingMobile.isDingMobile,
+                            'no-breadcrumb':searchKey!=''}"
+                 ng-style="myObj">
+        <ion-list>
+            <ion-item style="padding:1px 10px;"
+                      ng-repeat="orgUser in OrgUsers_Search"
+                      ng-click="openUser('{{orgUser.ObjectID}}',$index)">
+                <div class="user-item">
+                    <div class="avatar-wrap">
+                        <div ng-class="{'user-a':$index%4==0,'user-b':$index%4==1,'user-c':$index%4==2,'user-d':$index%4==3}"
+                             class="normal user-avatar">
+                            <div class="avatar-text">
+                                {{orgUser.Name|limitTo :-2}}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="item-content">
+                        <div class="title-wrap">
+                            <div class="name-wrap">
+                                <p class="name" ng-bind="orgUser.Name"></p>
+                            </div>
+                        </div>
+                        <!--<div class="ou-wrap">
+                            <div class="name-wrap">
+                                <p class="name" ng-bind="orgUser.DepartmentName"></p>
+                            </div>
+                        </div>-->
+                    </div>
+                    <div class="tel">
+                        <a href="tel:{{orgUser.OfficePhone}}" class="item-note" ng-click="openTel();" style="padding-top:2px;">{{orgUser.OfficePhone}}</a>
+                    </div>
+                    <i class="icon ion-chevron-right icon-accessory"></i>
+                </div>
+            </ion-item>
+
+            <ion-item ng-show="OrgUsers_Search.length==0&&loadComplete&&searchKey!=''"
+                      style="cursor:pointer">
+                <div class="item-icon-left" style="padding-left:20px;">
+                    <h2 style="margin-left:10px;">未搜索到与 “ <span style="color:blue;" ng-bind="searchKey"></span> ” 相关的结果</h2>
+                </div>
+            </ion-item>
+        </ion-list>
+    </ion-content>
+</ion-view>
+<style>
+   .bpm-organization .bar1 {
+        display: -webkit-box;
+        display: -webkit-flex;
+        display: -moz-box;
+        display: -moz-flex;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-transform: translate3d(0,0,0);
+        transform: translate3d(0,0,0);
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        /* position: absolute; */
+        right: 0;
+        left: 0;
+        z-index: 9;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        padding: 5px;
+        /* width: 100%;*/
+        height: 44px;
+        border-width: 0;
+        border-style: solid;
+        border-top: 1px solid transparent;
+        border-bottom: 1px solid #ddd;
+        background-color: #fff;
+        background-size: 0;
+    }
+
+    .platform-ios.platform-cordova:not(.fullscreen) .bpm-organization .bar1 div{
+        top:64px !important;
+    }
+
+    .platform-ios.platform-cordova:not(.fullscreen) .bpm-organization .has-breadcrumb.has-subheader{
+        top:148px !important;
+    }
+
+    .platform-ios.platform-cordova:not(.fullscreen) .bpm-organization .has-breadcrumb.no-subheader{
+        top:108px !important;
+    }
+</style>

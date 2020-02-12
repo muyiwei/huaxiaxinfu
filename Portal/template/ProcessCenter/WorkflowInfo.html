@@ -1,0 +1,134 @@
+﻿<!--
+    流程状态——Mode=Originate
+     -->
+
+<div class="main-container container">
+    <div class="panel">
+        <div id="content-wrapper">
+            <div class="panel-body">
+                <!-- 基本信息 -->
+                <i class="nav-icon fa  fa-chevron-right bannerTitle"
+                   ng-click="HiddenContent($event)">
+                    <label>
+                        流程步骤
+                    </label>
+                </i>
+                <div class="divContent">
+                    <table class="table table-striped m-b-none" style="width:100%;">
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>活动编码</th>
+                                <th>活动名称</th>
+                                <th>后续活动</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="step in ActivitySteps">
+                                <td>
+                                    <span ng-bind="step.SN"></span>
+                                </td>
+                                <td>
+                                    <span ng-bind="step.Code"></span>
+                                </td>
+                                <td>
+                                    <span ng-bind="step.Name"></span>
+                                </td>
+                                <td>
+                                    <span ng-bind="step.Post"></span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <br />
+                <!-- 流程运行跟踪 -->
+                <i class="nav-icon fa  fa-chevron-right bannerTitle" id="lblWorkflowTitle"
+                   ng-click="HiddenContent($event)">
+                    <label>
+                        流程图
+                    </label>
+                </i>
+                <div class="divContent" style="overflow-x: hidden; overflow-y: hidden;">
+                    <div ui-jq="workflowdocument" ui-options="options()">
+                        <div class="workspace"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        overflow-y: auto;
+    }
+
+    li a {
+        display: inline-block;
+    }
+
+    .app-header-fixed {
+        padding-top: 0px;
+    }
+
+    li span {
+        margin-left: 5px;
+    }
+
+    .toolText {
+        color: dodgerblue;
+    }
+
+    .toolImage {
+        color: dodgerblue;
+    }
+
+    #TokenGrid a {
+        color: dodgerblue;
+    }
+
+    .ulColor {
+        padding: 0px;
+        list-style-type: none;
+        float: left;
+        margin-left: 25px;
+    }
+
+        .ulColor li {
+            float: left;
+            margin-right: 10px;
+            width: 200px;
+            height: 22px;
+            line-height: 22px;
+            text-align: center;
+        }
+
+
+    .bannerTitle {
+        color: #494949;
+        font-weight: bold;
+        font-size: 13px;
+        border-bottom: 2px solid #ccc;
+        height: 22px;
+        width: 100%;
+        margin-bottom: 6px;
+        cursor: pointer;
+    }
+
+        .bannerTitle label {
+            padding-left: 5px;
+            cursor: pointer;
+        }
+
+    .hrSplit {
+        margin-top: 3px;
+        margin-bottom: 8px;
+        border-width: 2px;
+        border-color: #9B9690;
+    }
+
+    .activity_instance {
+        min-height: 40px;
+    }
+</style>

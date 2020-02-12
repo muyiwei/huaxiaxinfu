@@ -1,0 +1,252 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>H3 BPM</title>
+    <link rel="stylesheet" href="welcome.css" />
+    <script src="../../WFRes/_Scripts/jquery/jquery.js"></script>
+    <script src="../../WFRes/_Scripts/jquery/jquery.lang.js" type="text/javascript"></script>
+    <script src="../../WFRes/_Scripts/vue/vue.min.js" type="text/javascript"></script>
+    <script src="Welcome.js"></script>
+    <script type="text/javascript">
+        var pageInfo = {
+            controls: {
+                divBody: ".body",
+                divBizService: "#divBizService",
+                divConnfig: "#divConnfig",
+                divAccount: "#divAccount",
+                divAdapter: "#divAdapter",
+                divBizBus: "#divBizBus",
+                divSAP: "#divSAP"
+            }
+        }
+
+        $(function () {
+            $.each(pageInfo.controls, function (k, v) {
+                pageInfo.controls[k] = $(v);
+            });
+            $(".activityFoot").hide();
+            // 注册退格事件，回到主页
+            $("body").keydown(function (e) {
+                if (e.keyCode == 8) {
+                    window.location.href = "Home.html";
+                    e.preventDefault();
+                }
+            });
+            var a, b, c;
+
+            // 线条连接业务服务到适配器
+            a = getSidePoint(pageInfo.controls.divAdapter, "left");
+            c = getSidePoint(pageInfo.controls.divBizService, "right");
+            $("<div></div>")
+               .addClass("poly-line")
+               .addClass("pointLine-left")
+               .css("width", a.x - c.x)
+               .css("height", 1)
+               .css("left", c.x)
+               .css("top", c.y)
+               .appendTo(pageInfo.controls.divBody);
+
+            // 线条连接组织类型到组织架构
+            a = getSidePoint(pageInfo.controls.divConnfig, "right");
+            c = getSidePoint(pageInfo.controls.divBizService, "left");
+            b = { x: (c.x - a.x) / 2 + a.x, y: c.y };
+            $("<div></div>")
+              .addClass("poly-line")
+              .addClass("line-top-right")
+              .css("width", b.x - a.x)
+              .css("height", b.y - a.y)
+              .css("top", a.y)
+              .css("left", a.x)
+              .appendTo(pageInfo.controls.divBody);
+            $("<div></div>")
+               .addClass("poly-line")
+               .addClass("line-right")
+               .css("width", b.x - a.x)
+               .css("height", b.y - a.y)
+               .css("top", b.y)
+               .css("left", b.x)
+               .appendTo(pageInfo.controls.divBody);
+            // 线条连接定义职务到组织架构
+            a = getSidePoint(pageInfo.controls.divAccount, "right");
+            c = getSidePoint(pageInfo.controls.divBizService, "left");
+            b = { x: (c.x - a.x) / 2 + a.x, y: c.y };
+            $("<div></div>")
+              .addClass("poly-line")
+              .addClass("line-bottom-right")
+              .css("width", b.x - a.x)
+              .css("height", a.y - b.y)
+              .css("top", b.y)
+              .css("left", a.x)
+              .appendTo(pageInfo.controls.divBody);
+
+            // 线条连接定义职务到组织架构
+            a = getSidePoint(pageInfo.controls.divSAP, "right");
+            c = getSidePoint(pageInfo.controls.divBizService, "left");
+            b = { x: (c.x - a.x) / 2 + a.x, y: c.y };
+            $("<div></div>")
+               .addClass("poly-line")
+               .addClass("pointLine-right")
+               .css("width", c.x - a.x)
+               .css("height", 10)
+               .css("left", a.x)
+               .css("top", a.y)
+               .appendTo(pageInfo.controls.divBody);
+        });
+
+        var getSidePoint = function (obj, side) {
+            if (side == "top") {
+                return {
+                    x: obj.position().left + obj.width() / 2,
+                    y: obj.position().top
+                };
+            }
+            else if (side == "left") {
+                return {
+                    x: obj.position().left,
+                    y: obj.position().top + obj.height() / 2
+                };
+            }
+            else if (side == "right") {
+                return {
+                    x: obj.position().left + obj.width(),
+                    y: obj.position().top + obj.height() / 2
+                };
+            }
+            else {
+                return {
+                    x: obj.position().left + obj.width() / 2,
+                    y: obj.position().top + obj.height()
+                };
+            }
+        }
+    </script>
+    <style type="text/css">
+        /*兼容小屏幕样式 屏幕宽度小于1024时*/
+        @media screen and (max-width:1024px) {
+
+            .body {
+                width: 100%;
+                left: -40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="head">
+        <div>
+            <div class="title">
+                业务集成
+            </div>
+            <hr class="line" />
+            <div class="description">
+                &nbsp;&nbsp;&nbsp;&nbsp;H3 BPM业务集成可以通过系统默认提供的或者自行开发的适配器，将各类接口、服务注册到系统，提供给流程数据输入输出调用，流程事件触发调用等。
+            </div>
+        </div>
+    </div>
+    <div class="body">
+        <div id="divConnfig" class="activity activityPointer" style="top: 80px; left: 40px; width: 200px" onclick="openUrl('业务数据库连接池','../admin/BizBus/EditBizDbConfig.html');">
+            <div class="activityHead">
+                <div>
+                    业务数据库连接池
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    配置H3 BPM所有访问的数据库链接，支持SQL SERVER/Oracle/MySql
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#" onclick="openUrl('业务数据库连接池','../admin/BizBus/EditBizDbConfig.html')">点击进入>></a>
+                </div>
+            </div>
+        </div>
+        <!--<div id="divSAP" class="activity activityPointer" style="top: 200px; left: 40px; width: 200px" onclick="openUrl('SAP连接池','../admin/BizBus/ListSAPConnectionConfig.html');">
+            <div class="activityHead">
+                <div>
+                    SAP连接池
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    配置与SAP服务器的连接
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#" onclick="openUrl('业务数据库连接池','../admin/BizBus/ListSAPConnectionConfig.html')">点击进入>></a>
+                </div>
+            </div>
+        </div>-->
+        <div id="divAccount" class="activity" style="top: 320px; left: 40px; width: 200px">
+            <div class="activityHead">
+                <div>
+                    SAP连接池
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    配置与SAP服务器的连接
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#" onclick="openUrl('业务数据库连接池','../admin/BizBus/ListSAPConnectionConfig.html')">点击进入>></a>
+                </div>
+            </div>
+            <!--<div class="activityHead">
+                <div>
+                    业务系统账号映射
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    将H3 BPM帐号与企业应用系统帐号映射起来,在接口访问时以指定帐号进行调用
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#">点击进入>></a>
+                </div>
+            </div>-->
+        </div>
+        <div id="divBizService" class="activity" style="top: 200px; left: 370px">
+            <div class="activityHead">
+                <div>
+                    业务服务
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    通过适配器建立的访问企业应用系统接口的服务
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div style="display: none">
+                    点击进入>>
+                </div>
+            </div>
+        </div>
+        <div id="divAdapter" class="activity activityPointer" style="top: 200px; left: 640px" onclick="openUrl('业务数据库连接池','../admin/BizBus/ListBizAdapter.html');">
+            <div class="activityHead">
+                <div>
+                    适配器
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    连接企业内部应用系统各种类型接口的适配器
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#" onclick="openUrl('业务数据库连接池','../admin/BizBus/ListBizAdapter.html')">点击进入>></a>
+                </div>
+            </div>
+        </div>
+        <!--        <div class="poly-line down-right" style="width: 200px; height: 200px; top: 20px; left: 400px"></div>
+        <div class="poly-line top-right" style="width: 200px; height: 200px; top: 20px; left: 700px"></div>-->
+    </div>
+</body>
+</html>

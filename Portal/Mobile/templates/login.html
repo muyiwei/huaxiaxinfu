@@ -1,0 +1,37 @@
+<ion-view hide-nav-bar='true' class="login">
+    <img src="/Portal/img/logo.png" class="logo" style="width:150px;height:auto">
+    <form>
+      <div class="rel">
+          <input name="username" type="text" id="username" ng-model="user.Code" placeholder="{{languages.login.name}}" class="f12" focus-on="userCode">
+          <input name="password" ng-attr-type="{{showPassword?'text':'password'}}" id="password" ng-model="user.Password" placeholder="{{languages.login.password}}" class="f12" focus-on="userPassword">
+         <img class="eye" src="img/login/eye.svg" ng-click="togglePassword($event)" ng-if="showPassword==true">
+         <img class="eyeclose" src="img/login/eyeclose.svg" ng-click="togglePassword($event)" ng-if="showPassword==false">
+      </div>
+      </div>
+      <div class="formbottom">
+            <div>
+              <div class="myChechbox">
+                  <input type="checkbox" name="autoLogin" ng-model="setting.autoLogin" id="autoLogin" class="chkbox mr17" ng-click="changeAutoLogin()" style="margin:0;">
+              </div>
+              <label for="autoLogin" class="f12" style="margin-bottom:0px">{{languages.login.antoLoading}}</label>
+            </div>
+            <div ng-click="goSettings()">
+                <img src="img/login/setting.svg" class="setting mr17">
+                <span class="f12">{{languages.login.systemSetting}}</span>
+            </div>
+        </div>
+
+        <button  value="" name="submit" id="submit" class="f17" ng-click="validateUser()">{{languages.login.Loading}}
+        </button>
+        <!--提示-->
+        <div class="tooltip">
+            <span class="angle">
+              <span class="anglein"></span>
+            </span>
+            <span class="f12">
+              请点击“系统设置”查看IP是否有误
+            </span>
+        </div>
+    </form>
+
+</ion-view>

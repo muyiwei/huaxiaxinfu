@@ -1,0 +1,451 @@
+﻿<script type="text/javascript">
+    $(function () {
+        var pageData = {
+            MessageSettings: {},
+            DeliveryMethods: [],
+            WorkCalendar: [],
+            RemindPostAction: [],
+            TimeInterval: [{ "Text": "00:00:00", "Value": "00:00:00" }, { "Text": "00:05:00", "Value": "00:05:00" }, { "Text": "00:10:00", "Value": "00:10:00" }, { "Text": "00:15:00", "Value": "00:15:00" }, { "Text": "00:30:00", "Value": "00:30:00" }, { "Text": "01:00:00", "Value": "01:00:00" }, { "Text": "02:00:00", "Value": "02:00:00" }, { "Text": "03:00:00", "Value": "03:00:00" }, { "Text": "04:00:00", "Value": "04:00:00" }, { "Text": "06:00:00", "Value": "06:00:00" }, { "Text": "08:00:00", "Value": "08:00:00" }, { "Text": "10:00:00", "Value": "10:00:00" }, { "Text": "12:00:00", "Value": "12:00:00" }, { "Text": "24:00:00", "Value": "24:00:00" }],
+            DeliveryFequency: [{ Text: $.Lang("DataSettings.Daily"), Value: '0' }, { Text: $.Lang("DataSettings.WorkingDay"), Value: '1' }, { Text: $.Lang("DataSettings.Weekly"), Value: '2' }],
+            CycleType: [{ Text: $.Lang("DataSettings.Sunday"), Value: '0' }, { Text: $.Lang("DataSettings.Monday"), Value: '1' }, { Text: $.Lang("DataSettings.Tuesday"), Value: '2' }, { Text: $.Lang("DataSettings.Wednesday"), Value: '3' }, { Text: $.Lang("DataSettings.Thursday"), Value: '4' }, { Text: $.Lang("DataSettings.Friday"), Value: '5' }, { Text: $.Lang("DataSettings.Saturday"), Value: '6' }],
+            LanData: $.Languages
+        };
+        //初始化页面数据
+        initPageData();
+
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                }
+            }
+        });
+
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Pannel").BuildPanel();
+        BuildLigerUITab(0, true);
+
+        //初始化页面数据
+        function initPageData() {
+            $.ajax({
+                url: $.Controller.MessageSettings.GetMessageSettingsPageData,
+                type: 'get',
+                dataType: "json",
+                async: false,//同步执行
+                success: function (result) {
+                    if (result.Success) {
+                        pageData.MessageSettings = result.Extend.MessageSettings;
+                        pageData.DeliveryMethods = result.Extend.DeliveryMethods;
+                        pageData.WorkCalendar = result.Extend.WorkCalendar;
+                        pageData.RemindPostAction = result.Extend.RemindPostAction;
+                        pageData.MessageSettings.OvertimePolicy1.TimeInterval = checkTimeInterVal(pageData.MessageSettings.OvertimePolicy1.TimeInterval);
+                        pageData.MessageSettings.OvertimePolicy2.TimeInterval = checkTimeInterVal(pageData.MessageSettings.OvertimePolicy2.TimeInterval);
+                    }
+                }
+            });
+        };
+        //保存消息提醒设置
+        function saveData() {
+            $.ajax({
+                url: $.Controller.MessageSettings.SaveMessageSettings,
+                type: "post",
+                dataType: "json",
+                data: { formData: JSON.stringify(pageData.MessageSettings) },
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                    } else {
+                        $.H3Dialog.Warn({ content: result.Message });
+                    }
+                }
+            });
+        };
+
+        //定期发送未完成任务的提醒发送频率切换联动
+        var childs = $("table[id*='chk']").find("td[class='tableLeft']");
+        $.each(childs, function (index, obj) {
+            $(obj).removeClass("tableLeft");
+        })
+        $("input:radio[name*='chkCycle']").change(function () {
+            if ($("input:radio[name*='chkCycle']:checked").val() == "1") {
+                $("tr[id='trWeek']").hide();
+                $("tr[id='trCalendar']").show();
+            }
+            else if ($("input:radio[name*='chkCycle']:checked").val() == "2") {
+                $("tr[id='trWeek']").show();
+                $("tr[id='trCalendar']").hide();
+            }
+            else {
+                $("tr[id='trWeek']").hide();
+                $("tr[id='trCalendar']").hide();
+            }
+        });
+
+        $("input:radio[name*='chkCycle']").change();
+
+        function checkTimeInterVal(value) {
+            if (!value) {
+                if (pageData.TimeInterval[0])
+                    return pageData.TimeInterval[0].Value;
+            }
+            return value;
+        }
+    });
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a id="lnkOk" v-on:click="saveData" data-icon="fa fa-save" data-lang="GlobalButton.Save"></a>
+    </div>
+    <div class="l-tab-links">
+        <a id="lnk_0" onclick="BuildLigerUITab(0)" href="javascript:void(0)">{{LanData.MessageSettings.NewWorkItemNotice}}</a>
+        <a id="lnk_1" onclick="BuildLigerUITab(1,true)" href="javascript:void(0)">{{LanData.MessageSettings.UrgencyNotice}}</a>
+        <a id="lnk_2" onclick="BuildLigerUITab(2,true)" href="javascript:void(0)">{{LanData.MessageSettings.UnfinishedWorkItemNotice}}</a>
+        <a id="lnk_3" onclick="BuildLigerUITab(3,true)" href="javascript:void(0)">{{LanData.MessageSettings.ExceptionNotice}}</a>
+        <a id="lnk_4" onclick="BuildLigerUITab(4,true)" href="javascript:void(0)">{{LanData.MessageSettings.OvertimePolicy1}}</a>
+        <a id="lnk_5" onclick="BuildLigerUITab(5,true)" href="javascript:void(0)">{{LanData.MessageSettings.OvertimePolicy2}}</a>
+    </div>
+    <div class="H3Pannel" id="tabPnl0">
+        <span>{{LanData.MessageSettings.NewWorkItemNotice}}</span>
+        <table class="tableList">
+            <tbody v-for="item in MessageSettings.NewWorkItemNotice" track-by="NewTaskArrivedNotifyType">
+                <tr>
+                    <td class="tableLeft">
+                        {{item.NewTaskArrivedNotifyType}}
+                    </td>
+                    <td>
+                        <input v-model="item.WetherSend" type="checkbox" />
+                    </td>
+                    <td></td>
+                </tr>
+                <template v-if="item.NewTaskArrivedNotifyType != 'App'">
+                    <tr v-show="item.WetherSend">
+                        <td class="tableLeft">
+                            {{LanData.MessageSettings.NotificationTitle}}
+                        </td>
+                        <td>
+                            <input v-model="item.NotificationTitle" type="text" style="width:510px;" />
+                        </td>
+                        <td>
+                            <span>{{LanData.MessageSettings.NotificationTitleFormat}}</span>
+                        </td>
+                    </tr>
+                </template>
+                <tr v-show="item.WetherSend">
+                    <td class="tableLeft">
+                        {{LanData.MessageSettings.Details}}
+                    </td>
+                    <td>
+                        <textarea v-model="item.Details" style="height:120px;width:510px;"></textarea>
+                    </td>
+                    <td style="word-wrap: break-word;">
+                        <span v-if="item.NewTaskArrivedNotifyType == 'Email'">{{LanData.MessageSettings.NewWorkItemNoticeDetailsFormat}}</span>
+                        <span v-else>{{LanData.MessageSettings.NewWorkItemNoticeDetailsFormatApp}}</span>
+                    </td>
+                </tr>
+                <tr><td></tr>
+            </tbody>
+        </table>
+
+
+    </div>
+
+    <div class="H3Pannel" id="tabPnl1">
+        <span>{{LanData.MessageSettings.UrgencyNotice}}</span>
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.MessageSettings.WhetherSendNotification}}
+                </td>
+                <td>
+                    <input v-model="MessageSettings.UrgencyNotice.WetherSend" type="checkbox" />
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.MessageSettings.DeliveryMethods}}
+                </td>
+                <td>
+                    <select v-model="MessageSettings.UrgencyNotice.NewTaskArrivedNotifyType">
+                        <option v-for="option in DeliveryMethods" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.MessageSettings.NotificationTitle}}
+                </td>
+                <td>
+                    <input v-model="MessageSettings.UrgencyNotice.NotificationTitle" type="text" />
+                    <span>{{LanData.MessageSettings.NotificationTitleFormat}}</span>
+                </td>
+                <td>
+                    <!--<asp:Label runat="server" ID="lblUrgencyNoticeificationTitle" />-->
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.MessageSettings.Details}}
+                </td>
+                <td>
+                    <textarea v-model="MessageSettings.UrgencyNotice.Details" style="height:200px;width:510px;"></textarea>
+                </td>
+                <td style="word-wrap: break-word;">
+                    <span>{{LanData.MessageSettings.UrgencyNoticeDetailsFormat}}</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="H3Pannel" id="tabPnl2">
+        <span>{{LanData.MessageSettings.UnfinishedWorkItemNotice}}</span>
+        <table class="tableList">
+
+            <tr>
+                <td>{{LanData.MessageSettings.DeliveryMethods}}</td>
+                <td>
+                    <select v-model="MessageSettings.UnfinishedWorkItemNotice.NewTaskArrivedNotifyType" disabled="true">
+                        <option v-for="option in DeliveryMethods" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.MessageSettings.SendTime}}
+                </td>
+                <td colspan="2">
+                    <input v-model="MessageSettings.UnfinishedWorkItemNotice.RemindTime" type="text" />
+                    <span> {{LanData.MessageSettings.IfMutipSeparate}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.MessageSettings.DeliveryFequency}}</td>
+                <td colspan="2" class="tableNoCss">
+                    <table border="0">
+                        <tr>
+                            <td v-for="item in DeliveryFequency">
+                                <input type="radio" name="chkCycle" value="{{item.Value}}" v-model="MessageSettings.UnfinishedWorkItemNotice.Fequency" />
+                                <label>{{item.Text}}</label>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr id="trCalendar">
+                <td>{{LanData.MessageSettings.WorkCalendar}}</td>
+                <td>
+                    <select v-model="MessageSettings.UnfinishedWorkItemNotice.WorkCalendar">
+                        <option v-for="option in WorkCalendar" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr id="trWeek">
+                <td>{{LanData.MessageSettings.CycleType}}</td>
+                <td colspan="2" class="tableNoCss">
+                    <table border="0">
+                        <tr>
+                            <td v-for="item in CycleType">
+                                <input type="checkbox" v-model="MessageSettings.UnfinishedWorkItemNotice.CycleType" name="checkBox" id="checkBox{{item.Value}}" value="{{item.Value}}" /><label>{{item.Text}}</label>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.MessageSettings.NotificationTitle}}
+                </td>
+                <td>
+                    <input v-model="MessageSettings.UnfinishedWorkItemNotice.NotificationTitle" type="text" />
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.MessageSettings.Details}}
+                </td>
+                <td>
+                    <textarea v-model="MessageSettings.UnfinishedWorkItemNotice.Details" style="height:200px;width:510px;">{{MessageSettings.UnfinishedWorkItemNotice.Details}}</textarea>
+                </td>
+                <td style="word-wrap: break-word;">
+                    <span>{{LanData.MessageSettings.UnfinishedWorkItemNoticeeDetailsFormat}}</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="H3Pannel" id="tabPnl3">
+        <span>{{LanData.MessageSettings.ExceptionNotice}}</span>
+
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.MessageSettings.WhetherSendNotification}}
+                </td>
+                <td>
+                    <input v-model="MessageSettings.ExceptionNotice.WetherSend" type="checkbox" />
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.MessageSettings.DeliveryMethods}}
+                </td>
+                <td>
+                    <select v-model="MessageSettings.ExceptionNotice.NewTaskArrivedNotifyType">
+                        <option v-for="option in DeliveryMethods" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.MessageSettings.NotificationTitle}}
+                </td>
+                <td>
+                    <input v-model="MessageSettings.ExceptionNotice.NotificationTitle" type="text" />
+                    <span>{{LanData.MessageSettings.ExceptionNoticeTitleFormat}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.MessageSettings.Details}}
+                </td>
+                <td>
+                    <textarea v-model="MessageSettings.ExceptionNotice.Details" style="height:200px;width:510px;"></textarea>
+                </td>
+                <td style="word-wrap: break-word;">
+                    <span>{{LanData.MessageSettings.ExceptionNoticeDetailsFormat}}</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="H3Pannel" id="tabPnl4">
+        <span>{{LanData.MessageSettings.OvertimePolicy1}}</span>
+
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.MessageSettings.DeliveryMethods}}
+                </td>
+                <td>
+                    <select v-model="MessageSettings.OvertimePolicy1.NewTaskArrivedNotifyType">
+                        <option v-for="option in DeliveryMethods" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.MessageSettings.NotificationTitle}}
+                </td>
+                <td>
+                    <input v-model="MessageSettings.OvertimePolicy1.NotificationTitle" type="text" />
+                    <span>{{LanData.MessageSettings.OvertimePolicy1TitleFormat}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.MessageSettings.Details}}
+                </td>
+                <td>
+                    <textarea v-model="MessageSettings.OvertimePolicy1.Details" style="height:200px;width:510px;"></textarea>
+                </td>
+                <td style="word-wrap: break-word;">
+                    <span>{{LanData.MessageSettings.OvertimePolicyDetailsFormat}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.MessageSettings.TimeInterval}}
+                </td>
+                <td>
+                    <select v-model="MessageSettings.OvertimePolicy1.TimeInterval">
+                        <option v-for="option in TimeInterval" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.MessageSettings.RemindPostAction}}
+                </td>
+                <td>
+                    <select v-model="MessageSettings.OvertimePolicy1.RemindPostAction">
+                        <option v-for="option in RemindPostAction" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="H3Pannel" id="tabPnl5">
+        <span>{{LanData.MessageSettings.OvertimePolicy2}}</span>
+
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.MessageSettings.DeliveryMethods}}
+                </td>
+                <td>
+                    <select v-model="MessageSettings.OvertimePolicy2.NewTaskArrivedNotifyType">
+                        <option v-for="option in DeliveryMethods" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.MessageSettings.NotificationTitle}}
+                </td>
+                <td>
+                    <input v-model="MessageSettings.OvertimePolicy2.NotificationTitle" type="text" />
+                    <span>{{LanData.MessageSettings.OvertimePolicy2TitleFormat}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.MessageSettings.Details}}
+                </td>
+                <td>
+                    <textarea v-model="MessageSettings.OvertimePolicy2.Details" style="height:200px;width:510px;"></textarea>
+                </td>
+                <td style="word-wrap: break-word;">
+                    <span>{{LanData.MessageSettings.OvertimePolicyDetailsFormat}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.MessageSettings.TimeInterval}}
+                </td>
+                <td>
+                    <select v-model="MessageSettings.OvertimePolicy2.TimeInterval">
+                        <option v-for="option in TimeInterval" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.MessageSettings.RemindPostAction}}
+                </td>
+                <td>
+                    <select v-model="MessageSettings.OvertimePolicy2.RemindPostAction">
+                        <option v-for="option in RemindPostAction" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+</validator>

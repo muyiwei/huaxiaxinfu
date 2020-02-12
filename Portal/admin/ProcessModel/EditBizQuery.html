@@ -1,0 +1,513 @@
+﻿<style type="text/css">
+    .tableNoCss {
+        padding-left: 38px;
+    }
+
+    .mywork_list_table tr td {
+        padding-left: 0px;
+    }
+
+    .mywork_list_table tr:hover {
+        background-color: #ececec;
+    }
+
+    /*input[type="text"], input[type="password"], select, input[type="file"] {
+            width: 250px;
+            margin: 1px;
+            border: 1px solid #a8a8a8;
+            height: 25px;
+            line-height: 25px;
+        }*/
+</style>
+<script>
+    $(function () {
+        var pageData = {
+            BizQuery: {},
+            LanData: $.Languages
+        };
+        //初始化页面数据
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function () {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                },
+                listMethodChange: function () {
+                    //方法改变事件
+                },
+                conditionColumnChange: function (item) {
+                    conditionColumnChange(item, pageData.ConditionColumns, false);
+                },
+                FilterTypeChange: function (item) {
+                    if (item.FilterType == 3) {
+                        item.Visible = false;
+                        item.DefaultValue = pageData.DefaultValues[0].Value;
+                    } else {
+                        item.Visible = true;
+                        item.DefaultValue = "";
+                    }
+                },
+                selectAll: function ($event, arry, field) {
+                    //全选
+                    var checked = event.currentTarget.checked;
+                    $.each(arry, function () {
+                        this[field] = checked;
+                    });
+                },
+                addCondition: function () {
+                    //增加条件
+                    var success = checkCondition(pageData.Conditions);
+                    if (success) {
+                        var displayTypes = deepCopy(pageData.DisplayTypes, true);
+                        $.each(displayTypes, function () {
+                            this.Extend = false;
+                        });
+                        displayTypes[displayTypes.length - 1].Extend = true;
+                        var item = {
+                            "ObjectID": "",
+                            "ConditionColumn": pageData.ConditionColumns[0].Value,
+                            "FilterType": pageData.FilterTypes[0].Value,
+                            "DefaultValue": "",
+                            "Visible": true,
+                            "DisplayType": displayTypes[0].Value,
+                            "ConditionValue": "",
+                            "DisplayTypes": displayTypes
+                        };
+                        pageData.Conditions.push(item);
+                        conditionColumnChange(item, pageData.ConditionColumns, true);
+                    }
+                },
+                delCondition: function (item) {
+                    //删除条件
+                    pageData.Conditions.$remove(item);
+                },
+                addAction: function () {
+                    //添加功能
+                    var item = {
+                        "ActionCode": "",
+                        "DisplayName": "",
+                        "ActionType": 0,
+                        "ActionMethod": pageData.ActionMethods[0].Value,
+                        "ActionSheet": null,
+                        "Url": null,
+                        "WithID": false,
+                        "Confirm": false,
+                        "SaveCompleted": pageData.SaveCompletes[0].Value,
+                        "SortKey": 0
+                    }
+                    pageData.Actions.push(item);
+                },
+                delAction: function (item) {
+                    //删除功能
+                    pageData.Actions.$remove(item);
+                },
+                conditionValueShow: function (item) {
+                    //控制conditionValue文本域是否显示
+                    var logicType = getLogicType(item, pageData.ConditionColumns);
+                    switch (logicType) {
+                        case "Bool":
+                            return false;
+                            break;
+                        default:
+                            return item.FilterType != '3' && (item.DisplayType != 0 && item.DisplayType != 5);
+                    }
+                }
+            }
+        });
+        //初始化查询条件的显示类型列表
+        $.each(pageData.Conditions, function () {
+            conditionColumnChange(this, pageData.ConditionColumns, true);
+        })
+        $("#H3ToolBar").AspLinkToolBar();
+        $("#ConditionToolBar,#ActionToolBar").AspLinkToolBar({
+            IsFixed: false
+        });
+        $(".H3Panel").BuildPanel({ excludeIDs: ["PropertyDiv", "ConditionDiv", "ActionDiv"] });
+        //初始化页面数据
+        function initPageData() {
+            var SchemaCode = getUrlParam("SchemaCode");
+            var QueryCode = getUrlParam("QueryCode");
+            if (SchemaCode) {
+                $.ajax({
+                    url: $.Controller.BizQuery.GetBizQuery,
+                    type: 'get',
+                    dataType: "json",
+                    data: { schemaCode: SchemaCode, queryCode: QueryCode },
+                    async: false,//同步执行
+                    success: function (result) {
+                        if (result.Success) {
+                            pageData = $.LangArray(result.Extend, "Text");
+                            ConvertActions(pageData.Actions);
+                            ConvertConditions(pageData.Conditions);
+                            pageData.LanData = $.Languages;
+                            setControlUsable(result.Extend.IsLocked, $("a"));
+                        }
+                    }
+                });
+            }
+        };
+        //保存
+        function saveData() {
+            var saveData = pageData.BizQuery;
+            if (!saveData.Columns) saveData.Columns = [];
+            saveData["conditions"] = JSON.stringify(pageData.Conditions);
+            saveData["actions"] = JSON.stringify(pageData.Actions);
+            saveData["propertys"] = JSON.stringify(pageData.Propertys);
+            $.ajax({
+                url: $.Controller.BizQuery.SaveBizQuery,
+                type: "post",
+                dataType: "json",
+                data: saveData,
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                        setTimeout(function () {
+                            parent.H3DialogManger.Close();
+                        }, 1000);
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        }
+
+        //检查条件是否合法
+        function checkCondition(objs) {
+            if (objs.length == 0) {
+                return true;
+            }
+            var schemaCode = pageData.BizQuery.SchemaCode;
+            var queryCode = pageData.BizQuery.QueryCode;
+            var success = false;
+            $.ajax({
+                url: $.Controller.BizQuery.CheckBizQueryCondition,
+                type: "post",
+                dataType: "json",
+                async: false,//同步执行
+                data: { conditions: JSON.stringify(objs), schemaCode: schemaCode, queryCode: queryCode },
+                success: function (result) {
+                    if (result.Success) {
+                        success = result.Success;
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+            return success;
+        }
+
+    });
+
+    //名称转换
+    function ConvertActions(data) {
+        if (!data) return null;
+        $.each(data, function () {
+            this.DisplayName = $.Lang(this.DisplayName);
+        });
+        return data;
+    }
+
+    //名称转换
+    function ConvertConditions(data) {
+        if (!data) return null;
+        $.each(data, function () {
+            this.DisplayTypes = $.LangArray(this.DisplayTypes, "Text");
+        });
+        return data;
+    }
+
+    //条件列改变事件
+    function conditionColumnChange(item, columns, isFrist) {
+        var logictype = getLogicType(item, columns);
+        if (!logictype) return false;
+        var options = item.DisplayTypes;
+        if (item.DisplayType == "5") item.DisplayType = "0";
+        if (!isFrist) {
+            item.ConditionValue = '';
+            item.DisplayType = "0";
+        }
+
+        switch (logictype) {
+            case "Bool":
+                for (var i = 0; i < options.length; i++) {
+                    if (options[i].Value == "1")
+                        options[i].Extend = false;
+                    else
+                        options[i].Extend = true;
+                }
+                item.DisplayType = "1";
+                item.ConditionValue = '1;0'
+                break;
+            case "Double":
+            case "Int":
+            case "Long":
+            case "Decimal":
+            case "Guid":
+            case "ShortString":
+                for (var i = 0; i < options.length; i++) {
+                    if (options[i].Value != "5")
+                        options[i].Extend = false;
+                    else
+                        options[i].Extend = true;
+                }
+                break;
+            case "String":
+                for (var i = 0; i < options.length; i++) {
+                    if (options[i].Value == "0" || options[i].Value == "1" || options[i].Value == "3")
+                        options[i].Extend = false;
+                    else
+                        options[i].Extend = true;
+                }
+                break;
+            case "DateTime":
+            case "TimeSpan":
+                for (var i = 0; i < options.length; i++) {
+                    if (options[i].Value == "0") {
+                        options[i].Extend = false;
+                    }
+                    else
+                        options[i].Extend = true;
+                }
+                item.DisplayType = "0";
+                break;
+            case "SingleParticipant":
+            case "MultiParticipant":
+                for (var i = 0; i < options.length; i++) {
+                    if (options[i].Value == "5")
+                        options[i].Extend = false;
+                    else
+                        options[i].Extend = true;
+                }
+                item.DisplayType = "5";
+                break;
+            default:
+                break;
+        }
+    }
+
+    //获取选项的逻辑类型
+    function getLogicType(item, columns) {
+        var selectItem;
+        $.each(columns, function () {
+            if (this.Value == item.ConditionColumn)
+                selectItem = this;
+        });
+        if (!selectItem) return null;
+        else return selectItem.Extend.LogicType;
+    }
+    //深拷贝
+    function deepCopy(source, parent) {
+        var result = [];
+        if (!parent) result = {};
+        for (var key in source) {
+            result[key] = typeof (source[key]) === 'object' ? deepCopy(source[key], false) : source[key];
+        }
+        return result;
+    }
+</script>
+<validator name="formValidator">
+    <div id="H3ToolBar">
+        <a v-on:click="saveData" data-icon="fa fa-building-o" href="javascript:void(0)" data-lang="GlobalButton.Save">保存</a>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.BizQuery.BasicProperty}}</span>
+        <table id="baseDiv">
+            <tr>
+                <td>{{LanData.BizQuery.QueryCode}}</td>
+                <td>
+                    <input v-model="BizQuery.QueryCode" type="text" maxlength="32" detect-change="on" detect-blur="on" initial="off" v-validate:query-code="['space','required']" v-bind:disabled="''!=BizQuery.OrginQueryCode" />
+                    <span style="color:Red;" v-if="$formValidator.queryCode.invalid">{{LanData.msgGlobalString.NotSpace}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.BizQuery.DisplayName}}</td>
+                <td>
+                    <input v-model="BizQuery.DisplayName" type="text" maxlength="32" detect-change="on" detect-blur="on" initial="off" v-validate:display-name="['space','required']" />
+                    <span style="color:Red;" v-if="$formValidator.displayName.invalid">{{LanData.msgGlobalString.NotSpace}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.BizQuery.Method}}</td>
+                <td>
+                    <select v-model="BizQuery.ListMethod">
+                        <option v-for="option in ListMethods" v-bind:value="option.Value" v-on:change="listMethodChange">{{option.Text}}</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.BizQuery.Settings}}</td>
+                <td>
+                    <input v-model="BizQuery.QueryWhenLoad" type="checkbox" />{{LanData.BizQuery.QueryWhenLoad}}
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.BizQuery.PropertyView}}</span>
+        <div id="PropertyDiv">
+            <div class="tableNoCss">
+                <div>
+                    <table class="mywork_list_table" cellspacing="0" rules="all" border="0" border="1" id="gvColumns" style="width:95%;border-collapse:collapse;">
+                        <tr>
+                            <th scope="col">{{LanData.BizQuery.PropertyName}}</th>
+                            <th scope="col">
+                                <span id="lblVisibleHeader">{{LanData.BizQuery.Display}}</span>
+                                <input id="btnCheckAll" v-on:click="selectAll($event,Propertys,'Visible')" type="checkbox" />
+                            </th>
+                            <th align="center" scope="col" style="width:80px;">{{LanData.BizQuery.PropertyWidth}}</th>
+                            <th align="center" scope="col">{{LanData.BizQuery.PropertyNotice}}</th>
+                        </tr>
+                        <tr v-for="item in Propertys">
+                            <td>{{item.Name}}</td>
+                            <td>
+                                <input type="checkbox" v-model="item.Visible" />
+                            </td>
+                            <td align="center" style="width:80px;">
+                                <input v-model="item.Width" type="text" maxlength="10" style="width:70px;" />
+                            </td>
+                            <td align="center">
+                                <input v-model="item.Foramt" type="text" maxlength="400" style="width:95%;" />
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.BizQuery.Conditons}}</span>
+        <div id="ConditionDiv">
+            <div id="ConditionToolBar">
+                <a v-on:click="addCondition" href="javascript:void(0)">{{LanData.BizQuery.AddConditon}} </a>
+            </div>
+            <div class="tableNoCss">
+                <table class="mywork_list_table" cellspacing="0" rules="all" border="0" border="1" id="ctl00_BodyContent_gvCondition" style="width:95%;border-collapse:collapse;">
+                    <tr>
+                        <th align="center" scope="col" style="width:120px;">{{LanData.BizQuery.PropertyName}}</th>
+                        <th align="center" scope="col" style="width:80px;">{{LanData.BizQuery.MatchType}}</th>
+                        <th align="center" scope="col" style="width:15%;">{{LanData.BizQuery.DefaultValue}}</th>
+                        <th scope="col">
+                            <span>{{LanData.BizQuery.Display}}</span>
+                            <input v-on:click="selectAll($event,Conditions,'Visible')" type="checkbox" />
+                        </th>
+                        <th align="center" scope="col" style="width:80px;">{{LanData.BizQuery.DisplayType}}</th>
+                        <th align="center" scope="col">{{LanData.BizQuery.ConditionNotice}}</th>
+                        <th align="center" scope="col" style="width:40px;">{{LanData.GlobalButton.Delete}}</th>
+                    </tr>
+                    <tr v-for="item in Conditions">
+                        <td align="center">
+                            <select v-model="item.ConditionColumn" v-on:change="conditionColumnChange(item)">
+                                <option v-for="option in ConditionColumns" v-bind:value="option.Value">{{option.Text}}</option>
+                            </select>
+                        </td>
+                        <td align="center">
+                            <select v-model="item.FilterType" v-on:change="FilterTypeChange(item)">
+                                <option v-for="option in FilterTypes" v-bind:value="option.Value">{{option.Text}}</option>
+                            </select>
+                        </td>
+                        <td align="center">
+                            <select v-model="item.DefaultValue" v-show="item.FilterType=='3'">
+                                <option v-for="option in DefaultValues" v-bind:value="option.Value">{{option.Text}}</option>
+                            </select>
+                            <input type="text" v-model="item.DefaultValue" v-show="item.FilterType!='3'" />
+                        </td>
+                        <td>
+                            <input type="checkbox" v-model="item.Visible" v-show="item.FilterType!='3'" />
+                        </td>
+                        <td align="center">
+                            <select v-model="item.DisplayType" v-show="item.FilterType!='3'">
+                                <option v-for="option in item.DisplayTypes" v-bind:value="option.Value" v-show="!option.Extend">{{option.Text}}</option>
+                            </select>
+                        </td>
+                        <td align="center">
+                            <input type="text" v-model="item.ConditionValue" v-show="conditionValueShow(item)" type="text" maxlength="200" style="width:95%;" />
+                        </td>
+                        <td align="center">
+                            <a v-on:click="delCondition(item)" href="javascript:void(0)">删除</a>
+                        </td>
+                    </tr>
+                </table>
+
+            </div>
+        </div>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.BizQuery.ActionCode}}</span>
+        <div id="ActionDiv">
+            <div id="ActionToolBar">
+                <a v-on:click="addAction">{{LanData.BizQuery.AddFunction}}</a>
+            </div>
+            <div class="tableNoCss">
+                <div>
+                    <table class="mywork_list_table" cellspacing="0" rules="all" border="0" border="1" id="gvActions" style="width:95%;border-collapse:collapse;">
+                        <tr>
+                            <th align="center" scope="col" style="width:120px;">{{LanData.BizQuery.ActionCode}}</th>
+                            <th align="center" scope="col" style="width:80px;">{{LanData.BizQuery.DisplayName}}</th>
+                            <th align="center" scope="col" style="width:80px;">{{LanData.BizQuery.ActionType}}</th>
+                            <th align="center" scope="col">{{LanData.BizQuery.ActionLink}}</th>
+                            <th scope="col">
+                                <span>{{LanData.BizQuery.WithID}}</span>
+                                <input type="checkbox" v-on:click="selectAll($event,Actions,'WithID')" />
+                            </th>
+                            <th scope="col">
+                                <span>{{LanData.BizQuery.Confirm}}</span>
+                                <input type="checkbox" v-on:click="selectAll(this,Actions,'Confirm')" />
+                            </th>
+                            <th align="center" scope="col" style="width:10%;">{{LanData.BizQuery.SaveCompleted}}</th>
+                            <th align="center" scope="col" style="width:40px;">{{LanData.BizQuery.SortKey}}</th>
+                            <th align="center" scope="col"></th>
+                        </tr>
+                        <tr v-for="item in Actions">
+                            <td align="center">
+                                <input type="text" v-model="item.ActionCode" />
+                            </td>
+                            <td align="center">
+                                <input type="text" v-model="item.DisplayName" />
+                            </td>
+                            <td align="center">
+                                <select v-model="item.ActionType">
+                                    <option v-for="option in ActionTypes" v-bind:value="option.Value">{{option.Text}}</option>
+                                </select>
+                            </td>
+                            <td align="center">
+                                <select v-model="item.ActionMethod" v-show="item.ActionType==0">
+                                    <option v-for="option in ActionMethods" v-bind:value="option.Value">{{option.Text}}</option>
+                                </select>
+                                <select v-model="item.ActionSheet" v-show="item.ActionType==1">
+                                    <option v-for="option in ActionSheets" v-bind:value="option.Value">{{option.Text}}</option>
+                                </select>
+                                <input v-show="item.ActionType==2" type="text" v-model="item.Url" maxlength="400" title="Example:StartInstance.aspx?BizObjectID={BizObjectID}&amp;WorkflowCode=..." style="width:95%;" />
+                            </td>
+                            <td>
+                                <input v-model="item.WithID" type="checkbox" v-show="item.ActionType!=2" />
+                            </td>
+                            <td>
+                                <input v-model="item.Confirm" type="checkbox" v-show="item.ActionType==0" />
+                            </td>
+                            <td align="center">
+                                <select v-model="item.SaveCompleted" v-show="item.ActionType==1">
+                                    <option v-for="option in SaveCompletes" v-bind:value="option.Value">{{option.Text}}</option>
+                                </select>
+                            </td>
+                            <td align="center">
+                                <input type="text" maxlength="200" style="width:30px;" v-model="item.SortKey" />
+                            </td>
+                            <td align="center">
+                                <a v-on:click="delAction(item)" href="javascript:void(0)">删除</a>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</validator>

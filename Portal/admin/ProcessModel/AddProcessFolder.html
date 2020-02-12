@@ -1,0 +1,122 @@
+﻿<script>
+    $(function () {
+        var pageData = {
+            Folder: {SortKey:0},
+            LanData: $.Languages
+        };
+
+        InitPageData();
+        var nodeParentID = getUrlParam("ParentID")||"";
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        SaveData(nodeParentID);
+                    }
+                }
+            }
+        });
+
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+
+        function InitPageData() {
+            // 新增Folder时传递参数 ParentID&ParentCode&ObjectType
+            var ParentID = getUrlParam("ParentID");
+            var ParentCode = getUrlParam("ParentCode");
+            var ObjectType = getUrlParam("ObjectType");
+
+            //打开时传递参数 ID ParentID
+            var ID = getUrlParam("ID");
+
+            pageData.Folder.ParentID = ParentID;
+            pageData.Folder.ParentCode = ParentCode;
+            pageData.Folder.ObjectType = ObjectType;
+            pageData.Folder.ObjectID = ID;
+            //当前目录信息 
+            if (ID && ID != "") {
+                $.ajax({
+                    url: $.Controller.ProcessFolder.GetFolderInfo,
+                    type: 'get',
+                    dataType: "json",
+                    data: { nodeId: ID },
+                    async: false,//同步执行
+                    success: function (result) {
+                        pageData.Folder = result;
+                    }
+                });
+            }
+            //父目录名称获取
+            if (ParentID && ParentID != "") {
+                $.ajax({
+                    url: $.Controller.ProcessFolder.GetFolderInfo,
+                    type: 'get',
+                    dataType: "json",
+                    data: { nodeId: ParentID },
+                    async: false,//同步执行
+                    success: function (result) {
+                        pageData.Folder.ParentName = result.Name;
+                    }
+                });
+            }
+
+        }
+
+        function SaveData(parentId) {
+            var actionUrl = $.Controller.ProcessFolder.SaveFolder;
+            $.ajax({
+                url: actionUrl,
+                type: "post",
+                dataType: "json",
+                data: pageData.Folder,
+                success: function (result) {
+                    if (result.Success) {
+                        top.ReloadNode(parentId);
+                        var text = pageData.Folder.ParentName + "." + pageData.Folder.Name;
+                        top.workTab.setHeader(top.workTab.getSelectedTabItemID(), text);
+                        parent.H3DialogManger.Close(); //关闭当前对话框
+                        
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        }
+    });
+</script>
+<validator name="formValidator">
+    <div id="H3ToolBar">
+        <a v-on:click="saveData" data-icon="fa fa-save" data-lang="GlobalButton.Save"></a>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.msgGlobalString.Msg_BasciInfor}}</span>
+        <table>
+            <tr>
+                <td>{{LanData.ProcessFolder.ParentName}}</td>
+                <td>
+                   
+                    <input type="text" disabled="disabled" id="parentNode" v-model="Folder.ParentName" />               
+               </td>
+            </tr>
+            <tr >
+                <td>{{LanData.ProcessFolder.Name}}</td>
+                <td>
+                    <input type="text" id="txtDisplayName" v-model="Folder.Name" detect-change="on" detect-blur="on" initial="off" v-validate:item-name="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.itemName.required">{{LanData.msgGlobalString.EnumValueRequired}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.ProcessFolder.SortKey}}</td>
+                <td>
+                    <input type="text" id="txtSortKey" v-model="Folder.SortKey" detect-change="on" detect-blur="on" initial="off" v-validate:sort-key="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.sortKey.required">{{LanData.msgGlobalString.EnumValueRequired}} </span>
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

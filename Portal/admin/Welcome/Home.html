@@ -1,0 +1,363 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>H3 BPM</title>
+    <link rel="stylesheet" href="welcome.css" />
+    <script src="../../WFRes/_Scripts/jquery/jquery.js"></script>
+    <script src="../../WFRes/_Scripts/jquery/jquery.lang.js" type="text/javascript"></script>
+    <script src="../../WFRes/_Scripts/vue/vue.min.js" type="text/javascript"></script>
+    <script src="Welcome.js"></script>
+    <script type="text/javascript">
+        var pageInfo = {
+            controls: {
+                divBody: ".body",
+                divBizBus: "#divBizBus",
+                divWorkflow: "#divWorkflow",
+                divBizRule: "#divBizRule",
+                divOrg: "#divOrg",
+                divSetting: "#divSetting",
+                divBPA: "#divBPA",
+                divApp: "#divApp"
+            }
+        }
+        $(function () {
+
+
+            $.each(pageInfo.controls, function (k, v) {
+                pageInfo.controls[k] = $(v);
+            });
+
+            var a, b, c;
+
+            // 线条连接业务集成到流程模型
+            a = getSidePoint(pageInfo.controls.divBizBus, "bottom");
+            c = getSidePoint(pageInfo.controls.divWorkflow, "top");
+            b = {
+                x: c.x,
+                y: a.y + (c.y - a.y) / 2
+            };
+            $("<div></div>")
+               .addClass("poly-line")
+               .addClass("line-left-bottom")
+               .css("width", b.x - a.x)
+               .css("height", b.y - a.y)
+               .css("top", a.y)
+               .css("left", a.x)
+               .appendTo(pageInfo.controls.divBody);
+            $("<div></div>")
+               .addClass("poly-line")
+               .addClass("line-down")
+               .css("width", c.x - b.x)
+               .css("height", c.y - b.y)
+               .css("top", b.y)
+               .css("left", b.x)
+               .appendTo(pageInfo.controls.divBody);
+
+
+            // 线条连接业务规则到流程模型
+            a = getSidePoint(pageInfo.controls.divBizRule, "bottom");
+            c = getSidePoint(pageInfo.controls.divWorkflow, "top");
+            b = {
+                x: c.x,
+                y: a.y + (c.y - a.y) / 2
+            };
+
+            $("<div></div>")
+               .addClass("poly-line")
+               .addClass("line-right-bottom")
+               .css("width", a.x - b.x)
+               .css("height", b.y - a.y)
+               .css("top", a.y)
+               .css("left", b.x)
+               .appendTo(pageInfo.controls.divBody);
+
+            // 线条连接组织模型到流程模型
+            a = getSidePoint(pageInfo.controls.divOrg, "right");
+            c = getSidePoint(pageInfo.controls.divWorkflow, "left");
+            b = { x: a.x + (c.x - a.x) / 2, y: c.y };
+            $("<div></div>")
+               .addClass("poly-line")
+               .addClass("line-top-right")
+               .css("width", b.x - a.x)
+               .css("height", b.y - a.y)
+               .css("top", a.y)
+               .css("left", a.x)
+               .appendTo(pageInfo.controls.divBody);
+            $("<div></div>")
+               .addClass("poly-line")
+               .addClass("line-right")
+               .css("width", b.x - a.x)
+               .css("height", b.y - a.y)
+               .css("top", b.y)
+               .css("left", b.x)
+               .appendTo(pageInfo.controls.divBody);
+
+            // 线条连接系统参数到流程模型
+            a = getSidePoint(pageInfo.controls.divSetting, "right");
+            c = getSidePoint(pageInfo.controls.divWorkflow, "left");
+            b = { x: a.x + (c.x - a.x) / 2, y: c.y };
+
+            $("<div></div>")
+               .addClass("poly-line")
+               .addClass("line-bottom-right")
+               .css("width", b.x - a.x)
+               .css("height", a.y - b.y)
+               .css("top", b.y)
+               .css("left", a.x)
+               .appendTo(pageInfo.controls.divBody);
+
+            // 线条连接流程模型到流程分析
+            a = getSidePoint(pageInfo.controls.divWorkflow, "right");
+            c = getSidePoint(pageInfo.controls.divBPA, "left");
+            $("<div></div>")
+               .addClass("poly-line")
+               .addClass("pointLine-right")
+               .css("width", c.x - a.x)
+               .css("height", 10)
+               .css("left", a.x)
+               .css("top", a.y)
+               .appendTo(pageInfo.controls.divBody);
+            // 线条连接流程模型到应用中心
+            a = getSidePoint(pageInfo.controls.divWorkflow, "bottom");
+            c = { x: a.x, y: pageInfo.controls.divApp.position().top };
+            $("<div></div>")
+               .addClass("poly-line")
+               .addClass("pointLine-down")
+               .css("width", 1)
+               .css("height", c.y - a.y)
+               .css("left", a.x)
+               .css("top", a.y)
+               .appendTo(pageInfo.controls.divBody);
+
+            // 线条连接流程分析到应用中心
+            a = getSidePoint(pageInfo.controls.divBPA, "bottom");
+            c = { x: a.x, y: pageInfo.controls.divApp.position().top };
+            $("<div></div>")
+               .addClass("poly-line")
+               .addClass("pointLine-down")
+               .css("width", 1)
+               .css("height", c.y - a.y)
+               .css("left", a.x)
+               .css("top", a.y)
+               .appendTo(pageInfo.controls.divBody);
+        });
+
+        var getSidePoint = function (obj, side) {
+            if (side == "top") {
+                return {
+                    x: obj.position().left + obj.width() / 2,
+                    y: obj.position().top
+                };
+            }
+            else if (side == "left") {
+                return {
+                    x: obj.position().left,
+                    y: obj.position().top + obj.height() / 2
+                };
+            }
+            else if (side == "right") {
+                return {
+                    x: obj.position().left + obj.width(),
+                    y: obj.position().top + obj.height() / 2
+                };
+            }
+            else {
+                return {
+                    x: obj.position().left + obj.width() / 2,
+                    y: obj.position().top + obj.height()
+                };
+            }
+        }
+    </script>
+    <style type="text/css">
+        /*兼容小屏幕样式 屏幕宽度小于1024时*/
+        @media screen and (max-width:1280px) {
+            .body {
+                width: 80%;
+                left: -6px;
+            }
+        }
+
+        @media screen and (max-width:1024px) {
+            .body {
+                width: 100%;
+                left: -46px;
+            }
+        }
+    </style>
+</head>
+<body id="content">
+    <div class="head">
+        <div>
+            <div class="title">
+                <!--欢迎使用H3&nbsp;BPM-->
+                {{Welcome.Wel_H3BPM}}
+            </div>
+            <hr class="line" />
+            <div class="description">
+                &nbsp;&nbsp;&nbsp;&nbsp;<!--欢迎使用H3 BPM管理中心。H3 BPM管理中心是H3 BPM开发测试、实施配置、运维管理的统一平台，在H3 BPM管理中心，您可以尽可能的以图形化、可视化、参数化的方式，最少代码化的实现企业的各类流程和业务，并对整个系统进行维护和管理。-->
+                {{Welcome.Wel_H3BPMDes}}
+            </div>
+        </div>
+    </div>
+    <div class="body">
+        <div id="divOrg" class="activity activityPointer" style="top: 130px; left: 40px" onclick="window.location.href='Organization.html';">
+            <div class="activityHead">
+                <div>
+                    <!--组织模型-->
+                    {{Welcome.Wel_Org}}
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    <!--定义支撑流程运转组织架构-->
+                    {{Welcome.Wel_OrgDes}}
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="Organization.html">点击进入>></a>
+                </div>
+            </div>
+        </div>
+
+        <div id="divSetting" class="activity activityPointer" style="top: 270px; left: 40px;" onclick="window.location.href='Setting.html';">
+            <div class="activityHead">
+                <div>
+                    <!--系统参数-->
+                    {{Welcome.Wel_Settings}}
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    <!--设置支撑运行的各类参数-->
+                    {{Welcome.Wel_SettingsDes}}
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="Setting.html">点击进入>></a>
+                </div>
+            </div>
+        </div>
+        <div id="divBizBus" class="activity activityPointer" style="top: 10px; left: 250px" onclick="window.location.href='BizBus.html';">
+            <div class="activityHead">
+                <div>
+                    <!--业务集成-->
+                    {{Welcome.Wel_BizBus}}
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    <!--配置流程与外部系统的数据、服务交互的适配器与接口-->
+                    {{Welcome.Wel_BizBusDesc}}
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="BizBus.html">点击进入>></a>
+                </div>
+            </div>
+        </div>
+
+        <div id="divBizRule" class="activity activityPointer" style="top: 10px; left: 470px; width: 220px;" onclick="window.location.href='BizRule.html';">
+            <div class="activityHead">
+                <div>
+                    <!--业务规则-->
+                    {{Welcome.Wel_BizRule}}
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    <!--配置可从流程中剥离出的复杂业务规则，降低流程复杂度，提高可维护性-->
+                    {{Welcome.Wel_BizRuleDesc}}
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="BizRule.html">点击进入>></a>
+                </div>
+            </div>
+        </div>
+        <div id="divWorkflow" class="activity activityPointer" style="top: 200px; left: 330px; width: 240px" onclick="window.location.href='Workflow.html';">
+            <div class="activityHead">
+                <div>
+                    <!--流程模型-->
+                    {{Welcome.Wel_BizWorkflow}}
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    <!--实现与流程相关的主数据、数据模型、流程、表单的开发实施以及流程的模拟测试-->
+                    {{Welcome.Wel_BizWorkflowDes}}
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="Workflow.html">点击进入>></a>
+                </div>
+            </div>
+        </div>
+        <div id="divBPA" class="activity activityPointer" style="top: 200px; left: 630px; width: 220px" onclick="window.location.href='BPA.html';">
+            <div class="activityHead">
+                <div>
+                    <!--流程分析-->
+                    {{Welcome.Wel_BPA}}
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    <!--实现流程各类报表定义，包括流程绩效、流程优化，业务统计与分析等-->
+                    {{Welcome.Wel_BPADes}}
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="BPA.html">点击进入>></a>
+                </div>
+            </div>
+        </div>
+        <div id="divLog" class="activity activityPointer" style="top: 370px; left: 40px; display: none;" onclick="window.location.href='Log.html';">
+            <div class="activityHead">
+                <div>
+                    系统日志
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    记录系统登录、业务集成、组织变更、流程运行等
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="Log.html">点击进入>></a>
+                </div>
+            </div>
+        </div>
+
+        <div id="divApp" class="activity activityPointer" style="top: 370px; left: 330px; width: 520px" onclick="window.location.href='App.html';">
+            <div class="activityHead">
+                <div>
+                    <!--应用中心-->
+                    {{Welcome.Wel_AppsActivity}}
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    <!--将流程模型、流程分析中的各项功能，包括主数据管理、表单输入、流程流转、报表统计分析以及其它自定义功能等，组合为一个个应用系统。-->
+                    {{Welcome.Wel_AppsActivityDes}}
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="App.html">点击进入>></a>
+                </div>
+            </div>
+        </div>
+
+        <!--        <div class="poly-line down-right" style="width: 200px; height: 200px; top: 20px; left: 400px"></div>
+        <div class="poly-line top-right" style="width: 200px; height: 200px; top: 20px; left: 700px"></div>-->
+    </div>
+</body>
+</html>

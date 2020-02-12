@@ -1,0 +1,82 @@
+﻿<!--
+    超时任务
+     -->
+<!--  ng-init="
+     app.settings.asideFolded=false;
+     app.settings.asideDock=false;" -->
+<div class="hbox hbox-auto-xs hbox-auto-sm">
+    <div class="col">
+        <div class="bg-light lter b-b wrapper-md">
+            <div class="row">
+                <div class="col-sm-6 col-xs-12">
+                    <h1 class="m-n font-thin h3 text-black">
+                        <span class="h3" ng-bind="menuData.DisplayName"></span>
+                    </h1>
+                </div>
+            </div>
+        </div>
+
+        <!--表格部分Start-->
+        <div class="wrapper-md paddingbottomNone">
+            <div class="panel panel-default">
+                <div class="table-responsive">
+                    <div class="form-inline">
+                        <div class="input-group searchContainer" style="float:left;">
+                            <div class="form-group">
+                                <input ng-model="InstanceName" style="width:200px;" maxlength="32" class="input-sm form-control"
+                                       placeholder="{{LanJson.ProcessName}}" />
+                            </div>
+                            <div class="form-group">
+                                <div ui-jq="SheetWorkflow" ui-options="WorkflowOptions" id="sheetWorkflow"></div>
+                            </div>
+                           
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input ng-model="StartTime" ui-jq="wdatePicker" id="StartTime" style="width:100px;"
+                                           class="input-sm form-control" ui-options="getwdatePickerOptions()"
+                                           placeholder="{{LanJson.StartTime}}" />
+                                    <span class="input-group-addon" style="border-left:0px;border-right:0px;"
+                                          translate="QueryTableColumn.To"></span>
+                                    <input ng-model="EndTime" ui-jq="wdatePicker" id="EndTime" style="width:100px;"
+                                           class="input-sm form-control" ui-options="getwdatePickerOptions()"
+                                           placeholder="{{LanJson.EndTime}}" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <input ng-model="SequenceNo" style="width:200px;" maxlength="32" class="input-sm form-control"
+                                       placeholder="{{LanJson.SequenceNo}}" />
+                            </div>
+                            <div class="form-group">
+                                <div ui-jq="SheetUser" ui-options="UserOptions" id="sheetUser" style="margin-left:0px;"></div>
+                            </div>
+                            <div class="form-group">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-sm btn-default" type="button" style="height:30px;"><i class="fa fa-search"></i></button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <table ui-jq="dataTable" id="tabQueryElapsedWorkItem"
+                           ui-options="tab_QueryElapsedWorkItem"
+                           class="table table-striped m-b-none" style="width:99.5%;">
+                        <thead>
+                            <tr>
+                                <th class="hide1024" style="width:30px;"><span translate="QueryTableColumn.Flag"></span></th>
+                                <th><span translate="QueryTableColumn.ProcessName"></span></th>
+                                <th class="hide414"><span translate="QueryTableColumn.WorkFlow"></span></th>
+                                <th class="hide414"><span translate="InstanceDetail.SequenceNo"></span></th>
+                                <th><span translate="QueryTableColumn.ActiveName"></span></th>
+                                <th class="hide414"><span translate="QueryTableColumn.Approver"></span></th>
+                                <th class="hide1024"><span translate="QueryTableColumn.ReceiveTime"></span></th>
+                                <th class="hide1024"><span translate="QueryTableColumn.PlanTime"></span></th>
+                                <th class="hide1024"><span translate="QueryTableColumn.Elapsed"></span></th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!--表格部分End-->
+    </div>
+</div>

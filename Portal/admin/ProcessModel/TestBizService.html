@@ -1,0 +1,289 @@
+﻿<script>
+    var pageData = {
+        MethodList: {},
+        TestBizService: { ServiceCode: "", RunMethod: "", InParams: {} },
+        ReturnResults: {},
+        LanData: $.Languages
+    }
+
+    $(function () {
+        //$("html").css("overflow", "auto")
+        $("body").css("height", $(window).height());
+        $("body").css("overflow-x", "auto");
+        InitPageData();
+        //Vue
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                runMethod: function (event) {
+                    //this.$validate(true);//表单验证
+                    //if (this.$formValidator.invalid) {
+                    //$.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    //} else {
+                    Run();
+                    //}
+                },
+                dateToString: function (str) {
+                    return str;
+                    //return DateToString(str);
+                },
+                replace: function (str) {
+                    //后台吧ItemName中的.替换成--，显示时转换下
+                    if (str) { return str.replace("--", ".") }
+                    return str;
+                },
+                invalidFunc: function (paramName) {
+                    $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.NumberValidate") });
+                    $.each(pageData.TestBizService.InParams, function (n, param) {
+                        if (param.ItemName == paramName) {
+                            param.ItemValue = "";
+                        }
+                    });
+                }
+            }
+        });
+
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel({ excludeIDs: ["divParamGrid", "divReturnGrid"] });
+    });
+
+    //运行方法
+    function Run() {
+        SaveParamsValue();
+        //验证输入参数是否为空
+        //if (!IsValid(pageData.TestBizService.InParams)) {
+        //    $.H3Dialog.Warn({ content: $.Lang("BizService.TestBizService_NotAllowedEmpty") });
+        //    return false;
+        //}
+        if (!pageData.TestBizService.RunMethod) {
+            $.H3Dialog.Warn({ content: $.Lang("BizService.RunMethod_NotAllowedEmpty") });
+            return false;
+        }
+        var formData = JSON.stringify(pageData.TestBizService);
+        $.ajax({
+            url: $.Controller.BizService.GetMethodReturnList,
+            type: "post",
+            dataType: "json",
+            data: { formData: formData },
+            success: function (result) {
+                if (result.Success) {
+                    if (result.Extend) {
+                        for (var i = 0; i < result.Extend.length; i++) {
+                            if (result.Extend[i].LogicTypeString == "DateTime" && result.Extend[i].ItemValue) {
+                                result.Extend[i].ItemValue = new Date(result.Extend[i].ItemValue).format("yyyy-MM-dd");
+                            }
+                        }
+                    }
+
+                    pageData.ReturnResults = result.Extend;
+                    if (result.Message.length > 0) {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                } else {
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                }
+            }
+        });
+    }
+
+    function IsValid(params) {
+        var flag = true;
+        $.each(params, function (n, param) {
+            if (param.ItemValue == "") {
+                flag = false;
+            }
+        });
+        return flag;
+    }
+    ///获取参数的值
+    function SaveParamsValue() {
+        $.each(pageData.TestBizService.InParams, function (n, param) {
+            var pvalue;
+            if (param.LogicTypeString == "DateTime") {
+                pvalue = $("#" + param.ItemName).val();
+
+            } else if (param.LogicTypeString == "SingleParticipant") {
+                pvalue = $("#" + param.ItemName).SheetUIManager().GetValue();
+
+            } else if (param.LogicTypeString == "MultiParticipant") {
+                pvalue = $("#" + param.ItemName).SheetUIManager().GetValue();
+            }
+            else if (param.LogicTypeString == "BizStructureArray" || param.LogicTypeString == "BizStructure" || param.LogicTypeString == "BizObjectArray" || param.LogicTypeString == "BizObject") {
+                pvalue = encodeURIComponent($("textarea[name=" + param.ItemName + "]").val());
+            }
+            else {
+                pvalue = $("input[name=" + param.ItemName + "]").val();
+            }
+            param.ItemValue = pvalue;
+        });
+
+    }
+
+    //初始化数据，方法列表
+    function InitPageData() {
+        var serviceCode = getUrlParam("ServiceCode");
+        if (serviceCode && serviceCode != "") {
+            pageData.TestBizService.ServiceCode = serviceCode;
+            $.ajax({
+                url: $.Controller.BizService.GetMethodList,
+                type: 'get',
+                dataType: "json",
+                data: { serviceCode: serviceCode },
+                async: false,//同步执行
+                success: function (result) {
+                    if (result.Success) {
+                        //debugger;
+                        pageData.MethodList = result.Extend;
+                        if (!pageData.TestBizService.RunMethod && pageData.MethodList.length > 0) {
+                            pageData.TestBizService.RunMethod = pageData.MethodList[0].Value;
+                        }
+                    }
+                    else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+            if (pageData.TestBizService.RunMethod) {
+                lstMethod_SelectedIndexChanged(pageData.TestBizService.RunMethod);
+            }
+        }
+    }
+
+    //方法切换
+    function lstMethod_SelectedIndexChanged(methodName) {
+        //获取方法参数
+        $.ajax({
+            url: $.Controller.BizService.GetMethodParamList,
+            type: 'get',
+            dataType: "json",
+            data: { serviceCode: pageData.TestBizService.ServiceCode, methodName: methodName },
+            async: false,//同步执行
+            success: function (result) {
+                if (result.Success && result.Extend) {
+                    pageData.TestBizService.InParams = result.Extend;
+                }
+                else {
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                }
+            }
+        });
+        pageData.ReturnResults = [];
+    }
+</script>
+
+<validator name="formValidator">
+    <div id="H3ToolBar">
+        <a id="btnRun" v-on:click="runMethod" data-icon="icon-yunxing" data-lang="GlobalButton.Run"> </a>
+    </div>
+
+    <div class="H3Panel">
+        <span data-lang="BizService.ListMethods"></span>
+        <table>
+            <tr>
+                <td data-lang="BizService.RunMethod"></td>
+                <td>
+                    <select id="lstMethod" onchange="lstMethod_SelectedIndexChanged(this.value)" v-model="TestBizService.RunMethod">
+                        <option v-for="option in MethodList" v-bind:value="option.Value">
+                            {{option.Text}}
+                        </option>
+                    </select>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="H3Panel">
+        <span data-lang="BizService.InParams"></span>
+        <div id="divParamGrid">
+            <table class="mywork_list_table" cellspacing="0" rules="all" border="0" border="1" id="ParamGrid" style="width:100%;border-collapse:collapse">
+                <tr>
+                    <td class="left25" style="width:28%">ItemName</td>
+                    <td class="left25" align="left" style="width:120px">LogicType</td>
+                    <td class="left25" align="center" style="height:25px;">Value</td>
+                </tr>
+                <template v-for="item in TestBizService.InParams">
+                    <tr>
+                        <td class="tableLeft">{{replace(item.ItemName)}}</td>
+                        <td>{{item.LogicTypeString}}</td>
+                        <td v-if="item.LogicTypeString=='DateTime'">
+                            <input type="text" id="{{item.ItemName}}" name="{{item.ItemName}}" value="{{dateToString(item.ItemValue)}}" onclick="InitWdatePicker(this)" style="width:80%;" />
+                        </td>
+                        <td v-if="item.LogicTypeString=='SingleParticipant'">
+                            <!--单人参与者-->
+                            <div id="{{item.ItemName}}" class="SingleParticipant" name="{{item.ItemName}}" value="{{item.ItemValue}}" style="width:80%"></div>
+                        </td>
+                        <td v-if="item.LogicTypeString=='MultiParticipant'">
+                            <!--多人参与者-->
+                            <div id="{{item.ItemName}}" class="MultiParticipant" name="{{item.ItemName}}" value="{{item.ItemValue}}" style="width:80%"></div>
+                        </td>
+                        <td v-if="item.LogicTypeString=='BizObject' || item.LogicTypeString=='BizObjectArray' || item.LogicTypeString=='BizStructureArray' || item.LogicTypeString=='BizStructure'">
+                            <textarea name="{{item.ItemName}}" value="{{item.Value}}" style="width:80%"></textarea>
+                        </td>
+
+                        <td v-if="item.LogicTypeString=='Int'||item.LogicTypeString=='Long' ">
+                            <input @invalid="invalidFunc(item.ItemName)" v-model="item.ItemValue" type="number" name="{{item.ItemName}}" value="{{item.ItemValue}}" style="width:80%;height:25px" detect-change="off" detect-blur="on" initial="off" field="item.ItemName" v-validate="['nullornumber']" />
+                        </td>
+
+                        <td v-if="item.LogicTypeString=='Double' ">
+                            <input @invalid="invalidFunc(item.ItemName)" v-model="item.ItemValue" type="number" name="{{item.ItemName}}" value="{{item.ItemValue}}" style="width: 80%; height: 25px;" detect-change="off" detect-blur="on" initial="off" field="item.ItemName" v-validate="['nullordouble']" />
+                        </td>
+
+                        <td v-if="item.LogicTypeString!='Int' &&item.LogicTypeString!='Long' &&item.LogicTypeString!='Double'&&item.LogicTypeString!='DateTime' && item.LogicTypeString!='SingleParticipant' && item.LogicTypeString!='MultiParticipant' && item.LogicTypeString!='BizObject' && item.LogicTypeString!='BizObjectArray' &&  item.LogicTypeString!='BizStructureArray' && item.LogicTypeString!='BizStructure'">
+                            <input type="text" name="{{item.ItemName}}" value="{{item.ItemValue}}" style="width:80%" />
+                        </td>
+                    </tr>
+                </template>
+            </table>
+        </div>
+    </div>
+
+    <div class="H3Panel">
+        <span data-lang="BizService.Return"></span>
+        <div id="divReturnGrid">
+            <!--ReturnGrid-->
+            <table class="mywork_list_table" cellspacing="0" rules="all" border="0" border="1" id="ReturnGrid" style="width:100%;border-collapse:collapse">
+                <tr>
+                    <td class="left25" style="width:28%">ItemName</td>
+                    <td class="left25" align="left" style="width:120px">LogicType</td>
+                    <td class="left25" align="center">ItemValue</td>
+                </tr>
+                <template v-for="item in ReturnResults">
+                    <tr>
+
+                        <td class="tableLeft">{{item.ItemName}}</td>
+                        <td>{{item.LogicTypeString}}</td>
+                        <td v-if="item.LogicTypeString=='BizObject' || item.LogicTypeString=='BizObjectArray'  || item.LogicTypeString=='BizStructure'  || item.LogicTypeString=='BizStructureArray'">
+                            <table class="tableList" cellspacing="0" rules="all" border="0" border="1" style="width:100%;border-collapse:collapse;">
+                                <tr v-for="row in item.ItemValue">
+                                    <td v-for="cellvalue in row">{{cellvalue}}</td>
+                                </tr>
+                            </table>
+                        </td>
+                        <!--item.LogicTypeString!='DateTime' && item.LogicTypeString!='SingleParticipant' && item.LogicType!='MultiParticipant'-->
+                        <td v-else>
+                            {{item.ItemValue}}
+                        </td>
+                    </tr>
+                </template>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        $(function () {
+            //初始化选人控件
+            $.each($("div.SingleParticipant"), function () {
+                $(this).SheetUser({ Editable: true, UserVisible: true, OrgUnitVisible: false, Visiable: true });
+                $(this).SheetUIManager().SetValue($(this).attr("value"));
+            });
+
+            $.each($("div.MultiParticipant"), function () {
+                $(this).SheetUser({ Editable: true, Visiable: true, UserVisible: true, OrgUnitVisible: true, IsMultiple: true });
+                var mvalue = $(this).attr("value");
+            });
+
+        });
+    </script>
+</validator>

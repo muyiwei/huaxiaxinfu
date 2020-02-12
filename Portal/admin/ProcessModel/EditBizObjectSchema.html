@@ -1,0 +1,570 @@
+﻿<style>
+    .PropertyReservedStyle {
+        color: #999;
+        font-style: oblique;
+        width: 60%;
+    }
+    .l-dialog-content-noimage {
+        overflow: auto;
+    }
+</style> 
+<script type="text/javascript" src="../WFRes/_Scripts/designer/DataItem.js"></script>
+<script>
+    var pageData = {
+        SchemaCode: "",//参数
+        SchemaCodeName: "",//参数名称
+        IsBizObject: false,//node.NodeType == FunctionNodeType.BizObject
+        BizObjectSchema: {},
+        LanData: $.Languages,
+        DataItemsSelect: []
+    };  
+    $(function () {  
+        var IsControlUsable = 0; 
+        initPageData();
+       
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                },
+                validateData: function (event) {
+                    validateData();
+                }
+            }
+        });
+         
+        LoadDataItems();
+
+        $("#TdTitle").click(function () {
+            // 选择数据项后的事件
+            if (pageData.BizObjectSchema.IsPublished) {
+                $(".BizData").DataItemsBind();
+            } else {
+                $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.BizObjectUnpublished") });
+            }
+        });
+      
+       
+        // 获取页面初始化数据
+        function initPageData() {
+            var ParentID = getUrlParam("ParentID") || "";
+            var SchemaCode = getUrlParam("SchemaCode") || "";
+            $.ajax({
+                url: $.Controller.BizObjectSchema.GetBizObjectSchemaPageData,
+                type: "GET",
+                cache: false,
+                async: false,//同步执行
+                data: { parentId: ParentID, schemaCode: SchemaCode },
+                dataType: "JSON",
+                success: function (data) {
+                    if (data.Success) {
+                        IsControlUsable =data.Extend.IsLocked; 
+                        pageData = data.Extend;
+                        pageData.BizObjectSchema.Type = $.Lang(pageData.BizObjectSchema.Type);
+                        pageData.SchemaCode = SchemaCode;
+                        pageData.LanData = $.Languages;
+                        setControlUsable(IsControlUsable, $("a"));
+                        pageData.DataItemsSelect = data.Extend.DataItemsSelect;//可选择的数据项  
+                    } else {
+                        setControlUsable(IsControlUsable, $("a"));
+                        $.H3Dialog.Warn({ content: $.Lang(data.Message) });
+                    }
+                }
+            });
+           //数据模型未发布时标题只读
+            if (!pageData.BizObjectSchema.IsPublished) {
+                $("#TdTitle").find('textarea').attr('readonly', true);
+            }  
+        }
+        $("#H3ToolBar").AspLinkToolBar();
+        $("#H3ToolBar1").AspLinkToolBar({ IsFixed: false });
+        $(".H3Panel").BuildPanel({ excludeIDs: ["excludeDiv"] });
+        $(".H3Panel").CloseAllPanel({ excludeIDs: ["excludeDiv"] });
+        //创建表格
+        var ligergrid = $("#PropertyGrid").ligerGrid({
+            columns: GetPropertyColums(),
+            width: '100%',
+            height: '98%',
+            //data: gridData,
+            url: $.Controller.BizObjectSchema.GetPropertySchemaList,
+            parms: { schemaCode: pageData.SchemaCode },
+            rownumbers: true,
+            usePager: false,
+            // checkbox: true,
+            allowAdjustColWidth: true,
+            rownumbers: true,
+            enabledSort: false,
+            columnWidth: "auto",
+            tree: { columnId: 'ParentID' },
+            onAfterShowData: function () {
+                setControlUsable(IsControlUsable, $("a"));
+                SetDragEvent(this);
+                SetReservedCss(this, this.data.Rows);
+                setTimeout(function () {
+                    var datatable = $("#PropertyGridgrid").find("table").eq(4);
+                    var noTr = $("#PropertyGridgrid").find("table").eq(2).find("tr");
+                    var firstTd = $(datatable).find("tr").eq(0).find("td").eq(2);
+                    var cDiv = $("<div class='fa fa-plus'></div>");
+                    $(cDiv).css("cursor", "pointer").css("padding-right", "8px").css("padding-top", "8px").css("float", "right");
+                    var systemTr = $(datatable).find("tr.PropertyReservedStyle");
+                    $(systemTr).hide();
+                    $(systemTr).eq(0).show();
+                    for (var i = 1; i < systemTr.length; i++) {
+                        $(noTr).eq(i).hide();
+                    }
+                    firstTd.children().append(cDiv);
+                    $(cDiv).unbind("click").bind("click", function (e) {
+                        if ($(this).attr("class") == "fa fa-plus") {
+                            $(systemTr).show();
+                            $(this).attr("class", "fa fa-minus");
+                            for (var i = 1; i < systemTr.length; i++) {
+                                $(noTr).eq(i).show();
+                            }
+                        }
+                        else {
+                            $(this).attr("class", "fa fa-plus")
+                            $(systemTr).hide();
+                            $(systemTr).eq(0).show();
+                            for (var i = 1; i < systemTr.length; i++) {
+                                $(noTr).eq(i).hide();
+                            }
+                        }
+                    })
+                }, 200);
+            }
+        });
+    });
+
+    //保存
+    function saveData() {
+        $.ajax({
+            url: $.Controller.BizObjectSchema.SaveBizObjectSchema,
+            type: "post",
+            dataType: "json",
+            data: pageData.BizObjectSchema,
+            success: function (result) {
+                if (result.Success) {
+                    top.ReloadNode(pageData.BizObjectSchema.ParentId);
+                    $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SaveSucced") });
+                } else {
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                }
+            }
+        });
+    }
+
+    //检查数据
+    function validateData() {
+        $.ajax({
+            url: $.Controller.BizObjectSchema.ValidateBizObjectSchema,
+            type: "post",
+            dataType: "json",
+            data: pageData.BizObjectSchema,
+            success: function (result) {
+                if (result.Success) {
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                } else {
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                }
+            }
+        });
+    }
+
+    function SetReservedCss(g, rows) {
+        for (var i = 0, j = rows.length; i < j; i++) {
+            if (rows[i].IsReserved) {
+                $($("table tr", g.gridview2)[rows[i].__index + 1]).addClass("PropertyReservedStyle")
+            }
+
+            if (rows[i].children != null) {
+                SetReservedCss(g, rows[i].children);
+            }
+        }
+    }
+
+    function SetDragEvent(obj) {
+        var g = obj;
+        var p = obj.options;
+        $("div[DragDiv='DragDiv']").ligerDrag({
+            proxyX: 10,
+            proxy: function (draggable, e) {
+                var proxy = $("<div class='l-drag-proxy' style='display:none'><div class='l-drop-icon l-drop-no'></div></div>").appendTo('body');
+                return proxy;
+            },
+            onDrag: function (current, e) {
+
+                if (IsCanMove(current, e))
+                    this.proxy.find(".l-drop-icon:first").removeClass("l-drop-no l-drop-yes").addClass("l-drop-yes");
+                else
+                    this.proxy.find(".l-drop-icon:first").removeClass("l-drop-yes l-drop-add").addClass("l-drop-no");
+            },
+            onStopDrag: function (current, e) {
+                if (!IsCanMove(current, e)) return;
+                var moveObj = $(current.target);
+                var target = $("div[DragDiv='DragDiv']", e.target);
+                var eTarget = e.target;
+                while (target.length != 1 && eTarget.parentElement != "body" && eTarget.parentElement != null) {
+                    target = $("div[DragDiv='DragDiv']", eTarget.parentElement);
+                    eTarget = eTarget.parentElement;
+                }
+                var curentIndex = parseInt(moveObj.attr("Rowindex"));
+                var targetIndex = parseInt(target.attr("Rowindex"));
+                var changeType = curentIndex > targetIndex ? "UP" : "DOWN";
+                var parentItemName = moveObj.attr("ParentItemName").replace("\\", "");
+                var currentItemName = moveObj.attr("ItemName");
+                var targetItemName = target.attr("ItemName");
+
+                var url = $.Controller.BizObjectSchema.DragProperty;
+                var dataParam = {
+                    schemaCode: pageData.BizObjectSchema.Code,//流程模型编码参数标示
+                    currentItemName: encodeURI(currentItemName),
+                    targetItemName: encodeURI(targetItemName),
+                    parentItemName: parentItemName,
+                    changeType: changeType
+                };
+                $.ajax({
+                    url: url,
+                    data: dataParam,
+                    success: function (result) {
+                        var scrollTop = $(".l-scroll").scrollTop();
+                        var manager = $("#PropertyGrid").ligerGetGridManager();
+                        manager.move(curentIndex, targetIndex, curentIndex < targetIndex);
+                        $(".l-scroll").scrollTop(scrollTop);
+                    }
+                });
+            }
+        });
+    }
+
+    function IsCanMove(current, e) {
+        var moveObj = $(current.target);
+        var target = $("div[DragDiv='DragDiv']", e.target);
+        var eTarget = e.target;
+        while (target.length != 1 && eTarget.parentElement != "body" && eTarget.parentElement != null) {
+            target = $("div[DragDiv='DragDiv']", eTarget.parentElement);
+            eTarget = eTarget.parentElement;
+        }
+        if (target.length != 1)
+            return false;
+        else if (target.attr("DragDiv") == null || target.attr("DragDiv") == "")
+            return false;
+        else if (moveObj.attr("ParentItemName") != target.attr("ParentItemName"))
+            return false;
+        else if (moveObj.attr("ItemName") == target.attr("ItemName"))
+            return false;
+        else
+            return true;
+    }
+
+    function GetPropertyColums() {
+        return [
+                { display: "ParentProperty", name: "ParentProperty", hide: true },
+                { display: $.Lang("EditBizObjectSchema.ItemName"), name: "ItemName", hide: true },
+                { display: $.Lang("EditBizObjectSchema.DisplayName"), id: "ParentID", name: "DisplayName", width: "20%" },
+                { display: $.Lang("EditBizObjectSchema.LogicType"), name: "LogicTypeName", width: "9%" },
+                { display: "LogicType", name: "LogicType", hide: true },
+                { display: "ChildSchemaCode", name: "ChildSchemaCode", hide: true },
+                { display: $.Lang("EditBizObjectSchema.DefaultValue"), name: "DefaultValue", width: "9%" },
+                { display: $.Lang("EditBizObjectSchema.Track"), name: "Trackable", render: BuildBoolCoum, align: "center" },
+                { display: $.Lang("EditBizObjectSchema.Index"), name: "Indexed", render: BuildBoolCoum, align: "center" },
+                { display: $.Lang("EditBizObjectSchema.Search"), name: "Searchable", render: BuildBoolCoum, align: "center" },
+                { display: $.Lang("EditBizObjectSchema.Required"), name: "Required", render: BuildBoolCoum, align: "center" },
+                { display: $.Lang("EditBizObjectSchema.Published"), name: "IsPublished", render: BuildBoolCoum, align: "center" },
+                {
+                    display: $.Lang("GlobalButton.Edit"), code: "edit", width: "13%", render: function (row, rowindex, value) {
+                        if (row.IsReserved) { return ""; }
+
+                        var BizObject = "BizObject";// "<%=OThinker.H3.Data.DataLogicType.BizObject%>";
+                        var BizObjectArray = "BizObjectArray";// "<%=OThinker.H3.Data.DataLogicType.BizObjectArray%>";
+
+                        var addLink = "<div style='padding-left:5px;float:left;'><a href='javascript:void(0);' style='text-align:left;' ParentProperty='" + row.ParentProperty + "' property='" + row.ItemName + "' parentid='' name='" + row.DisplayName + "' IsPublished='" + row.IsPublished + "' onclick='AddProperty(this)'>" + $.Lang("GlobalButton.Edit") + "</a></div>";
+                        var editProperty = "<div style='padding-left:5px;float:left;'><a href='javascript:void(0);' style='text-align:left;' ParentProperty='" + row.ParentProperty + "' property='' parentid='" + row.ItemName + "' name='" + row.DisplayName + "' onclick='AddProperty(this)'>" + $.Lang("EditBizObjectSchema.Dataitem") + "</a></div>";
+                        var delLnk = "<div style='padding-left:5px;float:left;'><a href='javascript:void(0);' style='text-align:left;' ParentProperty='" + row.ParentProperty + "' property='" + row.ItemName + "' name='" + row.DisplayName + "' onclick='DelProperty(this)'>" + $.Lang("GlobalButton.Remove") + "</a></div>";
+
+                        var isChild = row.children == null;
+                        //var UpSeq = "<div style='padding-left:5px;float:left;'><a href='javascript:void(0);' isChild='" + isChild + "' title='" + $.Lang("BizObjectSchema.Up") + "'  property='" + row.ItemName + "' changeType='UP' onclick='ChangeSeq(this," + rowindex + ")'>↑</a></div>";
+                        //var DownSeq = "<div style='padding-left:5px;float:left;'><a href='javascript:void(0);' isChild='" + isChild + "' title='" + $.Lang("BizObjectSchema.Down") + "'  property='" + row.ItemName + "' changeType='DOWN' onclick='ChangeSeq(this," + rowindex + ")'>↓</a></div>";
+
+                        var MoveObj = "<div DragDiv='DragDiv' Rowindex='" + rowindex + "' ItemName='" + row.ItemName + "' ParentItemName='" + row.ParentItemName + "' style='padding:5px;float:left;width: 20px;height: 20px;margin-top: 5px;background:url(" + _PORTALROOT_GLOBAL + "/WFRes/_Content/themes/H3Default/Images/dragtarget.png);background-size: 20px;background-repeat: no-repeat;'></div>";
+
+                        if (row.LogicType == BizObject || row.LogicType == BizObjectArray)
+                            addLink = addLink + editProperty;
+                        return addLink + delLnk + MoveObj;// UpSeq + DownSeq;
+                    }
+                }
+        ];
+    }
+
+    function AddProperty(obj) {
+        var property = obj == null ? "" : $(obj).attr("property");
+        var parentProperty = obj == null ? "" : $(obj).attr("ParentProperty");
+        var IsPublished = obj == null ? "" : $(obj).attr("IsPublished");
+        var parentPath = parentProperty.split("\\");
+        var parentName = parentPath.length > 2 ? parentPath[1] : pageData.BizObjectSchema.DisplayName;//"<%=string.IsNullOrWhiteSpace(this.Schema.DisplayName)?this.Schema.SchemaCode:this.Schema.DisplayName%>";
+        var name = property == "" ? $.Lang("EditBizObjectSchema.AddProperty") : $(obj).attr("name");
+        var url = "ProcessModel/EditBizObjectSchemaProperty.html";
+        url = url + "&" + pageData.ConstString.SchemCodeStr + "=" + pageData.BizObjectSchema.Code;
+        url = url + "&" + pageData.ConstString.ParentProperty + "=" + encodeURI(parentProperty);
+        url = url + "&" + pageData.ConstString.ParamProperty + "=" + encodeURI(property);
+        url = url + "&IsPublished=" + encodeURI(IsPublished);
+        ShowDialog(parentName + "_" + name, _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=" + url);
+    }
+
+    function DelProperty(obj) {
+        var property = obj == null ? "" : $(obj).attr("property");
+        var parentProperty = obj == null ? "" : $(obj).attr("ParentProperty");
+        if (ConfirmDel(obj)) {
+            var param = {
+                parentProperty: encodeURI(parentProperty),
+                schemaCode: pageData.BizObjectSchema.Code,
+                property: encodeURI(property)
+            };
+            $.ajax({
+                url: $.Controller.BizObjectSchemaProperty.DeleteBizObjectSchemaProperty,
+                data: param,
+                type: 'post',
+                dataType: "json",
+                success: function (result) {
+                    if (result.Success) {
+                        GridReload(pageData.BizObjectSchema.Code);
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.DeleteSucced") });
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.DeleteFaild") });
+                    }
+                }
+            });
+        }
+    }
+
+    function DelSchemaObject(obj) {
+        if (ConfirmDel(obj)) {
+            $.ajax({
+                url: $.Controller.BizObjectSchema.DeleteBizObjectSchema,
+                data: { schemaCode: pageData.SchemaCode },
+                type: 'post',
+                dataType: "json",
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.DeleteSucced") });
+                        setTimeout( function () {
+                            top.ReloadNode();
+                            top.workTab.removeTabItem(top.workTab.getSelectedTabItemID());
+                        }, 1000);
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        }
+    }
+
+    function ConfirmPublish(obj) {
+        if ($(obj).attr("ignoreFirm") == "true") {
+            $(obj).removeAttr("ignoreFirm");
+            return true;
+        }
+        $.ligerDialog.confirm($.Lang("EditBizObjectSchema.Msg2"), function (result) {
+            if (result) {
+                $(obj).attr("ignoreFirm", true);
+                if ($(obj).attr("href").indexOf("__doPostBack") > -1
+                    || $(obj).attr("href").indexOf("WebForm_DoPostBackWithOptions") > -1) {
+                    eval($(obj).attr("href"));
+                }
+                else { 
+                    $.ajax({
+                        url: $.Controller.BizObjectSchema.PublishBizObjectSchema,
+                        data: pageData.BizObjectSchema,
+                        type: 'post',
+                        dataType: "json",
+                        success: function (result) {
+                            if (result.Success) {
+                                pageReload()
+                                $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                            } else {
+                                var content;
+                                if (result.Extend)
+                                    content = $.Lang(result.Message) + ":" + result.Extend;
+                                else content = $.Lang(result.Message);
+                                $.H3Dialog.Warn({ content: content });
+                            }
+                        }
+                    });
+                }
+            }
+        });
+        return false;
+    }
+
+    function GridReload(schemaCode) {
+        var manager = $("#PropertyGrid").ligerGetGridManager();
+        manager.reload();
+        for (var i = 0, j = top.$("iframe").length; i < j; i++) {
+            if ($.isFunction(parent.window.frames[i].OnBizObjectSchemaChanged)) {
+                parent.window.frames[i].OnBizObjectSchemaChanged(pageData.BizObjectSchema.Code);
+            }
+        }
+    }
+
+    function GetGridData(schemaCode) {
+        var data = [];
+        $.ajax({
+            url: $.Controller.BizObjectSchema.GetPropertySchemaList,
+            data: { schemaCode: schemaCode },
+            type: 'get',
+            dataType: "json",
+            cache: false,
+            async: false,//同步执行
+            success: function (result) {
+                if (result.Success) {
+                    data = result.Extend;
+                }
+            }
+        });
+        return data;
+    }
+    function pageReload() {
+        setTimeout("location.reload()", 1000);
+    }
+
+    function BatchProperty(obj) {
+        ShowDialog($(obj).text(), "BatchEditSchemaProperty.aspx?pageData.SchemCodeStr=" + pageData.SchemCode);
+    }
+
+    function btnAclManger_Click(obj) {
+        top.f_addTab(
+            {
+                tabid: pageData.BizObjectSchema.Code + "_BizObjectAclList".replace(/%/g, ""),
+                text: pageData.BizObjectSchema.Code + "_" + $(obj).text(),
+                url: "ProcessModel/BizObjectAclList.html&" + pageData.ConstString.SchemCodeStr + "=" + pageData.BizObjectSchema.Code
+            });
+    }
+
+    function Import_Click(obj) {
+        ShowDialog($(obj).text(), _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/BizMasterDataImportData.html&SchemaCode=" + pageData.BizObjectSchema.Code);
+    }
+    //绑定选择数据项树
+    function LoadDataItems() { 
+        //绑定树数据
+        $("#tvDataSelector").ligerTree({
+            checkbox: false,
+            width: "100%",
+            idFieldName: 'ObjectID',
+            textFieldName: 'Text',
+            iconFieldName: "Icon",
+            parentIDFieldName: "ParentID",
+            btnClickToToggleOnly: true,
+            isExpand: true,
+            data: pageData.DataItemsSelect,
+            isLeaf: function (data) {
+                if (!data) return false;
+                return data.IsLeaf;
+            },
+            delay: function (e) {
+                var node = e.data;
+                node.TextCode = node.Text;
+                if (node.Text == $.Lang(node.Text)) {
+                    node.Text = node.Text
+                } else {
+                    node.Text = $.Lang(node.Text);
+                }
+                if (node == null) return false;
+                if (node.IsLeaf == null) return false;
+                if (node.LoadDataUrl == null) return false;
+                if (!node.IsLeaf && node.LoadDataUrl.length > 0) {
+                    return node.LoadDataUrl;
+                }
+                return false;
+            },
+            onSelect: DataItemSelect
+        });
+    }
+    var DataItemSelect = function (node) {  
+        if (node == null) return;
+        if (node.data == null) return;
+        if (!node.data.Value) return;
+        //该字段禁止选择
+        if (node.data.TextCode == "Name") {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.UnallowedField") });
+            return;
+        }
+        DataItemSelected(node.data.Text, "{" + node.data.Value + "}");
+    }
+   
+</script>
+
+<div id="H3ToolBar">
+    <a id="btnSave" v-on:click="saveData" data-icon="fa fa-save" href="javascript:void(0)" data-lang="GlobalButton.Save">保存</a>
+    <a id="btnValidate" v-on:click="validateData" data-icon="fa fa-check" href="javascript:void(0)" data-lang="GlobalButton.Validate">检验</a>
+    <a id="btnPublish" onclick="ConfirmPublish(this);" data-icon="fa fa-upload" href="javascript:void(0)" data-lang="GlobalButton.Publish">发布</a>
+    <a id="btnRemove" onclick="DelSchemaObject(this);" data-icon="fa fa-minus" href="javascript:void(0)" data-lang="GlobalButton.Remove" v-if="IsBizObject">删除</a>
+    <a id="btnImport" onclick="Import_Click(this)" href="javascript:void(0);" data-icon="fa fa-upload" data-lang="GlobalButton.Import" v-if="IsMaster" v-bind:disabled="IsImport">导入</a>
+    <a id="btnAclManger" onclick="btnAclManger_Click(this)" href="javascript:void(0);" data-icon="icon-quanxianshezhi" data-lang="GlobalButton.SetAcl">权限设置</a>
+</div>
+<validator name="formValidator">
+    <div class="H3Panel">
+        <span>{{LanData.EditBizObjectSchema.BasicPro}}</span>
+        <table>
+            <tr>
+                <td>{{LanData.EditBizObjectSchema.Code}}</td>
+                <td>
+                    <input v-model="BizObjectSchema.Code" id="txtCode" type="text" disabled="disabled" />
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.EditBizObjectSchema.DisplayName}}</td>
+                <td>
+                    <input v-model="BizObjectSchema.DisplayName" id="txtDisplayName" type="text" />
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.EditBizObjectSchema.Title}}</td>
+                <td id="TdTitle">
+                    <textarea v-model="BizObjectSchema.NameSchema" rows="2" style="height: 60px; vertical-align: bottom;"></textarea><input type="button" value="..." class="BizData" />
+                </td>
+
+            </tr>
+            <tr>
+                <td>{{LanData.EditBizObjectSchema.Type}}</td>
+                <td>
+                    <span>{{BizObjectSchema.Type}}</span>
+                </td>
+            </tr>
+            <tr id="trStorageType" v-show="IsBizObject">
+                <td>{{LanData.EditBizObjectSchema.SortKey}}</td>
+                <td>
+                    <input v-model="BizObjectSchema.SortKey" detect-change="on" detect-blur="on" initial="off" v-validate:sort-key="['number']" type="text" />
+                    <span style="color: Red;" v-if="$formValidator.sortKey.number">{{LanData.msgGlobalString.NumberValidate}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.EditBizObjectSchema.Description}}</td>
+                <td>
+                    <textarea id="txtDescription" rows="2" cols="20" style="height:35px;width:89.3%;" v-model="BizObjectSchema.Description"></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>
+
+<div id="GridPannel" class="H3Panel">
+    <span>{{LanData.EditBizObjectSchema.ItemList}}</span>
+    <div id="excludeDiv">
+        <div id="H3ToolBar1">
+            <a id="btnAddProperty" href="javascript:void(0);" data-icon="fa fa-plus" onclick="AddProperty()" data-lang="GlobalButton.Add"></a>
+        </div>
+        <div id="PropertyGrid"></div>
+    </div>
+</div>
+
+<!--数据项选择控件 Start--> 
+<div id="divDataItems" style="display:none;"> 
+    <ul id="tvDataSelector"></ul>
+</div> 
+<!--数据项选择控件 End-->

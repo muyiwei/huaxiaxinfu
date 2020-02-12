@@ -1,0 +1,544 @@
+﻿<!--<script src="../WFRes/_Scripts/MVCSheet/Controls/SheetWorkflow.js"></script>-->
+<style>
+    .select2-container {
+        border: 1px solid #a8a8a8 !important;
+        min-height: 26px !important;
+        margin-top:2px;
+    }
+</style>
+<script>
+    $(function () {
+        $("#H3ToolBar").AspLinkToolBar();
+        //$(".H3Panel").BuildPanel({ excludeIDs: ["UserRoleList", "UserGroupList", "UserWorkItemList"] });
+
+        var userid = getUrlParam("id");
+        $("#hduserid").val(userid);//当前离职用户ID
+
+        //用户控件初始化
+        $("#dvRoleReplaceUser").SheetUser({ Editable: true, Visiable: true });
+        $("#dvGroupReplaceUser").SheetUser({ Editable: true, Visiable: true });
+        $("#dvTransferUser").SheetUser({ Editable: true, Visiable: true});
+
+        //流程选择控件
+        $("#workflowcode").SheetWorkflow({ Editable: true, Visiable: true, IsMultiple: true,Mode:"WorkflowTemplate", IsSearch2: true, IsFrequentFlow: false });
+        $("#workflowcode.select2-choices").css("border-width", "1px");
+        $("#workflowcode").width($(window).width() * 0.3); //$(window).width() * 0.3);
+        $("#dvTransferUser").width($(window).width() * 0.3);
+        //默认显示角色替换
+        roleClick();
+
+    });
+
+
+    function CreateWorkItemGrid() {
+        var userid = $("#hduserid").val();
+        SearchWorkItem();
+    }
+
+    function CreateRoleGrid()
+    {
+        var userid = $("#hduserid").val();
+        //创建角色列表
+        CreateLigerGrid(
+        $("#UserRoleList"), GetRoleGridColums(),
+        $.Controller.OrgUser.GetUserRoleList,
+        true, "97%", null, null, null,
+        {
+            userId: userid
+        });
+    }
+
+    function CreateGroupGrid()
+    {
+        var userid = $("#hduserid").val();
+        //创建组列表
+        CreateLigerGrid(
+        $("#UserGroupList"), GetGroupGridColums(),
+        $.Controller.OrgUser.GetUserGroupList,
+        true, "97%", null, null, null,
+        {
+            userId: userid
+        });
+    }
+
+
+    //任务列表列
+    function GetTaskGridColums() {
+        var Task =$.Lang("TransferUser.Task");
+        var WorkFlowName =$.Lang("TransferUser.WorkFlowName");
+        var OriginateUnit =$.Lang("TransferUser.OriginateUnit");
+        var Originator =$.Lang("TransferUser.Originator");
+        var ReceiveTime =$.Lang("TransferUser.ReceiveTime");
+        return [
+            { display: "ObjectID", name: "ObjectID", hide: true },
+            { display: Task, name: "Task" },
+            { display: WorkFlowName, name: "WorkFlowName" },
+            { display:Originator, name: "Originator" },
+            { display: OriginateUnit, name: "OriginateUnit" },
+            { display: ReceiveTime, name: "ReceiveTime" }
+           ];  
+    }
+    //角色列表列
+    function GetRoleGridColums() {
+        var RoleCode = $.Lang("TransferUser.RoleCode");
+        var RoleName = $.Lang("TransferUser.RoleName");
+        var RoleStaff = $.Lang("TransferUser.RoleStaff");
+        
+        return [
+            { display: "ObjectID", name: "RoleID", hide: true },
+            { display: RoleCode, name: "RoleCode" },
+            { display: RoleName, name: "RoleName" }
+        ];
+    }
+    //组列表列
+    function GetGroupGridColums() {
+        var GroupName = $.Lang("TransferUser.GroupName");
+        var GroupDept = $.Lang("TransferUser.GroupDept");
+        return [
+            { display: "ObjectID", name: "ObjectID", hide: true },
+            { display: GroupName, name: "GroupName" },
+            { display: GroupDept, name: "GroupDept" }
+        ];
+    }
+
+    //角色列表选择行
+    function GetRoleGridSelectedIDs()
+    {
+        var gridManager = $("#UserRoleList").ligerGetGridManager();
+
+        var msg0 = $.Lang("TransferUser.Msg0");
+        var rows = gridManager.getSelectedRows();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: msg0 });
+            return;
+        }
+        var ids = "";
+        for (var i = 0; i < rows.length; i++) {
+            ids = ids + rows[i].RoleID + ";";
+        }
+
+        return ids;
+    }
+    //组列表选择行
+    function GetGroupGridSelectedIDs() {
+        var gridManager = $("#UserGroupList").ligerGetGridManager();
+
+        var msg0 = $.Lang("TransferUser.Msg0");
+        var rows = gridManager.getSelectedRows();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: msg0 });
+            return;
+        }
+        var ids = "";
+        for (var i = 0; i < rows.length; i++) {
+            ids = ids + rows[i].ObjectID + ";";
+        }
+
+        return ids;
+    }
+    //任务列表选择行
+    function GetWorkItemGridSelectedIDs() {
+        var gridManager = $("#UserWorkItemList").ligerGetGridManager();
+
+        var msg0 = $.Lang("TransferUser.Msg0");
+        var rows = gridManager.getSelectedRows();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: msg0 });
+            return;
+        }
+        var ids = "";
+        for (var i = 0; i < rows.length; i++) {
+            ids = ids + rows[i].ObjectID + ";";
+        }
+
+        return ids;
+    }
+
+    function roleClick()
+    {
+        showPanel("RoleTransfer");
+        hiddenPanel("GroupTransfer");
+        hiddenPanel("TransferWorkItem");
+        CreateRoleGrid();
+    }
+
+    function groupClick()
+    {
+       
+        hiddenPanel("RoleTransfer");
+        showPanel("GroupTransfer");
+        hiddenPanel("TransferWorkItem");
+        CreateGroupGrid();
+    }
+
+    function transferClick() {
+        hiddenPanel("RoleTransfer");
+        hiddenPanel("GroupTransfer");
+        showPanel("TransferWorkItem");
+        CreateWorkItemGrid();
+    }
+
+    function showPanel(keyword) {
+        //var groupdiv = $("span[data-lang='"+keyword+"']").closest("div.l-group");
+        //var controldiv = groupdiv.next();
+        //if (controldiv.is(":hidden")) {
+        //    groupdiv.click();
+        //}
+        $("#" + keyword).show();
+    }
+
+    function hiddenPanel(keyword) {
+        //var groupdiv = $("span[data-lang='" + keyword + "']").closest("div.l-group");
+        //var controldiv = groupdiv.next();
+        //if (controldiv.is(":hidden")) {
+
+        //} else { groupdiv.click(); }
+        $("#" + keyword).hide();
+    }
+
+
+    //角色移出用户
+    function RoleRemove()
+    {
+        var roleids = GetRoleGridSelectedIDs();
+        if (roleids)
+        {
+            var removeConfirm = $.Lang("TransferUser.RemoveConfirm");
+            $.ligerDialog.confirm(removeConfirm, function (result) {
+                if (result) {
+                    var userid = $("#hduserid").val();
+                    var removeUrl = $.Controller.OrgUser.RemoveUserFromRole;
+                    $.ajax({
+                        url: removeUrl,
+                        type: "post",
+                        dataType: "json",
+                        data: { userid: userid, roleids: roleids },
+                        success: function (result) {
+                            //debugger;
+                            $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                            CreateRoleGrid();
+                        }
+                    })
+                }
+            });
+        }
+    }
+
+    //替换角色用户
+    function ReplaceUserFromRole() {
+        var roleids = GetRoleGridSelectedIDs();
+        if (roleids) {
+            var replaceuserid = $("#dvRoleReplaceUser").SheetUIManager().GetValue();
+            if (replaceuserid == null || replaceuserid.length == 0) { $.H3Dialog.Warn({ content: $.Lang("") }); return; }//TODO
+            var userid = $("#hduserid").val();
+            var replaceConfirm = $.Lang("TransferUser.ReplaceConfirm");
+            $.ligerDialog.confirm(replaceConfirm, function (result) {
+                if (result) {
+                    var removeUrl = $.Controller.OrgUser.ReplaceUserFromRole;
+                    $.ajax({
+                        url: removeUrl,
+                        type: "post",
+                        dataType: "json",
+                        data: { userid: userid, roleids: roleids, replaceuserid: replaceuserid },
+                        success: function (result) {
+                            $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                            CreateRoleGrid();
+                        }
+                    })
+                }
+            });
+        }
+    }
+    //用户移出组
+    function RemoveUserFromGroup() {
+        var groupids = GetGroupGridSelectedIDs();
+        if (groupids) {
+            var userid = $("#hduserid").val();
+            var removeConfirm = $.Lang("TransferUser.RemoveConfirm");
+            $.ligerDialog.confirm(removeConfirm, function (result) {
+                if (result) {
+                    var removeUrl = $.Controller.OrgUser.RemoveUserFromGroup;
+                    $.ajax({
+                        url: removeUrl,
+                        type: "post",
+                        dataType: "json",
+                        data: { userid: userid, groupids: groupids },
+                        success: function (result) {
+                            //debugger;
+                            $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                            CreateGroupGrid();
+                        }
+                    })
+                }
+            });
+        }
+    }
+
+    //替换组中用户
+    function ReplaceUserFromGroup() {
+        var groupids = GetGroupGridSelectedIDs();
+        //debugger;
+        if (groupids) {
+            var userid = $("#hduserid").val();
+            var replaceuserid = $("#dvGroupReplaceUser").SheetUIManager().GetValue();
+            if (replaceuserid == null || replaceuserid.length == 0) { $.H3Dialog.Warn({ content: $.Lang("TransferUser.Msg0") }); }
+
+            var replaceConfirm = $.Lang("TransferUser.ReplaceConfirm");
+            $.ligerDialog.confirm(replaceConfirm, function (result) {
+                if (result) {
+                    var removeUrl = $.Controller.OrgUser.ReplaceUserFromGroup;
+                    $.ajax({
+                        url: removeUrl,
+                        type: "post",
+                        dataType: "json",
+                        data: { userid: userid, groupids: groupids, replaceuserid: replaceuserid },
+                        success: function (result) {
+                            //debugger;
+                            $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                            CreateGroupGrid();
+                        }
+                    })
+                }
+            });
+        }
+    }
+
+    //转移选择的工作项
+    function TransferUser()
+    {
+        var workitemids = GetWorkItemGridSelectedIDs()
+        if (workitemids) {
+            var userid = $("#hduserid").val();
+            var replaceuserid = $("#dvTransferUser").SheetUIManager().GetValue();
+            if (replaceuserid == null || replaceuserid.length == 0) {
+                $.H3Dialog.Warn({ content: $.Lang("TransferUser.SelectTransfer") });
+                return;
+            }
+            var transferConfirm = $.Lang("TransferUser.TransferConfirm");
+            $.ligerDialog.confirm(transferConfirm, function (result) {
+                if (result) {
+                    var removeUrl = $.Controller.OrgUser.TransferUser;
+                    $.ajax({
+                        url: removeUrl,
+                        type: "post",
+                        dataType: "json",
+                        data: { worlitemids: workitemids, replaceuserid: replaceuserid },
+                        success: function (result) {
+                            //debugger;
+                            $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                            CreateWorkItemGrid();
+                        }
+                    })
+                }
+            });
+        }
+    }
+
+    //转移符合条件的工作项
+    function TransferUserCondition() {
+        var userid = $("#hduserid").val();
+        var replaceuserid = $("#dvTransferUser").SheetUIManager().GetValue();
+        if (replaceuserid == null || replaceuserid.length == 0) {
+            $.H3Dialog.Warn({ content: $.Lang("TransferUser.SelectTransfer") });
+            return;
+        }
+        var transferConfirm = $.Lang("TransferUser.TransferConfirm");
+        $.ligerDialog.confirm(transferConfirm, function (result) {
+            if (result) {
+                var workflowCode = $("#workflowcode").SheetUIManager().GetValue();
+                workflowCode = workflowCode ? workflowCode.join(";") : "";
+                var state = $("input[name=state]:checked").val();
+                if (state == null) { state = "-1";} 
+                var removeUrl = $.Controller.OrgUser.TransferUserCondition;
+                $.ajax({
+                    url: removeUrl,
+                    type: "post",
+                    dataType: "json",
+                    data: { replaceuserid: replaceuserid, workflowCode: workflowCode, userid: userid, state: state },
+                    success: function (result) {
+                        $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                        CreateWorkItemGrid();
+                    }
+                })
+            }
+        });
+    }
+
+    function SearchWorkItem()
+    {
+        var userid = $("#hduserid").val();
+        var state = "4";
+        var workflowCode = $("#workflowcode").SheetUIManager().GetValue();
+        if ($("input[name=state]:checked").length > 0)
+        {
+            state = $("input[name=state]:checked").val();
+        }
+        //创建任务列表
+        CreateLigerGrid(
+         $("#UserWorkItemList"), GetTaskGridColums(),
+         $.Controller.OrgUser.GetUserWorkItems,
+         true, "97%", null, null, null,
+         {
+             userId: userid,
+             workflowcodes: workflowCode,
+             state: state
+         });
+    }
+</script>
+<style>
+    .l-toolbar-item .l-icon {
+        left: 5px;
+        top: 12px;
+    }
+</style>
+<div id="H3ToolBar">
+    <a id="btnDeactivateUser" onclick="roleClick()" data-icon="fa fa-minus-square" data-lang="TransferUser.RoleTransfer"></a>
+    <a id="lnkReplace" onclick="groupClick()" data-icon="fa fa-random" data-lang="TransferUser.GroupTransfer"></a>
+    <a id="btnTransfer" onclick="transferClick()" data-icon="fa fa-exchange" data-lang="TransferUser.TransferWorkItem"></a>
+</div>
+
+<!--角色调度-->
+<div class="H3Panel" id="RoleTransfer">
+    <table id="table_RoleReplacement" style="width:100%">
+        <tr style="height:45px">
+            <td>
+                <a onclick="RoleRemove()">
+                    <div class="l-toolbar-item l-panel-btn l-toolbar-item-hasicon" style="width: 120px;">
+                        <span data-lang="TransferUser.RoleRemove"></span>
+                        <div class="l-panel-btn-l"></div>
+                        <div class="l-panel-btn-r"></div>
+                        <i class="l-icon fa fa-minus"></i>
+                    </div>
+                </a>
+                <input type="hidden" id="hduserid" />
+            </td>
+            <td>
+                <table>
+                    <tr>
+                        <td><span data-lang="TransferUser.RoleReplace"></span></td>
+                        <td><div id="dvRoleReplaceUser" style="width:250px"></div></td>
+                        <td width="100px">
+                            <a onclick="ReplaceUserFromRole()">
+                                <div class="l-toolbar-item l-panel-btn l-toolbar-item-hasicon" style="width: 38px;">
+                                    <span data-lang="TransferUser.OK"></span>
+                                    <div class="l-panel-btn-l"></div>
+                                    <div class="l-panel-btn-r"></div>
+                                    <i class="l-icon fa fa-check"></i>
+                                </div>
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <input type="hidden" id="selectedRoleIDs" />
+                <div id="UserRoleList"></div>
+            </td>
+        </tr>
+    </table>
+</div>
+<!--组调度-->
+<div class="H3Panel" id="GroupTransfer">
+    <table id="table_GoupReplacement" style="width:100%">
+        <tr style="height:45px">
+            <td>
+                <a onclick="RemoveUserFromGroup()">
+                    <div class="l-toolbar-item l-panel-btn l-toolbar-item-hasicon" style="width: 124px;">
+                        <span data-lang="TransferUser.GroupRemove"></span>
+                        <div class="l-panel-btn-l"></div>
+                        <div class="l-panel-btn-r"></div>
+                        <i class="l-icon fa fa-minus"></i>
+                    </div>
+                </a>
+            </td>
+            <td>
+                <table>
+                    <tr>
+                        <td><span data-lang="TransferUser.RoleReplace"></span></td>
+                        <td width="300px"><div id="dvGroupReplaceUser"></div></td>
+                        <td>
+                            <a onclick="ReplaceUserFromGroup()">
+                                <div class="l-toolbar-item l-panel-btn l-toolbar-item-hasicon" style="width: 38px;">
+                                    <span data-lang="TransferUser.OK"></span>
+                                    <div class="l-panel-btn-l"></div>
+                                    <div class="l-panel-btn-r"></div>
+                                    <i class="l-icon fa fa-check"></i>
+                                </div>
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+
+            <td colspan="2">
+                <input type="hidden" id="selectedGroudIDs" />
+                <div id="UserGroupList"></div>
+            </td>
+        </tr>
+    </table>
+</div>
+<!--交接任务-->
+<div class="H3Panel" id="TransferWorkItem" >
+    <table id="table_LeaveUserGroup" style="width:100%">
+        <tr style="height:45px">
+            <td style="text-align:center;padding-right:5px;">
+                <span data-lang="TransferUser.WorkflowCode"></span>
+            </td>
+            <td>
+                <div id="workflowcode" />
+            </td>
+            <td style="text-align:center"><span data-lang="TransferUser.WorkItemState"></span></td>
+            <td>
+                <input type="radio" name="state" value="4" id="rdoUnfinished" checked />
+                <label for="rdoUnfinished" data-lang="TransferUser.UnFinishedItem"></label>
+                <input type="radio" name="state" value="2" id="rdoFinished" />
+                <label for="rdoFinished" data-lang="TransferUser.FinishedItem"></label>
+            </td>
+        </tr>
+        <tr style="height:45px">
+            <td style="text-align:center;padding-right:5px;">
+                <span data-lang="TransferUser.TransferUser"></span>
+            </td>
+            <td>
+                <div id="dvTransferUser"></div>
+            </td>
+            <td colspan="2">
+                <a onclick="SearchWorkItem()">
+                    <div class="l-toolbar-item l-panel-btn l-toolbar-item-hasicon" style="width:40px">
+                        <span data-lang="GlobalButton.Search"></span>
+                        <div class="l-panel-btn-l"></div>
+                        <div class="l-panel-btn-r"></div>
+                        <i class="l-icon fa fa-search"></i>
+                    </div>
+                </a>
+                <a onclick="TransferUser()">
+                    <div class="l-toolbar-item l-panel-btn l-toolbar-item-hasicon" style="width: 105px;">
+                        <span data-lang="TransferUser.TransferWorkItem"></span>
+                        <div class="l-panel-btn-l"></div>
+                        <div class="l-panel-btn-r"></div>
+                        <i class="l-icon fa fa-random"></i>
+                    </div>
+                </a>
+                <a onclick="TransferUserCondition()">
+                    <div class="l-toolbar-item l-panel-btn l-toolbar-item-hasicon" style="width: 120px;">
+                        <span data-lang="TransferUser.TransferWorkItemCondition"></span>
+                        <div class="l-panel-btn-l"></div>
+                        <div class="l-panel-btn-r"></div>
+                        <i class="l-icon fa fa-exchange"></i>
+                    </div>
+                </a>
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="4">
+                <input type="hidden" id="selectedWorkItemIDs" />
+                <div id="UserWorkItemList"></div>
+            </td>
+        </tr>
+    </table>
+</div>

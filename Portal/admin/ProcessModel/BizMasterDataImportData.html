@@ -1,0 +1,83 @@
+﻿<script src="../WFRes/_Scripts/jquery/ajaxfileupload.js"></script>
+<script>
+    var schemaCode = getUrlParam("SchemaCode") || "";
+    $(function () {
+        $("#H3ToolBar").AspLinkToolBar();
+        $("#H3Panel").BuildPanel();
+        $.ajax({
+            url: $.Controller.BizObjectSchema.GetImportTemplete,
+            type: 'get',
+            dataType: "json",
+            data: { schemaCode: schemaCode },
+            async: false,//同步执行
+            success: function (result) {
+                if (result.Success) {
+                    $("#template").attr("href", result.Extend);
+                } else {
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                }
+            }
+        });
+    });
+    function submit() {
+        $.ajaxFileUpload({
+            url: $.Controller.BizObjectSchema.UploadMasterDataFile + "?schemaCode=" + schemaCode,
+            fileElementId: 'uploadfile',
+            dataType: 'json',
+            data: { schemaCode: schemaCode },
+            success: function (data, status) {
+                if (data.Success) {
+                    parent.$.H3Dialog.Success({ content: $.Lang(data.Message) });
+                    parent.H3DialogManger.Cancel();
+                }
+                else {
+
+                    if (data.Extend && typeof (data.Extend) == "string") {
+                        if (data.Message == "EditBizObjectSchema.Msg7") {
+                            $.H3Dialog.Warn({ content: $.Lang(data.Message) + " " + data.Extend + $.Lang('EditBizObjectSchema.ErrorFormat') });
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(data.Message) + " " + data.Extend });
+                        }
+                    }
+                    else if (data.Extend && data.Message == 'EditBizObjectSchema.Msg14') {
+                        var content = ''; 
+                        for (var i = 0; i < data.Extend.length; i++) {
+                            var str = $.Lang('EditBizObjectSchema.RequiredError');
+                            content += str.replace("{0}", data.Extend[i].row).replace("{1}", data.Extend[i].field) + '<br/> ';
+                        }
+                        content = $.Lang(data.Message) + '<br/>' + content;
+                        $.H3Dialog.Warn({ content: content });
+                    }
+                    else if (data.Extend && data.Extend.length != 0) {
+                        var content = "";
+                        for (var i = 0; i < data.Extend.length; i++) {
+                            content+= data.Extend[i]+"、";
+                        }
+                        content = content.substring(0,content.length-1);
+                        content += $.Lang(data.Message);
+                        $.H3Dialog.Warn({ content: content });
+                    } 
+                    else {
+                        $.H3Dialog.Warn({ content: $.Lang(data.Message) });
+                    }
+                }
+            }
+        });
+    }
+</script>
+<div id="H3ToolBar">
+    <a id="template" href="" data-icon="fa fa-download" data-lang="msgGlobalString.DownloadTemplete">下载模板</a>
+    <a id="importData" onclick="submit();" data-icon="fa fa-upload" href="javascript:void(0)" data-lang="msgGlobalString.ImportData">导入数据</a>
+</div>
+
+
+<div id="H3Panel">
+    <span data-lang="msgGlobalString.SelectImportFile">选择文件</span>
+    <table>
+        <tr>
+            <td>
+                <input type="file" name="uploadfile" id="uploadfile" />
+            </td>
+        </tr>
+    </table>
+</div>

@@ -1,0 +1,76 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>发起流程</title>
+    <!-- jQuery -->
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script>
+        // 获取PortalRoot
+        var _PORTALROOT_GLOBAL = window.localStorage.getItem("H3.PortalRoot");
+        var params = [];
+        getUrlVars = function () {
+            var vars = {};
+            //参数  SchemaCode/SheetCode/Mode/FunctionCode
+            var url = window.location.href;
+            if (url.indexOf("?") >= 0 && url.indexOf("&") >= 0) {
+                var hash;
+                var hashs = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+                for (var i = 0; i < hashs.length; i++) {
+                    hash = hashs[i].split('=');
+                    vars[hash[0]] = hash[1];
+                }
+            } else {
+                var hashs = window.location.href.slice(window.location.href.lastIndexOf('EditBizObject') + 14).split('/');
+                vars["SchemaCode"] = hashs[0];
+                vars["SheetCode"] = hashs[1];
+                vars["Mode"] = hashs[2];
+                vars["FunctionCode"] = hashs[3];
+            }
+            return vars;
+        }
+
+        $(function () {
+            //获取URL参数
+            params = getUrlVars();
+            var paramString = JSON.stringify(params);
+            $.ajax({
+                type: "POST",
+                async: true,
+                url: _PORTALROOT_GLOBAL + "/EditBizObjectSheets/EditBizObjectSheets",
+                data: { paramString: paramString },
+                dataType: "json",
+                success: function (data) {
+                    if (data.Success) {
+                        //window.location.href = data.Message;
+                        var target = ".app-aside-right";
+                        var url = data.Message;
+                        if ($(target).length == 0) {
+                            window.location.href = url;
+                        } else {
+                            $(target).toggleClass("show");
+                            $(target).find("iframe").attr("src", url);
+                            if ($(target).hasClass("show")) {
+                                $("body").addClass("noscroll");
+                            }
+                            else {
+                                $("body").removeClass("noscroll");
+                            }
+                        }
+                    } else {
+                        var message;
+                        if ($.Lang(data.Message) == data.Message) {
+                            message = data.Messag
+                        } else {
+                            message = $.Lang(data.Message);
+                        }
+                        $.H3Dialog.Warn({ content: message });
+                    }
+                }
+            });
+        })
+    </script>
+</head>
+<body>
+</body>
+</html>

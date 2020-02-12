@@ -1,0 +1,142 @@
+﻿<script>
+
+    //URL参数/
+    //debugger;
+    var WorkflowCode = getUrlParam("WorkflowCode");
+    var AclId = getUrlParam("AclId");
+
+    $(function () {
+        //debugger;
+        //初始化控件
+        ControlButton();
+        InitToolBar();
+        LoadPageData();
+     });
+
+    function InitToolBar() {
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+    }
+
+    //控件编辑状态设置
+    function ControlButton()
+    {
+        if (AclId && AclId.length > 0) {
+            $("#UserSelector").hide();
+            $("#lblUserAlias").show();
+        } else {
+            setControlUsable(0, $("#btnRemove"));
+            $("lblUserAlias").hide();
+            $("#UserSelector").SheetUser({ Editable: true, Visiable: true, UserVisible: true, OrgUnitVisible: true,GroupVisible:true, IsMultiple: true });
+        }
+    }
+
+    function SetControlValue(result)
+    {
+        $("#lblWorkflowName").val(result.WorkflowName)
+        $("#lblUserAlias").val(result.UserAlias);
+        $("#chkCreateInstance").prop("checked",result.CreateInstance);
+    }
+
+    function LoadPageData()
+    {
+        $.ajax({
+            url: _PORTALROOT_GLOBAL + $.Controller.UpdateWorkflowAcl.Load,
+            type: "post",
+            dataType: "json",
+            async: false,
+            data: { WorkflowCode: WorkflowCode, AclId: AclId },
+            success: function (result) {
+                if (result) {
+                    SetControlValue(result);
+                }
+            }
+        });
+    }
+
+    function Save()
+    {
+        var selectUsers=[];
+        if ($("#UserSelector").SheetUIManager()) {
+            selectUsers = $("#UserSelector").SheetUIManager().GetValue();
+        }
+        var CreateInstance = $("#chkCreateInstance").prop("checked");
+        $.ajax({
+            url: _PORTALROOT_GLOBAL + $.Controller.UpdateWorkflowAcl.Save,
+            type: "post",
+            dataType: "json",
+            async: false,
+            data: { WorkflowCode: WorkflowCode, AclId: AclId, SelectUsers: JSON.stringify(selectUsers),CreateInstance: CreateInstance},
+            success: function (result) {
+                if (result.Success) {
+                    $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                    parent.H3DialogManger.Close();
+                } else {
+                    var extend = "";
+                    if (result.Extend) { extend = result.Extend;}
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message)+extend });
+                }
+            }
+        });
+    }
+
+    function Delete()
+    {
+        var deleteConfirm = $.Lang("msgGlobalString.DeleteConfrim");
+        $.ligerDialog.confirm(deleteConfirm, function (OK) {
+            if (OK)
+            {
+                $.ajax({
+                    url: _PORTALROOT_GLOBAL + $.Controller.UpdateWorkflowAcl.Delete,
+                    type: "post",
+                    dataType: "json",
+                    async: false,
+                    data: { AclId: AclId },
+                    success: function (result) {
+                        if (result.Success) {
+                            parent.H3DialogManger.Close(); //关闭当前对话框
+                            top.workTab.reload(top.workTab.getSelectedTabItemID());
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+</script>
+<div id="H3ToolBar">
+    <a id="btnOk" href="javascropt:void(0)" onclick="Save()" data-icon="fa fa-save" data-lang="GlobalButton.Save"></a>
+    <a id="btnRemove" href="javascropt:void(0)"  data-icon="fa fa-minus"  onclick="Delete()" data-lang="GlobalButton.Delete"></a>
+</div>
+<div class="H3Panel">
+    <span data-lang="msgGlobalString.Msg_BasciInfor"></span>
+    <table>
+        <tr>
+            <td data-lang="WorkflowSetting.UpdateWorkflowAcl_WorkflowName"></td>
+            <td>
+                
+                <input type="text" id="lblWorkflowName" disabled="disabled" />
+            </td>
+        </tr>
+
+        <tr>
+            <td data-lang="WorkflowSetting.UpdateWorkflowAcl_UserAlias"></td>
+            <td>
+                <input type="text" id="lblUserAlias" disabled="disabled" style="display:none"/>
+                <div class="tableNoCss">
+                    <div id="UserSelector" style="width:255px"></div>
+                </div>
+            </td>
+        </tr>
+
+        <tr>
+            <td data-lang="WorkflowSetting.WorkflowSetting_Acl_CreateInstance">
+            </td>
+            <td>
+                <input type="checkbox" id="chkCreateInstance"/><label for="chkCreateInstance" data-lang="WorkflowSetting.UpdateWorkflowAcl_Allow"></label>
+            </td>
+        </tr>
+    </table>
+</div>

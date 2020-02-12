@@ -1,0 +1,150 @@
+﻿<style type="text/css">
+    body {
+        overflow-x: auto !important;
+    }
+</style>
+
+<script type="text/javascript">
+    $(function () {
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Pannel").BuildPanel({ excludeIDs: ["ExceptionList"] });
+        // 以下将 divUser 绑定选人控件
+        $("#divUser").SheetUser({ Editable: true, Visiable: true });
+        //设置查询时间的默认值
+        initDefaultDate();
+        // 页面加载时执行查询
+        QueryFun();
+    })
+
+    function GetCategoryColumns() {
+        var workflow = $.Lang("ExceptionLog.Workflow");
+        var displayName = $.Lang("ExceptionLog.DisplayName");
+        var sourceName = $.Lang("ExceptionLog.SourceName");
+        var originator = $.Lang("ExceptionLog.Originator");
+        var sequenceNo = $.Lang("ExceptionLog.SequenceNo");
+        var exceptionTime = $.Lang("ExceptionLog.ExceptionTime");
+        var blockName = $.Lang("ExceptionLog.Block");
+        var stateName = $.Lang("ExceptionLog.State");
+        var open = $.Lang("ExceptionLog.Button_Open");
+        return [
+            { display: 'ObjectID', name: 'ObjectID', hide: true },
+            { display: workflow, name: 'Workflow', width: '10%' },
+            //{ display: displayName, name: 'DISPLAYNAME', width: '10%' },
+            { display: sourceName, name: 'SourceName', width: '15%' },
+            { display: originator, name: 'Originator', width: '10%' },
+            { display: sequenceNo, name: 'SequenceNo', width: '10%' },
+            { display: exceptionTime, name: 'ExceptionTime', width: '15%' },
+            {
+                display: blockName, name: 'Block', width: '10%', render: function (row) {
+                    if (row.Block == "1")
+                        return "<img src='" + _PORTALROOT_GLOBAL + "/WFRes/images/checked.gif' />";
+                    else
+                        return "<img src='" + _PORTALROOT_GLOBAL + "/WFRes/images/unChecked.gif' />";
+                }
+            },
+            {
+                display: stateName, name: 'State', width: '10%', render: function (row) {
+                    if (row.State == "0")
+                        return "<img src='" + _PORTALROOT_GLOBAL + "/WFRes/images/checked.gif' />";
+                    else
+                        return "<img src='" + _PORTALROOT_GLOBAL + "/WFRes/images/unChecked.gif' />";
+                }
+            },
+            {
+                display: open, name: '', width: '5%', render: function (row) {
+                    return "<a href='#' id='" + row.ObjectID + "'  onclick='RowEditClick(this)'>" + open + "</a>";
+                }
+            }
+        ];
+    }
+
+    function RowEditClick(obj) {
+        var title = $.Lang("GlobalButton.Edit");
+        ShowDialog(title, _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=SysLog/ExceptionDetails.html&Id=" + obj.id);
+    }
+
+    function QueryFun() {
+        var startTime = $("input[name=startTime]").val();
+        var endTime = $("input[name=endTime]").val();
+        var seqNo = $("#seqNo").val();
+        var instanceName = $("#instanceName").val();
+        var workflowCode = $("#code_Value").val();
+        // 获取选定的用户
+        var userId = $("#divUser").SheetUIManager().GetValue();
+        if (startTime > endTime) {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.Portal_TimeMsg") });
+        }
+        else {
+
+            CreateLigerGrid(
+             $("#ExceptionList"),
+             GetCategoryColumns(),
+             $.Controller.ExceptionLog.GetExceptionLogList,
+             false,
+             "98%",
+             null, null, null,
+             {
+                 startTime: startTime,
+                 endTime: endTime,
+                 sequenceNo: seqNo,
+                 instanceName: instanceName,
+                 userID: userId
+             }
+            );
+        }
+    }
+</script>
+<div id="ToolBar">
+    <a href="#" id="lnkQuery" onclick="QueryFun()" data-icon="fa fa-search" data-lang="GlobalButton.Search">
+        查询
+    </a>
+</div>
+<div class="H3Pannel">
+    <table>
+        <tr>
+            <td data-lang="ExceptionLog.Query_Date">
+                查询时间&nbsp;&nbsp;&nbsp;
+            </td>
+            <td>
+                <div class="tableNoCss">
+                    <table>
+                        <tr>
+                            <td class="tableNoCss" style="width:25px" data-lang="ExceptionLog.From">
+                                从
+                            </td>
+                            <td class="tableNoCss">
+                                <input name="startTime" type="text" id="startTime" onclick="InitWdatePicker(this)" style="width:95px;" data-datetime="start">
+                            </td>
+                            <td class="tableNoCss" style="width:21px;padding-left:10px;" data-lang="ExceptionLog.To">
+                                到
+                            </td>
+                            <td class="tableNoCss">
+                                <input name="endTime" type="text" id="endTime" onclick="InitWdatePicker(this)" style="width:95px;" data-datetime="end">
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+            <td data-lang="ExceptionLog.SequenceNo">流水号</td>
+            <td>
+                <input name="seqNo" type="text" id="seqNo" />
+            </td>
+        </tr>
+        <tr>
+            <td data-lang="ExceptionLog.SourceName">
+                源名称
+            </td>
+            <td>
+                <input name="instanceName" type="text" id="instanceName" style="width:250px;" />
+            </td>
+            <td data-lang="ExceptionLog.Originator">发起者</td>
+            <td>
+                <div id="divUser" style="width: 250px;"></div>
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="H3Pannel">
+    <span data-lang="ExceptionLog.ListName"></span>
+    <div id="ExceptionList"></div>
+</div>

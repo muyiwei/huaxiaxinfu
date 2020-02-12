@@ -1,0 +1,100 @@
+﻿<script>
+    $(function () {
+        var pageData = {
+            BizQueryPage: {},
+            LanData: $.Languages
+        };
+        //初始化页面数据
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                generate: function () {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        generateBizQuery();
+                    }
+                }
+            }
+        });
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+        //初始化页面数据
+        function initPageData() {
+            var SchemaCode = getUrlParam("SchemaCode");
+            if (SchemaCode) {
+                $.ajax({
+                    url: $.Controller.BizQuery.GetGenerateBizQuery,
+                    type: 'get',
+                    dataType: "json",
+                    data: { schemaCode: SchemaCode },
+                    async: false,//同步执行
+                    success: function (result) {
+                        pageData = result.Extend;
+                        pageData.LanData = $.Languages;
+                    }
+                });
+            }
+        };
+        //生成页面
+        function generateBizQuery() {
+            pageData.BizQueryPage.ListASPXPage = "";
+            pageData.BizQueryPage.ListCSPage = "";
+            $.ajax({
+                url: $.Controller.BizQuery.GenerateBizQuery,
+                type: "post",
+                dataType: "json",
+                data: pageData.BizQueryPage,
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({content:$.Lang("msgGlobalString.SaveSucced")});
+                        pageData.BizQueryPage = result.Extend;
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        }
+    });
+
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a v-on:click="generate" data-icon="fa fa-building-o" href="javascript:void(0)" data-lang="GlobalButton.Generate">生成</a>
+    </div>
+    <div class="H3Panel">
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft">{{LanData.BizQuery.ListClassName}}</td>
+                <td>
+                    <input v-model="BizQueryPage.ListClassName" type="text" maxlength="32" detect-change="on" detect-blur="on" initial="off" v-validate:name="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.name.required">{{LanData.msgGlobalString.EnumValueRequired}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.BizQuery.Query}}</td>
+                <td>
+                    <select v-model="BizQueryPage.Query">
+                        <option v-for="option in Querys" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.BizQuery.ListASPX}}</td>
+                <td>
+                    <textarea rows="2" cols="20" style="height:350px;width:95%" v-model="BizQueryPage.ListASPXPage"></textarea>
+
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.BizQuery.ListCS}}</td>
+                <td>
+                    <textarea rows="2" cols="20" style="height:350px;width:95%" v-model="BizQueryPage.ListCSPage"></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

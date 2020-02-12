@@ -1,0 +1,39 @@
+﻿<script>
+    $(function () {
+        //$("#H3Toolbar").AspLinkToolBar();
+
+        var ruleCode = getUrlParam("RuleCode");
+        // 创建表格
+        CreateLigerGrid(
+            $("#ReferenceRelationGrid"),
+            CreateGirdColums(),
+            $.Controller.BizRuleDecisionMatrix.GetReferenceRelations,
+            false, "98%",
+            null, null, null,
+            {
+                ruleCode: ruleCode
+            }
+           );
+    });
+
+    function CreateGirdColums() {
+        var SchemaCode = $.Lang("BizRule.WorkflowName");
+        var SchemaMethodCode = $.Lang("BizService.BizSchemaMethodCode");
+        var MethodName = $.Lang("BizRule.BizRule");
+        var DisplayName = $.Lang("BizRule.DecisionMatrix");
+
+        return [
+            { display: SchemaCode, name: "SchemaCode" },
+            { display: SchemaMethodCode, name: "SchemaMethodCode" },
+            { display: MethodName, name: "MethodName" },
+            { display: DisplayName, name: "DisplayName" }
+        ];
+    }
+</script>
+
+<div id="H3Toolbar">
+
+</div>
+
+<div id="ReferenceRelationGrid">
+</div>

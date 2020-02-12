@@ -1,0 +1,114 @@
+﻿<script>
+    $(function () {
+        $("#SreachKeyVal").keydown(function (e) {
+            if (e.keyCode == 13) {
+                QueryUser(false);
+            }
+        });
+        QueryUser(true);
+    });
+
+    function QueryUser(Init)
+    {
+        if (!Init && !checkInput()) { return;}
+        
+        var keyword = $("#SreachKeyVal").val();
+        if (Init) { keyword = "searchkey";}//输入一个不可能查到的值，显示表头，不返回值
+        var state = $("input[name='SrechType']:checked").val()
+       
+        CreateLigerGrid(
+         $("#UserList"),
+         GetUserListColumns(),
+         $.Controller.QueryUser.GetUserList,
+         false, "98%",
+         null, null, null,
+         {
+             keyWordStr: keyword,
+             state: state
+         });
+    }
+
+    function GetUserListColumns() {
+        var code = $.Lang("QueryOrg.Code");
+        var name = $.Lang("QueryOrg.Name");
+        var orgName = $.Lang("EditOrgUnit.ParentUnit");
+
+        var email = $.Lang("QueryOrg.Email");
+        var mobile = $.Lang("QueryOrg.Mobile");
+        var officePhone = $.Lang("QueryOrg.OfficePhone");
+        //var description = $.Lang("QueryOrg.Description");
+        var edit = $.Lang("GlobalButton.View");
+        return [
+            { display: "ObjectID", name: "ObjectID", hide: true },
+            { display: code, name: "Code" },
+            { display: name, name: "Name" },
+            { display: orgName, name: "OrgName" },
+            { display: email, name: "Email" },
+            { display: mobile, name: "Mobile" },
+            { display: officePhone, name: "OfficePhone" },
+            //{ display: description, name: "Description" },
+            {
+                display: edit, code: "edit", render: function (row) {
+                    return "<a href='#' id='" + row.ObjectID + "' name='" + row.Name + "' onclick='RowClick(this)'>" + edit + "</a>";
+                }
+            }
+        ];
+    }
+
+    function RowClick(obj) {
+        top.f_addTab(
+       {
+           tabid: obj.id,
+           text: obj.name,
+           url: "Organization/EditUser.html&ID="+obj.id
+       });
+      
+    }
+
+    function CheckRadioButton(radioID) {
+        $('#' + radioID).attr('checked', 'checked')
+    }
+
+
+    function checkInput() {
+        if ($("#SreachKeyVal").val() == "") {
+            $.H3Dialog.Warn({ content: $.Lang("QueryOrg.PleaseInputContent") });
+            return false;
+        }
+        return true;
+    }
+
+</script>
+
+<!--<div id="H3ToolBar"></div>-->
+<div class="H3Panel">
+    <table class="tableList" style="margin: 0px;">
+        <tr>
+            <td class="tableLeft" data-lang="QueryOrg.UserKeyword"></td>
+            <td style="width: 150px;">
+                <input type="text" id="SreachKeyVal" />
+            </td>
+            <td style="width: 300px;">
+                <span onclick="CheckRadioButton('TowRadio')" style="cursor: pointer">
+                    <input name="SrechType" type="radio" value="-1" id="TowRadio" checked="checked" />
+                </span>
+                <span data-lang="QueryOrg.AllUser" />
+                <span onclick="CheckRadioButton('ZeroRadio')" style="cursor: pointer" >
+                    <input name="SrechType" type="radio" value="1" id="ZeroRadio" />
+                </span>
+                <span data-lang="QueryOrg.UserIsEnable" />
+                <span onclick="CheckRadioButton('OneRadio')" style="cursor: pointer">
+                    <input name="SrechType" type="radio" value="0" id="OneRadio"/>
+                </span>
+                <span data-lang="QueryOrg.UserIsDisable" />
+            </td>
+            <td>
+               
+                <a href="javascript:void(0);" id="btnUserSearch" class="fa fa-search" onclick="QueryUser(false)"></a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="H3Panel">
+    <div id="UserList"></div>
+</div>

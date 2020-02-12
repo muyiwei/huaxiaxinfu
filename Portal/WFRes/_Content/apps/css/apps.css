@@ -1,0 +1,88 @@
+﻿#apps-panel {
+    /*position: absolute;*/
+    width: 320px;
+    overflow: hidden;
+    /*background-color: white;
+    
+    z-index: 99999;*/
+    padding: 20px 20px 20px 20px !important;
+}
+
+    #apps-panel li {
+        position: relative;
+        border: 1px solid transparent;
+        padding: 10px;
+        float: left;
+        width: 86px;
+        cursor: pointer;
+        height: 110px;
+        list-style-type: none;
+    }
+
+        #apps-panel li img {
+            width: 64px;
+            height: 64px;
+        }
+
+        #apps-panel li:hover {
+        }
+
+        #apps-panel li [favorite=true] {
+            background-image: url(../image/pin.png);
+        }
+
+        #apps-panel li [favorite=false] {
+            background-image: url(../image/unpin.png);
+        }
+
+        #apps-panel li [favorite=false],
+        #apps-panel li [favorite=true] {
+            display: none;
+            position: absolute;
+            top: 1px;
+            right: 1px;
+            background-size: 100%;
+            background-repeat: no-repeat;
+            opacity: 0.5;
+            width: 16px;
+            height: 16px;
+            z-index: 20;
+        }
+
+            #apps-panel li [favorite=false]:hover,
+            #apps-panel li [favorite=true]:hover {
+                opacity: 0.8;
+            }
+
+                #apps-panel li[favorite=true]:hover [favorite=false],
+                #apps-panel li[favorite=false]:hover [favorite=true] {
+                    display: block;
+                }
+
+        #apps-panel li div {
+            width: 100%;
+            padding-top: 5px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+/*      #apps-panel li div {
+            width: 80%;
+            text-align: center;
+            position: absolute;
+            top: 76px;
+        }
+
+        #apps-panel li div {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #apps-panel li:hover div {
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+        }*/

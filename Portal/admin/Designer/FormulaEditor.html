@@ -1,0 +1,338 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title data-title="FormulaEditor.FormulaEditor"></title>
+    <link rel="stylesheet" type="text/css" href="../../WFRes/_Content/themes/ligerUI/Aqua/css/ligerui-tree.css" />
+    <link type="text/css" rel="stylesheet" href="../../WFRes/_Content/designer/css/formula.css" />
+    <link href="../../WFRes/assets/stylesheets/pixel-admin.min.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="../../WFRes/_Scripts/jquery/jquery.js"></script>
+    <script type="text/javascript" src="../../WFRes/_Scripts/jquery/jquery.lang.js"></script>
+    <script type="text/javascript" src="../../WFRes/_Scripts/ligerUI/ligerui.all.js"></script>
+    <script type="text/javascript" src="../../WFRes/_Scripts/designer/misc.js"></script>
+    <script type="text/javascript" src="../../WFRes/_Scripts/designer/Formula.js?20150325"></script>
+
+    <script type="text/javascript">
+        // 获取PortalRoot
+        var _PORTALROOT_GLOBAL = window.localStorage.getItem("H3.PortalRoot");
+
+        var GetQueryString = function (name) {
+            var result = location.search.match(new RegExp("[\?\&]" + name + "=([^\&]+)", "i"));
+            if (result == null || result.length < 1) { return "" }
+
+            return result[1];
+        }
+
+        var SchemaCode =GetQueryString("SchemaCode")|| GetQueryString("WorkflowCode");
+        var RuleCode = GetQueryString("RuleCode");
+
+        //智能提示资料库
+        var _Formula_GlobalString = { "Description": $.Lang("FormulaEditor.Description"), "Formula_FunctionName": $.Lang("FormulaEditor.FunctionName"), "Formula_NoClosed": $.Lang("FormulaEditor.NoClosed"), "Formula_TestFailed": $.Lang("FormulaEditor.TestFailed") };
+        var Consts = [{ "Text": "True", "Value": "True", "LogicType": 1 }, { "Text": "False", "Value": "False", "LogicType": 1 }, { "Text": "null", "Value": "null" }];
+        var MathFunctions = [];         //一般函数
+        var ParticipantFunctions = [];  //参与者函数
+        var LogicTypes = [];            //逻辑类型
+        var InstanceVariables = [];     //系统数据项
+        var DataItems = [];             //流程数据项
+        var RuleElement = [];           //规则词汇表
+        //保存公式
+        var SaveFormula = function () {
+            var _Expression = FormulaSettings.ReadExpression();
+            if (FormulaSettings.Validate(_Expression)) {
+                if (window.parent && window.parent.FormulaEditableStack && window.parent.FormulaEditableStack.SaveValue)
+                    window.parent.FormulaEditableStack.SaveValue(_Expression, FormulaSettings.ReadText());
+            }
+            else {
+
+            }
+        }
+        //取消
+        var CancelEdit = function () {
+            var _Expression = FormulaSettings.ReadExpression();
+            if (window.parent && window.parent.H3DialogManger && window.parent.H3DialogManger.Cancel)
+                window.parent.H3DialogManger.Cancel();
+        }
+
+        $(function () {
+            $.initLanguage();//初始化填充语言描述
+            //获取提示信息
+            $.ajax({
+                url: _PORTALROOT_GLOBAL + $.Controller.FormulaEditor.GetFormulaTips,
+                type: "post",
+                dataType: "json",
+                async:false,
+                data: { SchemaCode: SchemaCode ,RuleCode:RuleCode},
+                success: function (result) {
+                    if (result) {
+                         ParticipantFunctions = result.ParticipantFunctions;
+                         LogicTypes = result.LogicTypes;
+                         InstanceVariables = result.InstanceVariables;
+                         DataItems = result.DataItems;
+                         RuleElement = result.RuleElement;
+                    }
+                }
+            });
+            //绑定树数据
+            $("#tvExpressions").ligerTree({
+                checkbox: false,
+                width: "100%",
+                idFieldName: 'ObjectID',
+                textFieldName: 'Text',
+                iconFieldName: "Icon",
+                parentIDFieldName: "ParentID",
+                btnClickToToggleOnly: true,
+                isExpand: 1,
+                url: _PORTALROOT_GLOBAL + $.Controller.FormulaEditor.GetFomulaTreeData + "?SchemaCode="+SchemaCode+"&RuleCode="+RuleCode,
+                isLeaf: function (data) {
+                    if (!data) return false;
+                    return data.IsLeaf;
+                },
+                delay: function (e) {
+                    var node = e.data;
+                    node.TextCode = node.Text;
+                    if (node.Text == $.Lang(node.Text)) {
+                        node.Text = node.Text
+                    } else {
+                        node.Text = $.Lang(node.Text);
+                    }
+                    if (node == null) return false;
+                    if (node.IsLeaf == null) return false;
+                    if (node.LoadDataUrl == null) return false;
+                    if (!node.IsLeaf && node.LoadDataUrl.length>0) {
+                        return node.LoadDataUrl;
+                    }
+                    return false;
+                },
+                onSelect: f_node_click
+            });
+            //debugger;
+            //初始化公式编辑器功能
+            FormulaEditorLoaded();
+
+            var _Formula = $.fn.getUrlParam("Formula");
+
+            if (_Formula) {
+                _Formula = unescape(_Formula);
+
+                FormulaSettings.ResetAll(false, _Formula, "", true, true);
+
+                //U前面是分隔符或逗号
+                var UExpressions = _Formula.match(/(([+\-/*/(<>\s!&|,=]+U)|^U)[\s]*[(][^)]*[)]/g);
+                if (!UExpressions || UExpressions.length == 0) {
+                    //不存在需解析的U表达式
+                }
+                else {
+                    //从U(xxx)表达式中提取xxx
+                    var _GetUnitKey = function (_UExpression) {
+                        _UExpression = _UExpression.replace(/U[ ]*\(/, "U(")
+                        var _LeftParIndex = _UExpression.indexOf("U(", 0) + 1;
+                        var _RightParIndex = _UExpression.indexOf(")");
+                        if (_RightParIndex > _LeftParIndex) {
+                            return _UExpression.substring(_LeftParIndex + 1, _RightParIndex).trim();
+                        }
+                    }
+
+                    var _UnitKeys = [];
+                    $(UExpressions).each(function () {
+                        if (this) {
+                            var _UnitKey = _GetUnitKey(this.toString());
+                            if (_UnitKey)
+                                _UnitKeys.push(_UnitKey);
+                        }
+                    });
+
+                    if (_UnitKeys.length == 0)
+                        return;
+                    $.ajax({
+                        type: "post",
+                        url: _PORTALROOT_GLOBAL + "/Formula/GetUnitNames",
+                        cache: false,
+                        async: false,
+                        dataType: "json",
+                        data: { UnitKeys: JSON.stringify(_UnitKeys) },
+                        success: function (_UnitCache) {
+                            //更新缓存
+                            if (_UnitCache && _UnitCache.length > 0) {
+                                $(_UnitCache).each(function () {
+                                    if (this["Key"])
+                                        FormulaStack.UnitCache[this["Key"].toLowerCase()] = this["Name"];
+                                });
+                            }
+
+                            FormulaSettings.ResetAll(false, _Formula, "", true, true);
+                        },
+                        error: function (msg) {
+
+                        }
+                    });
+                }
+            }
+
+            //样式
+            var _Editor = $(".formula-editor");
+            var _ReturnDescription = $(".formula-description");
+            var _FunctionDescription = $(".function-description");
+            _Editor.outerWidth(_Editor.outerWidth() + _FunctionDescription.offset().left + _FunctionDescription.outerWidth() - (_Editor.offset().left + _Editor.outerWidth()));
+            _ReturnDescription.outerWidth(_Editor.outerWidth());
+
+            //返回类型
+            var _FormulaType = $.fn.getUrlParam("FormulaType");
+            var LogicType = $.Lang("FormulaEditor.LogicType");
+            var Participants = $.Lang("FormulaEditor.Participants");
+            var Mssg = $.Lang("FormulaEditor.Mssg");
+            if (_FormulaType) {
+                _FormulaType = _FormulaType.toLowerCase();
+                if (_FormulaType == "bool") {
+                    $(".formula-type").text(LogicType);
+                    $(".formula-example").text("True");
+                }
+                else if (_FormulaType == "participants") {
+                    $(".formula-type").text(Participants);
+                    $(".formula-example").text("{Originator}");
+                    $(".td-formula-description").text(Mssg);
+                }
+            }
+            else {
+                _Editor.outerHeight(_ReturnDescription.offset().top + _ReturnDescription.outerHeight() - _Editor.offset().top);
+                _ReturnDescription.hide();
+            }
+
+            //用于点击关闭父界面消息
+            $(document).unbind("click").bind("click", function () {
+                $(parent.window.document).find(".l-window-mask").click();
+            });
+        });
+
+        //
+        function f_node_click(node) {
+            var formulaType = node.data.FormulaType;
+            switch (formulaType)
+            {
+                case "Input":
+                    FormulaSettings.InsertInput();
+                    break;
+                case "Block":
+                    if (node.data.Value == "") {
+                        FormulaSettings.InsertInput();
+                    } else {
+                        FormulaSettings.InsertBlock(node.data.Value)
+                    }
+                    break;
+                case "Function"://一般函数
+                    break;
+                case "LogicType"://参数类型
+                    break;
+                case "ParticipantFunction"://参与者函数
+                    FormulaSettings.InsertFunction(node.data.Value);
+                    break;
+                case "RuleElement"://规则词汇表
+                    FormulaSettings.InsertVariable(node.data.Value);
+                    break;
+                case "FlowSystemVariables"://流程系统数据
+                    FormulaSettings.InsertVariable(node.data.Value);
+                    break;
+                case "BizObjectSchema"://数据模型
+                    FormulaSettings.InsertVariable(node.data.Value);
+                    break;
+                case "Operator"://符号
+                    FormulaSettings.InsertBlock(node.data.Value);
+                    break;
+                case "Organization"://组织结构
+                    FormulaSettings.InsertUser(node.data.Text, node.data.Value);
+                    break;
+            }
+        }
+    </script>
+
+</head>
+<body>
+    <form>
+        <div style="width: 100%">
+            <table style="width: 100%">
+                <tr>
+                    <td style="width: 50%; font-size: 12px">
+                        <div style="height: 300px;max-width:450px; overflow-y: scroll; overflow-x: auto; border-width: 1px 1px 1px 1px; border-color: silver; border-style: solid;">
+                            <ul id="tvExpressions" style="margin-top: 3px; width: 100%;"></ul>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="width: 50%; position: absolute; vertical-align: top; top: 10px; float: left; height: 303px;">
+                            <div class="formula-editor" spellcheck="false" contenteditable="true" tabindex="0" style="width: 90%;"></div>
+                            <div class="formula-description">
+                                <table style="width: 100%">
+                                    <tr>
+                                        <td style="width: 70px; font-weight: bold" data-lang="FormulaEditor.ReturnValueType"></td>
+                                        <td class="formula-type"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-weight: bold" data-lang="FormulaEditor.Example"></td>
+                                        <td class="formula-example"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-weight: bold" data-lang="FormulaEditor.Explain"></td>
+                                        <td class="td-formula-description"></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="div-intelligent-container">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <ul></ul>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <table class="function-description">
+                            <tr>
+                                <td style="width: 40px; font-weight: bold" data-lang="FormulaEditor.Name"></td>
+                                <td class="helper-name"></td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold" data-lang="FormulaEditor.Description"></td>
+                                <td class="helper-description"></td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold" data-lang="FormulaEditor.ReturnValue"></td>
+                                <td class="helper-return-type"></td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold" data-lang="FormulaEditor.Parameters"></td>
+                                <td class="helper-parameters">
+                                    <table style="width: 100%">
+                                        <tr>
+                                            <th data-lang="FormulaEditor.No"></th>
+                                            <th data-lang="FormulaEditor.Name"></th>
+                                            <th data-lang="FormulaEditor.Type"></th>
+                                            <th data-lang="FormulaEditor.Explain"></th>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold" data-lang="FormulaEditor.Example"></td>
+                                <td class="helper-example"></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align: right">
+                       
+                        <a onclick="SaveFormula();" class="btn-flat" data-lang="GlobalButton.Confirm"></a>
+                    </td>
+                    <td style="text-align: left">
+                        <a onclick="CancelEdit();" class="btn-flat" data-lang="GlobalButton.Cancel"></a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</body>
+</html>

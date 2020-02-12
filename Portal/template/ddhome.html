@@ -1,0 +1,240 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>H3BPM</title>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <!--不检测电话号码-->
+    <meta name="format-detection" content="telephone=no" />
+    <!--移动全屏显示-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta http-equiv="Prag6ma" content="no-cache" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <script src="../WFRes/_Scripts/jquery/jquery.js"></script>
+    <script src="http://g.alicdn.com/dingding/dingtalk-pc-api/2.3.1/index.js"></script>
+    <script type="text/javascript">
+       
+        var portalroot = window.localStorage.getItem("H3.PortalRoot");
+        if (!portalroot)
+        {
+            //从服务器获取
+            $.ajax({
+                url: "../DingTalk/GetPortalRoot",
+                dataType: "json",
+                async: false,
+                success: function (res) { portalroot = res.PortalRoot }
+            })
+        }
+        var _config = {}
+        var sourceUrl = document.location.href;
+        var url = sourceUrl.toLocaleLowerCase();
+        var serviceUrl = document.location.origin;//url.split("/portal/")[0];
+        debugger;
+        //alert(serviceUrl);
+        // 处理微信单点登录
+        var getUrlParam = function (name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if (r != null) return unescape(r[2]); return null;
+        };
+
+        $.ajax({
+            url: "../DingTalk/GetSignConfig",
+            data: { url: sourceUrl },
+            success: function (res) {
+                //获取签名信息成功
+                _config = res;
+                // 配置jsAPI
+                DingTalkPC.config({
+                    agentId: _config.agentId,
+                    corpId: _config.corpId,
+                    timeStamp: _config.timeStamp,
+                    nonceStr: _config.nonce,
+                    signature: _config.signature,
+                    jsApiList: ['runtime.info',
+                        'biz.util.openLink',
+                        'biz.contact.choose',
+                        'device.notification.confirm',
+                        'device.notification.alert',
+                        'device.notification.prompt',
+                        'biz.ding.post',
+                    'runtime.permission.requestAuthCode',
+                    'device.geolocation.get',
+                    'biz.ding.post',
+                    'biz.contact.complexChoose']
+                })
+
+
+                DingTalkPC.ready(function () {
+                    DingTalkPC.runtime.permission.requestAuthCode({
+                        corpId: _config.corpId, //企业ID
+                        onSuccess: function (result) {
+                            //alert("ready code-------------------");
+                            var code = result["code"];
+                            var state = getUrlParam("state");
+                            var tartget = getUrlParam("target");
+
+                            //WorkItemID 参数要和后台配置打开URL中的参数一致
+                            var WorkItemID = getUrlParam("WorkItemID");
+                            $.ajax({
+                                url: "../DingTalk/ValidateLoginForDingTalk",
+                                data: {
+                                    state: state,
+                                    code: code
+                                },
+                                async: false,
+                                success: function (result) {
+                                    debugger;
+                                    //浏览器打开一个新窗口
+                                    if (!WorkItemID) {
+                                        DingTalkPC.biz.util.openLink({
+                                            url: window.location.origin+portalroot+"/index.html?loginfrom=dingtalk&state=DefaultEngine&code=" + result.MobileUser.ObjectID,
+                                            onSuccess: function (result) {
+                                                //alert("1234");
+                                            },
+                                            onFail: function (err) {
+                                                console.log(err)
+                                            }
+                                        });
+                                    } else {
+                                        //跳转到表单页面
+                                        //var url = "/Portal/Hybrid/index.html?WorkItemID=" + WorkItemID+"&code="+ result.MobileUser.ObjectID+"&loginfrom=dingtalk";
+                                        //window.location.href = window.location.origin + portalroot +"/workitemsheets.html?WorkItemID=" + WorkItemID + "&IsMobile=true&code=" + result.MobileUser.ObjectID + "&loginfrom=dingtalk";
+                                        console.log(window.location.origin + portalroot + "/workitemsheets.html?WorkItemID=" + WorkItemID + "&IsMobile=true&code=" + result.MobileUser.ObjectID + "&loginfrom=dingtalk");
+                                        $("a.pca").find("span").text("点击查看任务表单");
+                                        DingTalkPC.biz.util.openLink({
+                                            url: window.location.origin + portalroot + "/workitemsheets.html?WorkItemID=" + WorkItemID + "&statepc=DefaultEngine&code=" + result.MobileUser.ObjectID + "&loginfrom=dingtalk",
+                                            onSuccess: function (result) {
+                                                //alert("1234");
+                                            },
+                                            onFail: function (err) {
+                                                console.log(err)
+                                                // alert(JSON.stringify(err));
+                                            }
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    })
+                });
+
+                DingTalkPC.error(function (error) {
+                    var msg = "";
+                    for (var key in error) {
+                        msg += key + ":" + error[key] + ";";
+                    }
+                    alert(msg);
+                });
+            }
+        });
+
+
+        function openlink() {
+            window.location.reload(true);
+        }
+    </script>
+
+</head>
+<body>
+    <link href="../css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        .AppIcon {
+            color: rgba(204,236,233,1);
+            margin-bottom: 10px;
+        }
+
+        .Mypanel-heading {
+            background-color: #fff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+        }
+
+        .Mypanel-heading:hover {
+            background-color: #f7f8fa;
+            cursor: pointer;
+            padding: 10px 15px;
+            border-radius: 4px;
+        }
+
+        myb-b {
+            border-bottom: 1px solid dotted;
+        }
+
+        .juzhong {
+            margin-top: 10%;
+        }
+
+        .dotted {
+            border-bottom: 1px dotted #23b7e5;
+        }
+
+        .nav-pills li a {
+            border-radius: 0;
+        }
+
+        .Mypanel-heading span {
+            font-size: 18px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            display: block;
+            color: #545454;
+        }
+
+        .panel-primary {
+            border-color: #fff;
+        }
+
+            .panel-primary:hover {
+                border-color: #398BFB;
+            }
+
+        .box > div {
+            text-align: center;
+            height: 100%;
+        }
+
+        .box {
+            float: left;
+            max-height: 140px;
+            overflow: hidden;
+        }
+
+        .pca:hover {
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .row {
+            margin-left:0px;
+            margin-right:0px;
+        }
+    </style>
+
+    <div style="width:100%">
+        <div class="row">
+            <div class="row">
+                <div class="col-xs-12 col-sm-12 col-md-12 ">
+                    <div style="text-align:center;margin-top:20%;">
+                        <a data-toggle="tooltip" data-placement="top" target="" href="javascript:void(0);">
+                            <img src="../img/DingtalkPC.png" />
+                        </a>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-sm-12 col-md-12 ">
+                    <div style="text-align:center;margin-top:2%;">
+                        <h3 style="color:#666; font-family:Microsoft YaHei;">欢迎使用H3BPM</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-12 col-sm-12 col-md-12 ">
+                <div style="text-align:center;margin-top:2%;">
+                    <a class="pca" onclick="openlink();"><h4><span style="background-color: #23b7e5; padding: 10px; border-radius: 8px; padding-left: 50px; color: #fff; font-family: Microsoft YaHei; padding-right: 50px;">点击进入系统</span></h4></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

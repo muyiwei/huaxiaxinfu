@@ -1,0 +1,138 @@
+﻿<script>
+
+    var pageData = {};
+
+    //
+    var SimulationID = getUrlParam("SimulationID");
+    var InstanceId = getUrlParam("InstanceId");
+
+    function InitToolBar() {
+        $(".H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel({ excludeIDs: ["AclGrid"] });
+    }
+    $(function () {
+        debugger;
+        LoadPageData();
+        //VUE
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                getText: function (key) { try { return $.Lang(key); } catch (e) { return ""; } },
+            }
+        });
+
+        InitToolBar();
+        //创建表格
+        if (typeof (pageData.Instances) != "undefined") {
+            $("#AclGrid").ligerGrid({
+                columns: GetInstanceListColumns(),
+                width: '100%',
+                height: '98%',
+                data: pageData.Instances,
+                rownumbers: true,
+                usePager: false,
+                tree: { columnName: 'ObjectID' },
+                allowAdjustColWidth: true
+            });
+        }
+    });
+
+    function LoadPageData()
+    {
+        debugger;
+        var url = _PORTALROOT_GLOBAL + $.Controller.Simulation.LoadSimulationInstanceInfo;
+        $.ajax({
+            url: url,
+            async:false,
+            data: { SimulationID: SimulationID,InstanceId:InstanceId },
+            success: function (data) {
+                if (data) {
+                    pageData = data;
+                    
+                }
+            }
+        });
+    }
+
+    function GetInstanceListColumns() {
+        var Simulation_WorkItemName=$.Lang("Simulation.Simulation_WorkItemName");
+        var Simulation_Participant=$.Lang("Simulation.Simulation_Participant");
+        var Simulation_ExisItemValue=$.Lang("Simulation.Simulation_ExisItemValue");
+        var EditSimulation_Ignore=$.Lang("Simulation.EditSimulation_Ignore");
+        var EditSimulation_Result=$.Lang("Simulation.EditSimulation_Result");
+        var EditSimulation_Pass=$.Lang("Simulation.EditSimulation_Pass");
+        var EditSimulation_NotPass=$.Lang("Simulation.EditSimulation_NotPass");
+        return [
+            { display: Simulation_WorkItemName, name: "WorkItemName" },
+            { display:Simulation_Participant, name: "Participant", align: "left" },
+            { display: Simulation_ExisItemValue, name: "ExisItem", align: "left" },
+            { display: EditSimulation_Ignore, name: "Ignore", align: "left", render: function (row) { return $.Lang(row.Ignore);} },
+            {
+                display: EditSimulation_Result, render: function (row) {
+                    if (row.Result) {
+                        return "<div>" + EditSimulation_Pass+ "</div>";
+                    }
+                    else
+                        return "<div style='color:#FF0000'>" + EditSimulation_NotPass + "</div>";
+                }
+            }];
+    }
+
+</script>
+
+<div class="H3Panel">
+    <span data-lang="Simulation.SimulationInstanceList_SelectCase"></span>
+    <table>
+        <tr>
+            <td data-lang="Simulation.MyInstance_FlowName"></td>
+            <td>
+                <span>{{InstanceName}}</span>
+                <!--<input type="text" id="lblInstanceName" disabled="disabled"/>-->
+            </td>
+            <td data-lang="Simulation.Simulation_Originator"></td>
+            <td>
+                <span>{{Originator}}</span>
+                <!--<input type="text" id="lblOriginator" disabled="disabled" />-->
+            </td>
+            <td data-lang="Simulation.SysDeployment_State"></td>
+            <td>
+                <span>{{getText(State)}}</span>
+                <!--<input type="text" id="lblState" disabled="disabled" />-->
+            </td>
+        </tr>
+        <tr>
+            <td data-lang="Simulation.Simulation_WorkItemCount"></td>
+            <td>
+                <span>{{WorkItemCount}}</span>
+                <!--<input type="text" id="lblWorkItemCount" disabled="disabled" />-->
+            </td>
+            <td data-lang="Simulation.Simulation_SuccessCount"></td>
+            <td>
+                <span>{{SuccessCount}}</span>
+                <!--<input type="text" id="lblSuccessCount" disabled="disabled" />-->
+            </td>
+            <td data-lang="Simulation.Simulation_FailedCount"></td>
+            <td>
+                <span>{{FailedCount}}</span>
+                <!--<input type="text" id="lblFailedCount" disabled="disabled" />-->
+            </td>
+        </tr>
+        <tr>
+            <td data-lang="Simulation.Simulation_IgnoreCount"></td>
+            <td>
+                <span>{{IgnoreCount}}</span>
+                <!--<input type="text" id="lblIgnoreCount" disabled="disabled" />-->
+            </td>
+            <td data-lang="Simulation.Simulation_Percent"></td>
+            <td>
+                <span>{{Percent}}</span>
+                <!--<input type="text" id="lblPercent" disabled="disabled" />-->
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="H3Panel">
+    <span data-lang="Simulation.SimulationInstanceList_AllCase"></span>
+    <div id="AclGrid" style="clear: both; margin: 0px; padding: 0px;"></div>
+</div>

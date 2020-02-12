@@ -1,0 +1,71 @@
+﻿<!--
+    待阅任务
+     -->
+<!--  ng-init="
+     app.settings.asideFolded=false;
+     app.settings.asideDock=false;" -->
+<div class="hbox hbox-auto-xs hbox-auto-sm">
+    <!-- main -->
+    <div class="col">
+        <!-- main header -->
+        <div class="bg-light lter b-b wrapper-md">
+            <div class="row" style=" padding-right: 15px; ">
+                <div class="col-sm-6 col-xs-12">
+                    <span class="h3" ng-bind="menuData.DisplayName"></span>
+                </div>
+            </div>
+        </div>
+        <!--表格部分Start-->
+        <div class="wrapper-md paddingbottomNone">
+            <div class="panel panel-default">
+                <div class="table-responsive">
+                    <div class="form-inline">
+                        <div class="btn-group searchContainer fade-in-right" style="float:left;">
+                            <button type="button" class="btn btn-default" title="" ng-click="showCommentModal();">
+                                <i class="fa fa-check"></i><span style=" margin-left:5px;" translate="QueryTableColumn.BatchRead"></span>
+                            </button>
+                        </div>
+                        <div class="input-group searchContainer" style="float:right;">
+                            <input type="text" class="input-sm form-control" style="width:200px"
+                                   ng-model="searchKey" ng-keypress="($event.which===13)?searchKeyChange():''"
+                                   placeholder="{{LanJson.ProcessName}}  {{LanJson.CircilateSource}}">
+                            <span class="input-group-btn">
+                                <button class="btn btn-sm btn-default" type="button" style="height:30px;"><i class="fa fa-search"></i></button>
+                            </span>
+                        </div>
+                    </div>
+
+                    <table ui-jq="dataTable" id="tabUnReadWorkitem"
+                           ui-options="dtOptions"
+                           class="table table-striped m-b-none" style="width:99.8%;">
+                        <thead>
+                            <tr>
+                                <th style="width:10px;padding-left:15px;">
+                                    <input type="checkbox" ng-click="checkAll($event)" />
+                                </th>
+                                <th>
+                                    <span translate="QueryTableColumn.ProcessName"></span>
+                                </th>
+                                <th>
+                                    <span translate="QueryTableColumn.CircilateSource"></span>
+                                </th>
+                                <th class="hide414">
+                                    <span translate="QueryTableColumn.ReceiveTime"></span>
+                                </th>
+                                <th class="hide1024">
+                                    <span translate="QueryTableColumn.Originator"></span>
+                                </th>
+                                <th class="hide1024">
+                                    <span translate="QueryTableColumn.DeptOfOriginator"></span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!--表格部分End-->
+    </div>
+    <!-- / main -->
+</div>

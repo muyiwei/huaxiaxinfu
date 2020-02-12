@@ -1,0 +1,31 @@
+﻿<!--
+    发起流程
+     -->
+<!--  ng-init="
+     app.settings.asideFolded=false;
+     app.settings.asideDock=false;" -->
+<div class="hbox hbox-auto-xs hbox-auto-sm">
+    <!-- main -->
+    <div class="col">
+        <!-- main header -->
+        <div class="bg-light lter b-b wrapper-md">
+            <div class="row" style=" padding-right: 15px; ">
+                <div class="col-sm-6 col-xs-12">
+                    <span class="h3" ng-bind="menuData.DisplayName"></span>
+                </div>
+            </div>
+        </div>
+        <div class="wrapper-md paddingbottomNone">
+            <div class="panel panel-default">
+                <div class="table-responsive" style="overflow:hidden;">
+                    <!--表格部分Star-->
+                    <div style="width: 100%;background-color:white; display: block;">
+                        <table ui-jq="bootstrapTable2" ui-options="bootstrapTableOptions" id="MyWorkflowTable"> </table>
+                    </div>
+                    <!--表格部分End-->
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- / main -->
+</div>

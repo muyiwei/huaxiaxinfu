@@ -1,0 +1,107 @@
+﻿<script>
+    $(function () {
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Pannel").BuildPanel({ excludeIDs: ["DataLogList"] });
+        initDefaultDate();
+
+        var startTime = $("input[id=startTime]").val();
+        var endTime = $("input[id=endTime]").val();
+        if (startTime > endTime) {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.Portal_TimeMsg") });
+        }
+        else {
+            CreateLigerGrid(
+             $("#DataLogList"),
+             GetInvokingLogColumns(),
+             $.Controller.DataLog.GetDataLogList,
+             false, "98%", null, null, null,
+             {
+                 startTime: startTime,
+                 endTime: endTime,
+                 sheetName: $("#SheetName").val()
+             }
+
+            );
+        }
+    })
+
+    function GetInvokingLogColumns() {
+        var user = $.Lang("DataLog.User");
+        var time = $.Lang("DataLog.Time");
+        var operation = $.Lang("DataLog.Operation");
+        var name = $.Lang("DataLog.SheetName");
+        return [
+            { display: user, name: 'UserName', width: "10%" },
+            { display: time, name: 'Time', width: '15%' },
+            { display: operation, name: 'Operation', width: '5%' },
+            { display: name, name: 'SheetName', width: '20%' },
+        ];
+    }
+
+    function QueryFun() {
+        var startTime = $("input[id=startTime]").val().trim('');
+        var endTime = $("input[id=endTime]").val().trim('');
+        if (startTime != "" && endTime != "") {
+            if (startTime > endTime) {
+                $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.Portal_TimeMsg") });
+                return false;
+            }
+        }
+        var manager = $("#DataLogList").ligerGetGridManager();
+        manager.set({
+            parms: {
+                startTime: startTime,
+                endTime: endTime,
+                sheetName: $("#SheetName").val()
+            }
+        });
+        manager.reload();
+    }
+</script>
+
+<div id="ToolBar">
+    <a href="#" id="lnkQuery" onclick="QueryFun()" data-icon="fa fa-search" data-lang="DataLog.Button_Q">
+        查询
+    </a>
+</div>
+
+<div class="H3Pannel">
+    <table class="tableList">
+        <tr>
+            <td data-lang="DataLog.Query_date">
+                查询时间
+            </td>
+            <td>
+                <div class="tableNoCss">
+                    <table>
+                        <tr>
+                            <td class="tableNoCss" style="width:25px" data-lang="DataLog.From">
+                                从
+                            </td>
+                            <td class="tableNoCss">
+                                <input name="startTime" type="text" id="startTime" onclick="InitWdatePicker(this)" style="width:95px;" data-datetime="start">
+                            </td>
+                            <td class="tableNoCss" style="width: 21px; padding-left: 10px" data-lang="DataLog.To">
+                                到
+                            </td>
+                            <td class="tableNoCss">
+                                <input name="endTime" type="text" id="endTime" onclick="InitWdatePicker(this)" style="width:95px;" data-datetime="end">
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+            <td data-lang="DataLog.SheetName">
+                表单名称
+            </td>
+            <td>
+                <input id="SheetName" type="text">
+            </td>
+            <td></td>
+        </tr>
+    </table>
+</div>
+<div class="H3Pannel">
+    <span data-lang="DataLog.ListName"></span>
+    <div id="DataLogList"></div>
+</div>

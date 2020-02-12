@@ -1,0 +1,658 @@
+﻿<script>
+
+    var pageData = {
+        AdapterData: {},//适配器
+        DbCodeList: {},   //数据库
+        BizService: { Settings: {}, "Class": "OThinker.H3.BizBus.BizAdapters.DbTableAdapter", Version: 0 },//设置属性
+        TableList: {},    //数据表列表
+        LanData: $.Languages,
+        RESTfulAdapter: { RESTful_HttpMethod: "HttpGet", RESTful_URL: "" }//RESTful适配器
+    }
+    var DbSqlAdapter = "OThinker.H3.BizBus.BizAdapters.DbSqlAdapter";
+    var DbTableAdapter = "OThinker.H3.BizBus.BizAdapters.DbTableAdapter";
+    var RESTFulAdapter = "OThinker.H3.BizBus.BizAdapters.RESTfulAdapter";
+
+    $(function () {
+        InitPageData();
+        if (!pageData.BizService.ObjectID) {
+            setControlUsable("0", $("a.EnabledAfterSave"));
+        }
+        //Vue
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        SaveData();
+                    }
+                },
+                validate: function (event) { Validate(); },
+                reload: function (event) { Reload(); },
+                remove: function (event) { Remove(); },
+            }
+        });
+        $("#H3ToolBar").AspLinkToolBar();
+        $("#H3ToolBar1").AspLinkToolBar({ IsFixed: false });
+        $("#H3ToolBar2").AspLinkToolBar({ IsFixed: false });
+        $(".H3Panel").BuildPanel({ excludeIDs: ["tableSettring", "inputParamDiv", "outputParamDiv"] });
+
+        if (pageData.BizService.Class == RESTFulAdapter) {
+            //初始化InputGrid
+            $("#InputParamGrid").ligerGrid({
+                columns: GetParamColums(),
+                width: '100%',
+                //data: gridData,
+                url: $.Controller.BizService.GetRESTfulParams,
+                parms: { bizServiceCode: pageData.BizService.Code, paramType: 'InputParam' },
+                rownumbers: false,
+                usePager: false,
+                // checkbox: true,
+                allowAdjustColWidth: true,
+                rownumbers: true,
+                enabledSort: false,
+                columnWidth: "auto",
+                tree: { columnId: 'ParentId' },
+            }).toggleCol("IsRequired", false);;
+
+            //初始化OutputGrid
+            var outputParamGrid = $("#OutputParamGrid").ligerGrid({
+                columns: GetParamColums(),
+                width: '100%',
+                //data: gridData,
+                url: $.Controller.BizService.GetRESTfulParams,
+                parms: { bizServiceCode: pageData.BizService.Code, paramType: 'OutputParam' },
+                rownumbers: false,
+                usePager: false,
+                // checkbox: true,
+                allowAdjustColWidth: true,
+                rownumbers: true,
+                enabledSort: false,
+                columnWidth: "auto",
+                tree: { columnId: 'ParentId' },
+            }).toggleCol("IsRequired", false);;
+            //outputParamGrid.toggleCol("IsRequired",false);
+        }
+    });
+
+    function GetParamColums() {
+        return [
+                { display: $.Lang("BizService.Param"), name: "ParamName", id: "ParentId", align: "center" },
+                { display: $.Lang("BizService.IsRequired"), name: "IsRequired", render: BuildBoolCoum, align: "center" },
+                { display: $.Lang("BizService.ParamType"), name: "ParamDataTypeName", align: "center" },
+                { display: $.Lang("BizService.ParamDesc"), name: "ParamDesc", align: "center" },
+                {
+                    display: $.Lang("GlobalButton.Delete"), name: "Trackable", align: "center", render: function (row, rowindex, value) {
+                        var editLink = "<div style='padding-left:5px;float:left;'><a href='javascript:void(0);' style='text-align:left;' ParentParamName='" + (row.ParentParamName == null ? "" : row.ParentParamName) + "' ParamName='" + row.ParamName + "' ParamName='" + row.ParamType + "' onclick='AddRESTfulParam(" + row.ParamType + ",this)'>" + $.Lang("GlobalButton.Edit") + "</a></div>";
+                        var newChildParam = "<div style='padding-left:5px;float:left;'><a href='javascript:void(0);' style='text-align:left;' ParentParamName='" + row.ParamName + "' ParamType='" + row.ParamType + "' onclick='AddRESTfulParam(" + row.ParamType + ",this)'>" + $.Lang("GlobalButton.AddChildParam") + "</a></div>";
+                        var delLink = "<div style='padding-left:5px;float:left;'><a href='javascript:void(0);' style='text-align:left;' ParentParamName='" + (row.ParentParamName == null ? "" : row.ParentParamName) + "' ParamName='" + row.ParamName + "' ParamType='" + row.ParamType + "' onclick='DelParam(this)'>" + $.Lang("GlobalButton.Remove") + "</a></div>";
+                        var url = "";
+                        if (row.ParamDataType == "BizObjectArray" || row.ParamDataType == "BizObject") {
+                            url = editLink + newChildParam + delLink;
+                        } else {
+                            url = editLink + delLink;
+                        }
+                        return url;
+                    }
+                }
+        ];
+    };
+
+    //添加RESTful参数
+    function AddRESTfulParam(type, obj) {
+        var bizServiceCode = pageData.BizService.Code;
+        if (!bizServiceCode) {
+            return false;
+        }
+        var parentName = $.Lang("BizService.Param");
+        var name = !$(obj).attr("paramname") ? $.Lang("BizService.AddParam") : $(obj).attr("paramname");
+        var parentParamName = $(obj).attr("parentparamname") ? $(obj).attr("parentparamname") : "";
+        var paramName = $(obj).attr("paramname") ? $(obj).attr("paramname") : "";
+        var url = "ProcessModel/EditBizServiceRESTfulParam.html";
+        url += "&ParamType=" + type;
+        url += "&BizServiceCode=" + encodeURI(bizServiceCode);
+        url += "&ParentParamName=" + encodeURI(parentParamName);
+        url += "&ParamName=" + encodeURI(paramName);
+        ShowDialog(parentName + "_" + name, _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=" + url);
+    };
+
+    //删除参数
+    function DelParam(obj) {
+        var paramName = obj == null ? "" : $(obj).attr("ParamName");
+        var parentParamName = obj == null ? "" : $(obj).attr("ParentParamName");
+        var paramType = obj == null ? "" : $(obj).attr("ParamType");
+        if (ConfirmDel(obj)) {
+            var data = {
+                ParamName: paramName,
+                ParentParamName: parentParamName,
+                ParamType: paramType,
+                BizServiceCode: pageData.BizService.Code
+
+            };
+            $.ajax({
+                url: $.Controller.BizService.RemoveRESTfulParam,
+                data: data,
+                type: 'get',
+                dataType: "json",
+                success: function (result) {
+                    if (result.Success) {
+                        var gridId = "InputParamGrid";
+                        if (result.Extend.ParamType == 1) {
+                            gridId = "OutputParamGrid";
+                        }
+                        GridReload(gridId);
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.DeleteSucced") });
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.DeleteFailed") });
+                    }
+                }
+            });
+        }
+    };
+
+    function GridReload(id) {
+        var manager = $("#" + id).ligerGetGridManager();
+        manager.reload();
+    }
+
+    function SaveData() {
+        if (pageData.BizService.Class == "OThinker.H3.BizBus.BizAdapters.RESTfulAdapter") {
+            pageData.BizService.Settings.splice(2, 2);
+            for (var i = 0; i < pageData.BizService.Settings.length; i++) {
+                if (i < 2) {
+                    pageData.BizService.Settings[i].SettingValue = pageData.RESTfulAdapter[pageData.BizService.Settings[i].SettingName];
+                }
+            }
+        }
+        var formData = JSON.stringify(pageData.BizService);
+        $.ajax({
+            url: $.Controller.BizService.SaveBizService,
+            type: "post",
+            dataType: "json",
+            data: { formData: formData },
+            success: function (result) {
+                if (result.Success) {
+                    $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                    //后台返回service对象
+                    var service = result.Extend;
+                    var tabID = service.ObjectID;
+                    var tabName = service.DisplayName;
+                    var url = _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/EditBizService.html" + "&ParentID=" + pageData.BizService.ParentID + "&ServiceCode=" + service.Code
+
+                    //修改TabID ,Tab显示名称，更改Tab页面地址
+                    ChangeCurrentTabId(tabID);
+                    SetTabHeader(tabID, tabName);
+
+                    //更新节点 top.ReloadNode('ParentID')
+                    top.ReloadNode(pageData.BizService.ParentID)
+
+                    ChangeCurrentTabIframe(tabID, url);
+                } else {
+                    var Extend = "";
+                    if (result.Extend) { Extend = result.Extend; }
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) + Extend });
+                }
+            }
+        });
+    }
+
+    function Validate() {
+        var formData = JSON.stringify(pageData.BizService);
+        $.ajax({
+            url: $.Controller.BizService.ValidateBizService,
+            type: 'post',
+            dataType: "json",
+            data: { formData: formData },
+            async: false,//同步执行
+            success: function (result) {
+                if (result.Success) {
+                    $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                } else {
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) + result.Extend });
+                }
+            }
+        });
+    }
+
+    function Reload() {
+        $.ajax({
+            url: $.Controller.BizService.Reload,
+            type: 'post',
+            dataType: "json",
+            data: { serviceCode: pageData.BizService.Code },
+            async: false,//同步执行
+            success: function (result) {
+                if (result.Success) {
+                    $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                    top.workTab.reload(top.workTab.getSelectedTabItemID());
+                } else {
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                }
+            }
+        });
+    }
+
+    function Remove() {
+        var canDel = false;
+        $.ajax({
+            url: $.Controller.BizService.RemoveCheck,
+            type: 'post',
+            dataType: "json",
+            data: { serviceCode: pageData.BizService.Code },
+            async: false,//同步执行
+            success: function (result) {
+                if (result.Success) {
+                    canDel = true;
+                } else {
+                    if (result.Extend) {
+                        var title = $.Lang(result.Message) + "<br/>";
+                        var content = $.Lang("BizService.ApplyDetail") + "：<br/>";
+                        for (var i = 0; i < result.Extend.length; i++) {
+                            content += "<p style='margin-left:21px;display:inline-block;white-space:normal;word-wrap:break-word;width:95%'>" + $.Lang("BizService.InstanceName") + "：" + result.Extend[i].Name + "，" + $.Lang("BizService.ApplyMethods") + "：(" + result.Extend[i].Methods.join(',') + ")<br/></p>";
+                        }
+                        $.H3Dialog.Warn({ content: title + content });
+                    } else {
+                        $.H3Dialog.Error({ content: $.Lang(result.Message) });
+                    }
+                }
+            }
+        })
+        if (canDel) {
+            var deleteConfirm = $.Lang("msgGlobalString.DeleteConfrim");
+            $.ligerDialog.confirm(deleteConfirm, function (ok) {
+                if (ok) {
+                    //执行删除
+                    $.ajax({
+                        url: $.Controller.BizService.Remove,
+                        type: 'post',
+                        dataType: "json",
+                        data: { serviceCode: pageData.BizService.Code },
+                        async: false,//同步执行
+                        success: function (result) {
+                            if (result.Success) {
+                                top.ReloadNode(pageData.BizService.ParentID);
+                                //移除当前页面
+                                top.workTab.removeTabItem(top.workTab.getSelectedTabItemID());
+                            }
+                            else {
+                                if (result.Extend) {
+                                    var title = $.Lang(result.Message) + "<br/>";
+                                    var content = $.Lang("BizService.ApplyDetail") + "：<br/>";
+                                    for (var i = 0; i < result.Extend.length; i++) {
+                                        content += "　 " + $.Lang("BizService.InstanceName") + "：" + result.Extend[i].Name + "，" + $.Lang("BizService.ApplyMethods") + "：(" + result.Extend[i].Methods.join(',') + ")<br/>";
+                                    }
+                                    $.H3Dialog.Warn({ content: title + content });
+                                } else {
+                                    $.H3Dialog.Error({ content: $.Lang(result.Message) });
+                                }
+                            }
+
+                        }
+                    });
+                }
+            });
+        }
+    }
+    //
+    function ChangeCurrentTabId(newTabId) {
+        top.$("div[tabid='" + top.workTab.getSelectedTabItemID() + "']").attr("tabid", newTabId);
+        top.$("iframe[id='" + top.workTab.getSelectedTabItemID() + "']").attr("id", newTabId);
+        top.$("iframe[name='" + top.workTab.getSelectedTabItemID() + "']").attr("name", newTabId);
+        top.$("li[tabid='" + top.workTab.getSelectedTabItemID() + "']").attr("tabid", newTabId);
+    }
+
+    function SetTabHeader(tabID, text) {
+        top.workTab.setHeader(tabID, text);
+    }
+
+    //修改页面地址
+    function ChangeCurrentTabIframe(tabID, newUrl) {
+        top.$("iframe[id='" + tabID + "']").attr("src", newUrl);
+    }
+
+    //及时更新BizService对象值
+    function SettingValueChange(settingName, settingValue) {
+        //alert(settingName + "-" + settingValue);
+        for (var index in pageData.BizService.Settings) {
+            var setting = pageData.BizService.Settings[index];
+            var name = setting.SettingName;
+
+            if (name == settingName) {
+                pageData.BizService.Settings[index].SettingValue = settingValue;
+            }
+        }
+    }
+
+    function AdapterChange(adapter) {
+        pageData.BizService.Class = adapter;
+
+        if (adapter == DbTableAdapter) {
+            LoadTableList();
+        } else if (adapter == RESTFulAdapter) {
+            setControlUsable("0", $("#btnValidate"));
+            LoadSettingData(false);
+        } else {
+            LoadSettingData(false);
+        }
+    }
+
+    //业务连接池修改时显示对应的数据表
+    function DbCodeChange(dbCode) {
+        pageData.BizService.DbCode = dbCode;
+        //设置DbCode属性
+        if (pageData.BizService.Settings) {
+            for (var i = 0; i < pageData.BizService.Settings.length; i++) {
+                if (pageData.BizService.Settings[i].SettingName == "DbCode") {
+                    pageData.BizService.Settings[i].SettingValue = dbCode;
+                }
+            }
+        }
+        if (pageData.BizService.Class == DbTableAdapter) {
+            //级联Table属性
+            LoadTableList();
+        }
+    }
+
+    //数据表修改时，更改对应属性默认值
+    function TableNameChange(tableName) {
+        var oldTableName = pageData.BizService.TableName;
+        pageData.BizService.TableName = tableName;
+        //设置DbCode属性
+        if (pageData.BizService.Settings) {
+            for (var i = 0; i < pageData.BizService.Settings.length; i++) {
+                if (pageData.BizService.Settings[i].SettingName == "TableName") {
+                    pageData.BizService.Settings[i].SettingValue = tableName;
+                }
+            }
+        }
+        //级联设置属性
+        //修改对应的表显示
+        var createNew = (oldTableName != tableName);//表格改变时才创建新的sql语句
+        LoadSettingData(createNew);
+
+    }
+
+    //适配器下拉框
+    function InitPageData() {
+        //适配器列表
+        var AdapterUrl = $.Controller.Adapter.LoadBizAdapterList;
+        $.ajax({
+            type: 'post',
+            url: AdapterUrl,
+            data: { adapterType: 0, isGrid: false },
+            async: false,
+            success: function (result) {
+                if (result.Extend.GridData && result.Extend.GridData.Rows && result.Extend.GridData.Rows.length > 0) {
+                    pageData.AdapterData = result.Extend.GridData.Rows;
+                    pageData.HttpMethods = result.Extend.HttpMethods;
+                }
+            }
+        })
+
+        //数据库连接
+        var DbCodeUrl = $.Controller.BizDbConfig.LoadDbConfigList;
+        $.ajax({
+            type: 'post',
+            url: DbCodeUrl,
+            data: {},
+            async: false,
+            success: function (result) {
+                if (result && result.Rows && result.Rows.length > 0) {
+                    pageData.DbCodeList = result.Rows;
+                }
+            }
+        });
+
+        //加载初始数据
+        var serviceCode = getUrlParam("ServiceCode");
+        pageData.ServiceCode = serviceCode;
+        if (serviceCode && serviceCode != "") {
+            $.ajax({
+                url: $.Controller.BizService.GetBizServiceInfo,
+                type: 'get',
+                dataType: "json",
+                data: { serviceCode: serviceCode },
+                async: false,//同步执行
+                success: function (result) {
+                    pageData.BizService = result;
+                }
+            });
+            ///适配器变化时，修改显示对应属性
+            AdapterChange(pageData.BizService.Class);
+        }
+        else {
+            pageData.BizService.DbCode = pageData.DbCodeList[0].DbCode;//新增时
+            ///适配器变化时，修改显示对应属性
+            AdapterChange(pageData.BizService.Class);
+        }
+
+        //parentID,parentCode 从URL读取
+        var parentID = getUrlParam("ParentID");
+        var parentCode = getUrlParam("ParentCode");
+        pageData.BizService.ParentID = parentID;
+        pageData.BizService.ParentCode = parentCode;
+    }
+
+    //绑定属性值
+    function LoadSettingData(createNew) {
+        var InitSettingUrl = $.Controller.BizService.InitServiceSetting;
+        var adapterCode = pageData.BizService.Class;
+        var serviceCode = getUrlParam("ServiceCode");//ServiceCode传参都从URL中获取
+        var dbCode = pageData.BizService.DbCode;
+        var tableName = pageData.BizService.TableName;
+        //
+        $.ajax({
+            type: 'post',
+            url: InitSettingUrl,
+            data: { bizAdapterCode: pageData.BizService.Class, serviceCode: serviceCode, dbCode: pageData.BizService.DbCode, tableName: pageData.BizService.TableName, createNew: createNew },
+            async: false,
+            success: function (result) {
+                if (result && result != "") {
+                    pageData.BizService.Settings = result;
+                    if (pageData.BizService.Class == "OThinker.H3.BizBus.BizAdapters.RESTfulAdapter") {
+                        $.each(pageData.BizService.Settings, function (i, n) {
+                            if ("RESTful_HttpMethod" != n.SettingName || n.SettingValue) {
+                                pageData.RESTfulAdapter[n.SettingName] = n.SettingValue;
+                            }
+                        });
+                    }
+                }
+
+            }
+        });
+    }
+
+    function LoadTableList() {
+        if (pageData.BizService.DbCode) { dbCode = pageData.BizService.DbCode; }
+        if (pageData.BizService.Class) { adapterCode = pageData.BizService.Class; }
+
+        var TableListUrl = $.Controller.BizService.GetTableList;
+        //
+        $.ajax({
+            type: 'post',
+            url: TableListUrl,
+            data: { dbCode: pageData.BizService.DbCode },
+            async: false,
+            success: function (result) {
+                if (result && result.length > 0) {
+                    debugger
+                    pageData.TableList = result;
+                }
+            }
+        });
+
+        //如果是新建业务服务，Table默认显示第一个
+        //不设置默认表时导致获取适配器属性异常
+        //if (pageData.BizService.TableName == undefined) {
+        pageData.BizService.TableName = pageData.TableList[0].Value;
+        //}
+        TableNameChange(pageData.BizService.TableName);
+    }
+
+    function run(obj) {
+        var serviceCode = pageData.BizService.Code;
+        ShowDialog($(obj).text(), _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/TestBizService.html&ServiceCode=" + serviceCode);
+        return false;
+    }
+
+    function viewReference(obj) {
+        var serviceCode = pageData.BizService.Code;
+        ShowDialog($(obj).text(), _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/ListBizServiceReferences.html&ServiceCode=" + serviceCode);
+        return false;
+    }
+
+</script>
+
+<validator name="formValidator">
+    <div id="H3ToolBar">
+        <a id="btnSave" v-on:click="saveData" data-icon="fa fa-save" data-lang="GlobalButton.Save"></a>
+        <a id="btnValidate" v-on:click="validate" class="EnabledAfterSave" data-icon="fa fa-check" data-lang="GlobalButton.Validate"></a>
+        <a id="btnReload" v-on:click="reload" class="EnabledAfterSave" data-icon="icon-shuaxin" data-lang="GlobalButton.Reload"></a>
+        <a id="btnReference" onclick="viewReference(this)" class="EnabledAfterSave" data-icon="fa fa-exchange" data-lang="GlobalButton.ReferenceRelationship"></a>
+        <a id="lnkRun" data-icon="icon-yunxing" class="EnabledAfterSave" onclick="run(this)" data-lang="GlobalButton.Run"></a>
+        <a id="btnRemove" v-on:click="remove" class="EnabledAfterSave" data-icon="fa fa-minus" data-lang="GlobalButton.Delete"></a>
+    </div>
+
+    <div class="H3Panel">
+        <span data-lang="msgGlobalString.Msg_BasciInfor"></span>
+
+        <table>
+            <tr>
+                <td data-lang="BizService.Class"></td>
+                <td>
+                    <!--<input type="text" id="lstBizAdapter" />-->
+                    <select onchange="AdapterChange(this.value)" v-model="BizService.Class" v-bind:disabled="BizService.ObjectID">
+                        <option v-for="option in AdapterData" v-bind:value="option.Code">
+                            {{option.DisplayName}}
+                        </option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td data-lang="BizService.Code"></td>
+                <td>
+
+                    <input type="text" id="txtCode" v-model="BizService.Code" v-bind:disabled="BizService.ObjectID" detect-change="on" detect-blur="on" initial="off" v-validate:item-code="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.itemCode.required">{{LanData.BizService.CodeNotNUll}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td data-lang="BizService.DisplayName"></td>
+                <td>
+
+                    <input type="text" id="txtDisplayName" v-model="BizService.DisplayName" />
+                </td>
+            </tr>
+            <tr>
+                <td data-lang="BizService.Description"></td>
+                <td>
+
+                    <input type="text" id="txtDescription" multiple="multiple" v-model="BizService.Description" />
+                </td>
+            </tr>
+            <tr>
+                <td data-lang="BizService.Version"></td>
+                <td>
+                    <input type="text" id="txtVersionNo" v-model="BizService.Version" detect-change="on" detect-blur="on" initial="off" v-validate:version="['number']" />
+                    <span style="color:Red;" v-if="$formValidator.version.number">{{LanData.msgGlobalString.NumberValidate}}</span>
+                </td>
+            </tr>
+        </table>
+
+    </div>
+    <div class="H3Panel" v-show="BizService.Class!='OThinker.H3.BizBus.BizAdapters.RESTfulAdapter'">
+        <!--SettingName SettingName --> <!-- 数据库名称 和 数据库表名使用下拉框-->
+        <span>{{LanData.BizService.PropertySet}}</span>
+        <table id="tableSettring" class="tableList" cellspacing="0" rules="all" border="0" style="width:100%;border-collapse:collapse">
+            <tr>
+                <td spacetd="spacetd" style="width: 20px;"></td>
+                <td class="tableLeft">{{LanData.BizService.SettingName}}</td>
+                <td>{{LanData.BizService.SettingValue}}</td>
+            </tr>
+            <tr v-for="setting in BizService.Settings">
+                <td spacetd="spacetd" style="width: 20px;"></td>
+                <td class="tableLeft">{{setting.SettingName=="DbCode"?"业务数据库":setting.SettingName}}</td>
+                <td v-if="setting.SettingName=='DbCode'">
+                    <select onchange="DbCodeChange(this.value)" name="DbCode" v-model="BizService.DbCode">
+                        <option v-for="option in DbCodeList" v-bind:value="option.DbCode">
+                            {{option.DisplayName || option.DbCode}}
+                        </option>
+                    </select>
+                </td>
+                <td v-if="setting.SettingName=='TableName'">
+                    <select onchange="TableNameChange(this.value)" name="TableName" v-model="BizService.TableName">
+                        <option v-for="option in TableList" selected v-if="option.Value==setting.SettingValue" selected v-bind:value="option.Value">
+                            {{option.Text}}
+                        </option>
+                        <option v-for="option in TableList" v-if="option.Value!=setting.SettingValue" v-bind:value="option.Value">
+                            {{option.Text}}
+                        </option>
+                    </select>
+                </td>
+                <td v-if="setting.SettingName!='DbCode' && setting.SettingName!='TableName'">
+                    <textarea name="{{setting.SettingName}}" style="width:80%" onchange="SettingValueChange(this.name,this.value)">{{setting.SettingValue}}</textarea>
+                </td>
+            </tr>
+        </table>
+
+    </div>
+
+    <div v-show="BizService.Class=='OThinker.H3.BizBus.BizAdapters.RESTfulAdapter'">
+        <div class="H3Panel">
+            <span>{{LanData.BizService.PropertySet}}</span>
+            <table class="tableList" class="tableList" cellspacing="0" rules="all" border="0" style="width:100%;border-collapse:collapse">
+                <tr>
+                    <td spacetd="spacetd" style="width: 20px;"></td>
+                    <td class="tableLeft">{{LanData.BizService.SettingName}}</td>
+                    <td>{{LanData.BizService.SettingValue}}</td>
+                </tr>
+                <tr>
+                    <td>
+                        {{LanData.BizService.HttpMethod}}
+                    </td>
+                    <td colspan="2" class="tableNoCss">
+                        <table border="0">
+                            <tr>
+                                <td v-for="item in HttpMethods" style="padding-right:50px;">
+                                    <input type="radio" name="HttpMethod" value="{{item.Value}}" v-model="RESTfulAdapter.RESTful_HttpMethod" />
+                                    <label>{{item.Text}}</label>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td class="tableDesCol">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td>
+                        {{LanData.BizService.URL}}
+                    </td>
+                    <td>
+                        <label>{{BizService.RESTfulAdapter.Url}}</label>
+                        <input type="text" style="width:800px" v-model="RESTfulAdapter.RESTful_URL" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="H3Panel">
+            <span>{{LanData.BizService.InputParam}}</span>
+            <div id="inputParamDiv">
+                <div id="H3ToolBar1">
+                    <a href="javascript:void(0);" data-icon="fa fa-plus" onclick="AddRESTfulParam(0,this)" data-lang="GlobalButton.Add" v-show="ServiceCode"></a>
+                </div>
+                <div id="InputParamGrid"></div>
+            </div>
+        </div>
+        <div class="H3Panel">
+            <span>{{LanData.BizService.OutputParam}}</span>
+            <div id="outputParamDiv">
+                <div id="H3ToolBar2">
+                    <a href="javascript:void(0);" data-icon="fa fa-plus" onclick="AddRESTfulParam(1,this)" data-lang="GlobalButton.Add" v-show="ServiceCode"></a>
+                </div>
+                <div id="OutputParamGrid"></div>
+            </div>
+        </div>
+    </div>
+</validator>

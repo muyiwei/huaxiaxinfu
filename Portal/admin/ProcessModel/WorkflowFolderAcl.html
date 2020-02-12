@@ -1,0 +1,114 @@
+﻿<script>
+    var WorkflowFolderCode = "";
+    var HasFolderAcl = false;
+    $(function () {
+        WorkflowFolderCode = getUrlParam("WorkflowFolderCode");
+        HasFolderAcl = GetFolderAcl(WorkflowFolderCode);
+
+        debugger;
+
+        GetFolderAcl();
+        //是否禁用按钮操作
+        setControlUsable(HasFolderAcl ? "1" : "0", $("a"));
+
+        $("#H3ToolBar").AspLinkToolBar();
+
+        var LoadUrl =_PORTALROOT_GLOBAL + $.Controller.WorkflowFolderAcl.GetData;
+
+        CreateLigerGrid(
+           $("#H3DataGrid"),
+           CreateColums(),
+           LoadUrl,
+           true,
+           null,
+           null, null, null,
+           {
+               WorkflowFolderCode:WorkflowFolderCode
+           }
+          );
+
+    });
+
+    //获取流程权限
+    function GetFolderAcl()
+    {
+        $.ajax({
+            url: _PORTALROOT_GLOBAL + $.Controller.WorkflowFolderAcl.GetFolderAcl,
+            type: 'get',
+            data: { WorkflowFolderCode: WorkflowFolderCode },
+            async: false,//同步执行
+            success: function (result) {
+                HasFolderAcl = result;
+            }
+        });
+    }
+
+    function btnRemove_Click() {
+
+        var DeleteUrl = _PORTALROOT_GLOBAL + $.Controller.WorkflowFolderAcl.Delete;
+
+        var gridManager = $("#H3DataGrid").ligerGetGridManager();
+
+        var msg0 = $.Lang("msgGlobalString.SelectItem");
+        var deleteConfirm = $.Lang("msgGlobalString.DeleteConfrim");
+        var rows = gridManager.getSelectedRows();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: msg0 });
+            return;
+        }
+        var ids = "";
+        for (var i = 0; i < rows.length; i++) {
+            ids = ids + rows[i].ObjectID + ";";
+        }
+       
+        $.ligerDialog.confirm(deleteConfirm, function (result) {
+            if (result) {
+                $.ajax({
+                    url: DeleteUrl,
+                    type:"post",
+                    data: { delIds: ids },
+                    success: function (result) {
+                        top.workTab.reload(top.workTab.getSelectedTabItemID());
+                    }
+                });
+            }
+        });
+        return false;
+    }
+
+    function CreateColums() {
+        var EditAgency_User= $.Lang("WorkflowFolderAcl.EditAgency_User");
+        var EditBizRuleAcl_Administrator=$.Lang("WorkflowFolderAcl.EditBizRuleAcl_Administrator");
+        var Edit =$.Lang("GlobalButton.Edit");
+        return [
+            { display: EditAgency_User, name: "UserID", width: "auto" },
+            { display: EditBizRuleAcl_Administrator, name: "Run", render: BuildBoolCoum, width: "10%" },
+            {
+                display: Edit,
+                name: "edit", width: "10%",
+                render: function (rowdata, index, value) {
+                    return "<a href='javascript:void(0);' AclID='" + rowdata.ObjectID + "'  onclick='EditAcl(this)'>" + Edit + "</a>";
+                }
+            }
+            ];
+    }
+
+    function EditAcl(obj) {
+      
+        var AclID = $(obj).attr("AclID") == null ? "" : $(obj).attr("AclID");
+        var url = _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/EditWorkflowFolderAcl.html";
+        url += "&WorkflowFolderCode="+WorkflowFolderCode;
+        url += "&AclID=" + AclID;
+
+        ShowDialog($(obj).text(), url);
+
+        return false;
+    }
+
+</script>
+<div id="H3ToolBar">
+    <a ID="btnAdd"  data-icon="fa fa-plus" onclick="return EditAcl(this);" data-lang="GlobalButton.Add"></a>
+    <a id="btnRemove" data-icon="fa fa-minus" onclick="return btnRemove_Click();" data-lang="GlobalButton.Delete"></a>
+</div>
+<div id="H3DataGrid">
+</div>

@@ -1,0 +1,190 @@
+﻿<!-- 为了避免bootstrap 和ligerui样式冲突，暂时将bootstap-select 所用文件单独引用-->
+<link href="../WFRes/assets/stylesheets/bootstrap.min.css" rel="stylesheet" type="text/css" /> 
+<link href="../vendor/jquery/bootstrap-select-1.12.4/dist/css/bootstrap-select.min.css" rel="stylesheet" type="text/css" />
+<style type="text/css">
+    .form-control {
+        padding: 0px;
+    }
+    div {
+        box-sizing: content-box;
+    }
+    body {
+        font-family: "宋体",Arial,sans-serif;
+        font-size: 12px;
+        overflow-x:auto !important;
+    }
+</style>
+<script src="../vendor/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+<script src="../vendor/jquery/bootstrap-select-1.12.4/dist/js/bootstrap-select.min.js"></script>
+<script>
+    //资源文件
+    $(function () {
+        initQuery();
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel({ excludeIDs: ["LoginUserList"] });
+        $("#divUser").SheetUser({ Editable: true, Visiable: true, Originate: true, IsMultiple: true });
+        initDefaultDate();
+        // 打开即执行查询
+        QueryFun();
+    })
+
+    function initQuery() {
+        $.ajax({
+            url: $.Controller.LoginLog.GetSiteType,
+            type: 'get',
+            dataType: "json",
+            async: false,//同步执行
+            success: function (result) {
+                if (result.Success) { 
+                    if (result.Extend) {
+                        $.each(result.Extend, function (i, n) {
+                            result.Extend[i].text = $.Lang(result.Extend[i].text);
+                        });  
+                        var optStr="";
+                        for (var i = 0; i < result.Extend.length; i++) {
+                            optStr += "<option  value='" + result.Extend[i].id + "'>" + result.Extend[i].text + "</option>";
+                        }
+                        $("#sltSitetype").html(optStr); 
+                    }
+                    ////初始化下拉菜单
+                    //$("#sltSitetype").ligerComboBox({
+                    //    data: result.Extend, valueFieldID: 'SiteType', value: "-1"
+                    //});
+
+                } else {
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                }
+            }
+        });
+    }
+    function QueryFun() {
+        debugger
+        var startTime = $("input[id=startTime]").val();
+        var endTime = $("input[id=endTime]").val();
+        var userids = $("#divUser").SheetUIManager().GetValue();
+        var siteType = $("#sltSitetype").val();
+        var loginIP = $("input[id=loginIP]").val();
+        if (startTime && endTime && (startTime > endTime)) {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.Portal_TimeMsg") });
+        }
+        else {
+            CreateLigerGrid(
+             $("#LoginUserList"),
+             GetCategoryColumns(),
+             $.Controller.LoginLog.GetLoginLogList,
+             false, "98%",
+             null, null, null,
+             {
+                 startTime: startTime,
+                 endTime: endTime,
+                 userIds: userids,
+                 siteTypes: siteType,
+                 loginIP: loginIP
+             }
+            );
+        }
+    }
+    function GetCategoryColumns() {
+        var userCode = $.Lang("LoginLog.UserCode");
+        var userId = $.Lang("LoginLog.UserID");
+        var sitetype = $.Lang("LoginLog.SiteType");
+        var sitetypeWeb = $.Lang("LoginLog.SiteTypeWeb");
+        var sitetypeAdmin = $.Lang("LoginLog.SiteTypeAdmin");
+        var sitetypeMobile = $.Lang("LoginLog.SiteTypeMobile");
+        var loginTime = $.Lang("LoginLog.LoginTime");
+        var browser = $.Lang("LoginLog.Browser");
+        var platform = $.Lang("LoginLog.Platform");
+        var ip = $.Lang("LoginLog.IP");
+        return [
+            { display: 'ObjectID', name: 'ObjectID', hide: true },
+            { display: userCode, name: 'UserID' },
+            //{
+            //    display: '类型', name: 'LogType', render: function (row) {
+            //        return "<span>登陆</span>";
+            //    }
+            //},
+            { display: userId, name: 'UserName' },
+            {
+                display: sitetype, name: "SiteType", render: function (row) {
+                    //var siteType;
+                    //switch (row.SiteType) {
+                    //    case "0":
+                    //        siteType = "LoginLog.UserPortal";
+                    //        break;
+                    //    case "1":
+                    //        siteType = "LoginLog.AdminPortal";
+                    //        break;
+                    //    case "2":
+                    //        siteType = "LoginLog.Mobile";
+                    //        break;
+                    //    case "3":
+                    //        siteType = "LoginLog.WeChat";
+                    //        break;
+                    //    default:
+                    //        sitetype = "";
+                    //}
+                    return $.Lang(row.SiteType);
+                }
+            },
+            { display: loginTime, name: 'LoginTime' },
+            { display: browser, name: 'Browser' },
+            { display: ip, name: 'IP' },
+            { display: platform, name: 'PlatForm' }
+            //{ display: '设备号', name: 'DeviceToken' },
+            //{ display: 'SID', name: 'MobileSID' }
+
+        ];
+    }
+</script>
+
+<div id="ToolBar">
+    <a href="#" id="lnkQuery" onclick="QueryFun()" data-icon="fa fa-search" data-lang="LoginLog.Button_Q">
+    </a>
+</div>
+<div class="H3Panel">
+    <table class="tableList">
+        <tr>
+            <td data-lang="LoginLog.Date"></td>
+            <td>
+                <div class="tableNoCss">
+                    <table>
+                        <tr>
+                            <td class="tableNoCss" style="width:25px" data-lang="ExceptionLog.From">
+                                从
+                            </td>
+                            <td class="tableNoCss">
+                                <input name="startTime" type="text" id="startTime" onclick="InitWdatePicker(this)" style="width:95px;" data-datetime="start">
+                            </td>
+                            <td class="tableNoCss" style="width: 21px; padding-left: 10px; padding-right: 10px;" data-lang="ExceptionLog.To">
+                                到
+                            </td>
+                            <td class="tableNoCss">
+                                <input name="endTime" type="text" id="endTime" onclick="InitWdatePicker(this)" style="width:95px;" data-datetime="end">
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+            <td class="tableNoCss" data-lang="LoginLog.LoginIP"></td>
+            <td>
+                <input id="loginIP" type="text" />
+            </td>
+        </tr>
+        <tr>
+            <td data-lang="LoginLog.SiteType"></td>
+            <td>
+                <!--<input id="sltSitetype" />-->
+                <select id="sltSitetype" class="selectpicker" multiple data-width='248' data-none-selected-text="" data-live-search="true"> 
+                </select>
+            </td>
+            <td data-lang="LoginLog.UserAccount"></td>
+            <td>
+                <div style="width:255px;" class="tableNoCss" id="divUser"></div>
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="H3Panel">
+    <span data-lang="LoginLog.ListName"></span>
+    <div id="LoginUserList"></div>
+</div>

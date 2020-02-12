@@ -1,0 +1,180 @@
+﻿<script type="text/javascript">
+    var pageData = null;
+
+    $(function () {
+        var curYear = new Date().getFullYear();
+
+        pageData = {
+            Model: {
+                IsDefault: true,
+                AMStartHour: 9,
+                AMStartMinute: 0,
+                AMEndHour: 12,
+                AMEndMinute: 0,
+                PMStartHour: 13,
+                PMStartMinute: 30,
+                PMEndHour: 18,
+                PMEndMinute: 0,
+                IsMondayWork: true,
+                IsTuesdayWork: true,
+                IsWednesdayWork: true,
+                IsThursdayWork: true,
+                IsFridayWork: true,
+                MinDate: curYear + "-1-1",
+                MaxDate: (curYear + 5) + "-12-31"
+            },
+            Lang: $.Languages
+        };
+        initDefaultDate();
+        //初始化页面数据
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    }
+                    else {
+                        doSave();
+                    }
+                }
+            }
+        });
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+    });
+
+    //初始化页面数据
+    function initPageData() {
+        for (var i = 0; i <= 23; i++) {
+            $("<option value=\"" + i + "\">" + i + "</option>").appendTo($(".hours"));
+        }
+        for (var i = 0; i <= 59; i++) {
+            $("<option value=\"" + i + "\">" + i + "</option>").appendTo($(".minutes"));
+        }
+
+        var calendarID = getUrlParam("CalendarID");
+        if (calendarID) {
+            $.ajax({
+                url: $.Controller.WorkingCalendar.GetWorkingCalendar,
+                type: 'get',
+                dataType: "json",
+                data: { calendarID: calendarID },
+                async: false,//同步执行
+                success: function (result) {
+                    if (result.Success) {
+                        pageData.Model = result.Extend;
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        }
+    };
+
+    // 保存操作
+    function doSave() {
+        $.ligerDialog.waitting($.Lang("msgGlobalString.Waitting"));
+        $.ajax({
+            url: $.Controller.WorkingCalendar.SaveWorkingCalendar,
+            type: "post",
+            dataType: "json",
+            data: pageData.Model,
+            success: function (result) {
+                if (result.Success) {
+                    $.ligerDialog.closeWaitting();
+                    parent.window.location.reload();
+                    parent.H3DialogManger.Close();
+                }
+                else {
+
+                }
+            },
+            error: function (e) {
+                console.log("error->" + e.responseText);
+            }
+        });
+    }
+
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a v-on:click="saveData" data-icon="fa fa-save" href="javascript:void(0)" data-lang="GlobalButton.Save">保存</a>
+    </div>
+    <div class="H3Panel">
+        <span>{{Lang.WorkingCalendar.Calendar}}</span>
+        <input v-model="Model.ObjectID" hidden="hidden" />
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft" style="width: 120px; height: 33px; ">
+                    {{Lang.msgGlobalString.DisplayName}}
+                </td>
+                <td style="text-align:left">
+                    <input type="text" maxlength="32" id="txtDisplayName" v-model="Model.DisplayName" detect-change="on"
+                           detect-blur="on" initial="off" v-validate:txt-displayname="{required:true}" />
+                    <span class="errors">
+                        <span v-if="$formValidator.txtDisplayname.required">*{{Lang.msgGlobalString.EnumValueRequired}}</span>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft" style="width: 120px; height: 33px; ">
+                    {{Lang.WorkingCalendar.DefaultCalendar}}
+                </td>
+                <td style="text-align:left">
+                    <input id="chkDefault" type="checkbox" v-model="Model.IsDefault" />
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft" style="height: 33px; ">
+                    {{Lang.WorkingCalendar.WorkingWeek}}
+                </td>
+                <td style="text-align:left">
+                    <input id="monday" type="checkbox" name="chkWeek" v-model="Model.IsMondayWork" /><label for="monday">{{Lang.msgGlobalString.Monday}}</label>
+                    <input id="tuesday" type="checkbox" name="chkWeek" v-model="Model.IsTuesdayWork" /><label for="tuesday">{{Lang.msgGlobalString.Tuesday}}</label>
+                    <input id="wednesday" type="checkbox" name="chkWeek" v-model="Model.IsWednesdayWork" /><label for="wednesday">{{Lang.msgGlobalString.Wednesday}}</label>
+                    <input id="thursday" type="checkbox" name="chkWeek" v-model="Model.IsThursdayWork" /><label for="thursday">{{Lang.msgGlobalString.Thursday}}</label>
+                    <input id="friday" type="checkbox" name="chkWeek" v-model="Model.IsFridayWork" /><label for="friday">{{Lang.msgGlobalString.Friday}}</label>
+                    <input id="saturday" type="checkbox" name="chkWeek" v-model="Model.IsSaturdayWork" /><label for="saturday">{{Lang.msgGlobalString.Saturday}}</label>
+                    <input id="sunday" type="checkbox" name="chkWeek" v-model="Model.IsSundayWork" /><label for="sunday">{{Lang.msgGlobalString.Sunday}}</label>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft" style="height: 33px; ">
+                    {{Lang.WorkingCalendar.InitDate}}
+                </td>
+                <td style="text-align:left">
+                    {{Lang.msgGlobalString.From}} <input type="text" maxlength="64" style="width: 110px;" onclick="InitWdatePicker(this);" v-model="Model.MinDate" data-datetime="start" />
+                    {{Lang.msgGlobalString.To}} <input type="text" maxlength="64" style="width:110px;" onclick="InitWdatePicker(this);" v-model="Model.MaxDate" data-datetime="end" />
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft" style="height: 33px; ">
+                    {{Lang.WorkingCalendar.WorkingTimeSpan}}
+                </td>
+                <td style="text-align:left">
+                    {{Lang.msgGlobalString.Morning}} {{Lang.msgGlobalString.From}}<select class="hours" style="width:50px" v-model="Model.AMStartHour"></select>{{Lang.msgGlobalString.Hour}}
+                    <select class="minutes" style="width:50px" v-model="Model.AMStartMinute"></select>{{Lang.msgGlobalString.Minute}} {{Lang.msgGlobalString.To}}
+                    <select style="width:50px" class="hours" v-model="Model.AMEndHour"></select>{{Lang.msgGlobalString.Hour}}
+                    <select style="width:50px" class="minutes" v-model="Model.AMEndMinute"></select>{{Lang.msgGlobalString.Minute}}
+                    <br />
+                    {{Lang.msgGlobalString.Afternoon}} {{Lang.msgGlobalString.From}}<select class="hours" style="width:50px" v-model="Model.PMStartHour"></select>{{Lang.msgGlobalString.Hour}}
+                    <select class="minutes" style="width:50px" v-model="Model.PMStartMinute"></select>{{Lang.msgGlobalString.Minute}} {{Lang.msgGlobalString.To}}
+                    <select style="width:50px" class="hours" v-model="Model.PMEndHour"></select>{{Lang.msgGlobalString.Hour}}
+                    <select class="minutes" style="width:50px" v-model="Model.PMEndMinute"></select>{{Lang.msgGlobalString.Minute}}
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft" style="height: 39px;">
+                    {{Lang.WorkingCalendar.Description}}
+                </td>
+                <td style="text-align:left">
+                    <textarea maxlength="64" v-model="Model.Description" />
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

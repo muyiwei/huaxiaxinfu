@@ -1,0 +1,108 @@
+﻿
+<script>
+    $(function () {
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel({ excludeIDs: ["CategoryList"] });
+        //创建表格
+        CreateLigerGrid(
+            $("#CategoryList"),
+            GetCategoryColumns(),
+            $.Controller.OrgCategory.GetCategoryList,
+            true, "98%",
+            null, null, null,
+            null
+           );
+    });
+
+    //创建当前页面表格列
+    function GetCategoryColumns() {
+        var objectID = $.Lang("EditCategory.ObjectID");
+        var code = $.Lang("EditCategory.Code");
+        var displayName = $.Lang("EditCategory.DisplayName");
+        var description = $.Lang("EditCategory.Description");
+        var orgDetail = $.Lang("EditCategory.OrgDetail");//绑定组织列列名
+        var view = $.Lang("EditCategory.View");//绑定组织列显示值
+        //debugger;
+
+        var edit = $.Lang("GlobalButton.Edit");
+        return [
+            { display: objectID, name: "ObjectID", hide: true },
+            { display: code, name: "Code" },
+            { display: displayName, name: "DisplayName" },
+            { display: description, name: "Description" },
+            {
+                display: orgDetail, name: '', render: function (row) {
+                    return "<a href='#' id='" + "view_" + row.ObjectID + "' onclick=\"GetOrgListByCategory('" + row.Code + "')\">"
+                        + view + "</a>";
+                }
+            },
+            {
+                display: edit, name: '', render: function (row) {
+                    return "<a href='#' id='" + row.ObjectID + "' onclick=\"RowClick('" + row.Code + "')\">" + edit + "</a>";
+                }
+            }
+        ];
+    }
+
+    //绑定类型的组织列表
+    function GetOrgListByCategory(categoryCode) {
+        var orgDetail = $.Lang("EditCategory.OrgDetail");
+        ShowDialog(orgDetail, _PORTALROOT_GLOBAL+"/admin/TabMaster.html?url=Organization/EditCategoryOrgList.html&code=" + categoryCode,"600");
+    }
+
+    function RowClick(ObjectID) {
+        var editCategory = $.Lang("EditCategory.EditCategory");
+        ShowDialog(editCategory, _PORTALROOT_GLOBAL+"/admin/TabMaster.html?url=Organization/EditCategoryDetails.html&id=" + ObjectID);
+    }
+
+    function addCategory() {
+        var addCategory = $.Lang("EditCategory.AddCategory");
+        ShowDialog(addCategory, _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=Organization/EditCategoryDetails.html");
+    }
+
+    function deleteCategory() {
+        var gridManager = $("#CategoryList").ligerGetGridManager();
+
+        var msg0 = $.Lang("EditCategory.Msg0");
+        var deleteConfirm = $.Lang("EditCategory.DeleteConfirm");
+        var rows = gridManager.getSelectedRows();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: msg0 });
+            return;
+        }
+        var ids = "";
+        for (var i = 0; i < rows.length; i++) {
+            ids = ids + rows[i].ObjectID + ";";
+        }
+        var ajaxUrl = $.Controller.OrgCategory.DelCategory; //"EditCategory.aspx?Action=DeleteData&Ids=" + ids;
+        $.ligerDialog.confirm(deleteConfirm, function (result) {
+            if (result) {
+                $.ajax({
+                    url: ajaxUrl,
+                    data: { ids: ids },
+                    success: function (result) {
+                        if (result.Success) {
+                            top.workTab.reload(top.workTab.getSelectedTabItemID());
+                        } else {
+                            if (result.Message)
+                            {
+                                var extend = "";
+                                if (result.Extend) { extend = result.Extend;}
+                                $.H3Dialog.Warn({ content: $.Lang(result.Message)+"-"+result.Extend });
+                            }
+                        }
+                       
+                    }
+                });
+            }
+        });
+    }
+</script>
+
+<div id="H3ToolBar">
+    <a data-icon="fa fa-plus" href="javascript:;" onclick="addCategory();" data-lang="GlobalButton.Add"></a>
+    <a data-icon="fa fa-minus" href="javascript:;" onclick="deleteCategory();" data-lang="GlobalButton.Delete"></a>
+</div>
+<div class="H3Panel">
+    <div id="CategoryList"></div>
+</div>

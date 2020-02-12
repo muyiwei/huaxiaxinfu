@@ -1,0 +1,37 @@
+<ion-view hide-nav-bar='true' class="language">
+    <div class="menu-tittle f17  {{$root.dingMobile.dingHeaderClass}}">
+        <div class="menu-tittle-left pr25" ng-click="gobackSetting()">
+            <i class="ion-chevron-left f17 blue"></i>
+        </div>
+        <div class="menu-tittle-middle">语言切换</div>
+        <div class="menu-tittle-right"></div>
+    </div>
+    <ion-radio ng-repeat="language in languages" ng-value="language.value" ng-change="changelanguages()" ng-model="H3.language" class="menu-bar f16">
+        {{ language.text }}
+        <i class="radio-icon disable-pointer-events icon-goug  f12"></i>
+    </ion-radio>
+    <style scoped>
+        .language .item-radio .item-content {
+            padding-left: 0;
+        }
+
+        .language i.ion-checkmark {
+            display: none;
+        }
+
+        .language .radio-content .item-content {
+            width: 100%;
+        }
+
+        .language .icon-goug {
+            line-height: 0.62rem;
+            color: #77BCFA !important;
+            padding: 14px 0;
+        }
+
+            .language .icon-goug:before {
+                /*content: "\e902";*/
+                color: #77BCFA !important;
+            }
+    </style>
+</ion-view>

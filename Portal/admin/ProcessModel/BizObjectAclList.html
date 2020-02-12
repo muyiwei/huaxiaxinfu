@@ -1,0 +1,83 @@
+﻿<script>
+    var SchemaCode = getUrlParam("SchemaCode") || "";
+    $(function () {
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel({ excludeIDs: ["FuntionAclList"] });
+        CreateLigerGrid(
+            $("#FuntionAclList"),
+            GetCategoryColumns(),
+            $.Controller.BizObjectAcl.GetBizObjectAclList,
+            true,
+             "98%",
+             null, null, null,
+             { schemaCode: SchemaCode }
+            );
+    })
+    function GetCategoryColumns() {
+        return [{ display: $.Lang("BizObjectAcl.PrimaryKey"), name: "ObjectID", hide: true },
+                { display: "FolderId", name: "FolderId", hide: true },
+                { display: "SchemaCode", name: "SchemaCode", hide: true },
+                { display: $.Lang("BizObjectAcl.LoginName"), name: "UserID" },
+                { display: $.Lang("BizObjectAcl.OUScopeName"), name: "OrgScope" },
+                { display: $.Lang("BizObjectAcl.ReportCrossAnalysisAdd"), name: "IsCreate", render: BuildBoolCoum },
+                { display: $.Lang("GlobalButton.View"), name: "IsView", render: BuildBoolCoum },
+                { display: $.Lang("GlobalButton.Manage"), name: "IsAdmin", render: BuildBoolCoum },
+                {
+                    display: $.Lang("GlobalButton.Edit"), name: "Edit", render: function (row) {
+                        return "<a href='#' ObjectID='" + row.ObjectID + "'  onclick='RowEditClick(this)'>" + $.Lang("GlobalButton.Edit") + "</a>";
+                    }
+                }
+        ];
+    }
+
+    function AddFun() {
+        ShowDialog($.Lang("BizObjectAcl.AddBizObjectAcl"), _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/EditBizObjectAcl.html&SchemaCode=" + SchemaCode);
+    }
+
+    function RowEditClick(obj) {
+        var id = $(obj).attr("ObjectID");
+        ShowDialog($.Lang("BizObjectAcl.EditBizObjectAcl"), _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/EditBizObjectAcl.html&SchemaCode=" + SchemaCode + "&AclID=" + id);
+    }
+
+    function reloadList() {
+        var manager = $("#FuntionAclList").ligerGetGridManager();
+        manager.reload();
+    };
+
+    function DeleteFun(obj) {
+        var SelectItemName = $.Lang("msgGlobalString.SelectItem");
+        var rows = H3GridManager.getSelectedRows();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: SelectItemName });
+            return false;
+        }
+        var ids = "";
+        for (var i = 0; i < rows.length; i++) {
+            ids = ids + rows[i].ObjectID + ",";
+        }
+        if (ConfirmDel(obj)) {
+            $.ajax({
+                url: $.Controller.BizObjectAcl.DeleteBizObjectAcl,
+                type: 'post',
+                dataType: "json",
+                data: { ids: ids, schemaCode: SchemaCode },
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                        reloadList();
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        }
+    };
+
+</script>
+<div id="ToolBar">
+    <a href="#" id="lnkAdd" data-icon="fa fa-plus" onclick="AddFun()" data-lang="GlobalButton.Add">添加</a>
+    <a onclick="return DeleteFun(this);" id="" data-icon="fa fa-minus" href="javascript:void(0)" data-lang="GlobalButton.Delete">删除</a>
+</div>
+<div class="H3Panel">
+    <div id="FuntionAclList"></div>
+</div>

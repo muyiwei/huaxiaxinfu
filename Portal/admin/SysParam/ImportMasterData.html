@@ -1,0 +1,57 @@
+﻿<script src="../WFRes/_Scripts/jquery/ajaxfileupload.js"></script>
+<script>
+    $(function () {
+        $("#H3ToolBar").AspLinkToolBar();
+        $("#H3Panel").BuildPanel();
+    });
+
+
+    function submit() {
+        $.ajaxFileUpload({
+            url: $.Controller.MasterData.UploadMasterDataFile,
+            fileElementId: 'uploadfile',
+            dataType: 'json',
+            success: function (data, status) {
+                if (data.Success) {
+                    parent.$.H3Dialog.Success({ content: $.Lang("msgGlobalString.ImportSucced") });
+                    setTimeout(function () { parent.H3DialogManger.Close(); }, 1500);
+                }
+                else {
+                    if (data.Extend && data.Extend.length != 0) {
+                        var content = "";
+                        for (var i = 0; i < data.Extend.length; i++) {
+                            if (data.Extend[i].Seq != 0) {
+                                content += $.format($.Lang(data.Extend[i].Error), data.Extend[i].Seq);
+                            } else {
+                                content = $.Lang(data.Extend[i].Error);
+                            }
+                        }
+                        $.H3Dialog.Warn({ content: content });
+                    }
+                }
+            }
+        });
+    }
+
+    function downloadTemp() {
+        var url = _PORTALROOT_GLOBAL + "/WFRes/_ExclTemplate/Template.xls";
+        window.open(url);
+    }
+
+</script>
+<div id="H3ToolBar">
+    <a onclick="downloadTemp();" href="javascript:void(0)" data-icon="fa fa-download" data-lang="msgGlobalString.DownloadTemplete">下载模板</a>
+    <a id="importData" onclick="submit();" data-icon="fa fa-upload" href="javascript:void(0)" data-lang="msgGlobalString.ImportData">导入数据</a>
+</div>
+
+
+<div id="H3Panel">
+    <span data-lang="msgGlobalString.SelectImportFile">选择文件</span>
+    <table>
+        <tr>
+            <td>
+                <input type="file" name="uploadfile" id="uploadfile" />
+            </td>
+        </tr>
+    </table>
+</div>

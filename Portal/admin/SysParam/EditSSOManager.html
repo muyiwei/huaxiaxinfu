@@ -1,0 +1,141 @@
+﻿<script>
+    $(function () {
+        var pageData = {
+            SSOManager: {},
+            LanData: $.Languages
+        };
+        //初始化页面数据
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                }
+            }
+        });
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+        //初始化页面数据
+        function initPageData() {
+            var code = getUrlParam("code");
+            if (code) {
+                $.ajax({
+                    url: $.Controller.SSOManager.GetSSOManager,
+                    type: 'get',
+                    dataType: "json",
+                    data: { code: code },
+                    async: false,//同步执行
+                    success: function (result) {
+                        if (result.Success) {
+                            pageData.SSOManager = result.Extend;
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        }
+                    }
+                });
+            }
+        };
+        //保存全局变量
+        function saveData() {
+            $.ajax({
+                url: $.Controller.SSOManager.SaveSSOManager,
+                type: "post",
+                dataType: "json",
+                data: pageData.SSOManager,
+                success: function (result) {
+                    if (result.Success) {
+                        parent.H3DialogManger.Close();
+                    } else {
+                        if (result.Message) {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        }
+                        else { $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SaveFailed") }); }
+                    }
+                }
+            });
+        }
+    });
+
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a id="lnkOK" v-on:click="saveData" data-icon="fa fa-save" href="javascript:void(0)" data-lang="GlobalButton.Save">保存</a>
+    </div>
+    <div class="H3Panel">
+        <span data-lang="msgGlobalString.Msg_BasciInfor"></span>
+        <input v-model="SSOManager.ObjectID" hidden="hidden" />
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft">{{LanData.SSOManager.SystemCode}}</td>
+                <td>
+                    <input v-model="SSOManager.SystemCode" detect-change="on" detect-blur="on" initial="off" v-validate:system-code="{required:true}" v-bind:disabled="SSOManager.ObjectID" type="text" />
+                    <span style="color:Red;" v-if="$formValidator.systemCode.required">{{LanData.msgGlobalString.EnumValueRequired}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.SSOManager.SystemName}}</td>
+                <td>
+                    <input v-model="SSOManager.SystemName" detect-change="on" detect-blur="on" initial="off" v-validate:system-name="{required:true}" type="text" />
+                    <span style="color:Red;" v-if="$formValidator.systemName.required">{{LanData.msgGlobalString.EnumValueRequired}}</span>
+                </td>
+            </tr>
+            <tr v-if="!SSOManager.ObjectID">
+                <td class="tableLeft">{{LanData.SSOManager.Secret}}</td>
+                <td>
+                    <input v-model="SSOManager.Secret" detect-change="on" detect-blur="on" initial="off" v-validate:secret="{required:true}" type="text" v-bind:disabled="SSOManager.ObjectID" />
+                    <span style="color:Red;" v-if="$formValidator.secret.required">{{LanData.msgGlobalString.EnumValueRequired}}</span>
+                </td>
+            </tr>
+            <!--<tr>
+                <td class="tableLeft">{{LanData.SSOManager.SubmitUrl}}</td>
+                <td>
+                    <input v-model="SSOManager.SubmitUrl" type="text" />
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.SSOManager.SubmitUserNameControlID}}</td>
+                <td>
+                    <input v-model="SSOManager.SubmitUserNameControlID" type="text" />
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.SSOManager.SubmitPasswordID}}</td>
+                <td>
+                    <input v-model="SSOManager.SubmitPasswordID" type="text" />
+                </td>
+            </tr>-->
+            <tr>
+                <td class="tableLeft">{{LanData.SSOManager.DefaultUrl}}</td>
+                <td>
+                    <input v-model="SSOManager.DefaultUrl" detect-change="on" detect-blur="on" initial="off" v-validate:default-url="{required:true}" type="text" />
+                    <span style="color:Red;" v-if="$formValidator.defaultUrl.required">{{LanData.msgGlobalString.EnumValueRequired}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.SSOManager.State}}</td>
+                <td>
+                    <input v-model="SSOManager.State" type="checkbox" />
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.SSOManager.AllowGetToken}}</td>
+                <td>
+                    <input v-model="SSOManager.AllowGetToken" type="checkbox" />
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.SSOManager.Description}}</td>
+                <td>
+                    <textarea v-model="SSOManager.Description" rows="2" cols="20"></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

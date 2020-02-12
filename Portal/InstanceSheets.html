@@ -1,0 +1,66 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script>
+        var params = [];
+        //获取url参数
+        getUrlVars = function () {
+            var vars = {};
+            var hash;
+            var hashs = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+            for (var i = 0; i < hashs.length; i++) {
+                hash = hashs[i].split('=');
+                vars[hash[0]] = hash[1];
+            }
+            return vars;
+        }
+
+        $(function () {
+            //获取URL参数
+            params = getUrlVars();
+            var paramString = JSON.stringify(params);
+            $.ajax({
+                type: "POST",
+                async: false,
+                url: "InstanceSheets/InstanceSheets",
+                data: { paramString: paramString },
+                dataType: "json",
+                success: function (data) {
+                    //只有一个表单直接跳转打开
+                    if (data.Success && data.Extend == "Redirect") {
+                        window.location.href = data.Message;
+                    } else if (data.Success) {
+                        //多个表单在界面上呈现连接选择打开
+                        var Urls = data.Extend;
+                        $(".panel-heading").show();
+                        var body = $("div[class='panel-body']");
+                        for (var i = 0; i < Urls.length; i++) {
+                            var div =
+                                "<div>" +
+                                    "<span>表单：</span>" +
+                                    "<a target='_self' href='" + Urls[i].Url + "'>" + Urls[i].Text + "</a>" +
+                                "</div>";
+                            body.append($(div));
+                        }
+                    }
+                }
+            });
+        })
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="panel">
+            <div class="panel-heading" style="display:none;">
+                <span>请选择表单:</span>
+            </div>
+            <div class="panel-body">
+
+            </div>
+        </div>
+    </div>
+</body>
+</html>

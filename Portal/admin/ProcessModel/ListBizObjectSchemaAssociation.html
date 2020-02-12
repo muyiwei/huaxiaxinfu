@@ -1,0 +1,92 @@
+﻿<script>
+    var SchemaCode = "";
+    var ParentID = "";
+    $(function () {
+        SchemaCode = getUrlParam("SchemaCode") || "";
+        ParentID = getUrlParam("ParentID") || "";
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel({ excludeIDs: ["AssociationGrid"] });
+        CreateLigerGrid(
+            $("#AssociationGrid"),
+            GetAssociationColumns(),
+            $.Controller.BizObjectSchemaAssociation.GetAssociationList,
+            true,
+             null,
+             null, null, null,
+             {
+                 schemaCode: SchemaCode,
+                 parentId: ParentID
+             }
+            );
+
+
+    })
+    function GetAssociationColumns() {
+        var Name = $.Lang("BizObjectSchemaAssociation.Name");
+        var AssociationTyp = $.Lang("BizObjectSchemaAssociation.Type");
+        var Schema = $.Lang("BizObjectSchemaAssociation.Schema");
+        var Edit = $.Lang("GlobalButton.Edit");
+        return [
+                { display: Name, name: "RelationName" },
+                { display: AssociationTyp, name: "Type" },
+                { display: Schema, name: "WorkflowID" },
+                {
+                    display: Edit, name: "edit",
+                    render: function (row) {
+                        return "<div style='width:30%;float:left;'><a href='#' Name='" + row.RelationName + "' onclick='RowEditClick(this)'>" + Edit + "</a></div>";
+                    }
+                }];
+    }
+
+    function AddFun(obj) {
+        ShowDialog($(obj).text(), _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/EditBizObjectSchemaAssociation.html&SchemaCode=" + SchemaCode + "&ParentID=" + ParentID);
+    }
+
+    function RowEditClick(obj) {
+        ShowDialog($(obj).text(), _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/EditBizObjectSchemaAssociation.html&ParentID=" + ParentID + "&SchemaCode=" + SchemaCode + "&AssociationName=" + $(obj).attr("Name"));
+    }
+    function DeleteFun(obj) { 
+        var SelectItemName = $.Lang("msgGlobalString.SelectItem");
+        var rows = H3GridManager.getSelectedRows();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: SelectItemName });
+            return false;
+        }
+        var names = "";
+        for (var i = 0; i < rows.length; i++) {
+            names = names + rows[i].RelationName + ",";
+        }
+        if (ConfirmDel(obj)) {
+            $.ajax({
+                url: $.Controller.BizObjectSchemaAssociation.DelAssociation,
+                type: 'post',
+                dataType: "json",
+                data: { names: names, schemaCode: SchemaCode },
+                success: function (result) {
+                    if (result.Success) {
+                        parent.$.H3Dialog.Success({ content: $.Lang("msgGlobalString.DeleteSucced") });
+                        // ReloadNode刷新了当前tab页的上级节点，会造成删除同时关闭当前tab页
+                        //top.ReloadNode(ParentID);
+                        //top.ReloadNode();
+                        // top.workTab.removeTabItem(top.workTab.getSelectedTabItemID());
+                        ReloadGrid();
+                    } else {
+                        $.H3Dialog.Warn({ content: result.Message });
+                    }
+                }
+            });
+        }
+    };
+
+    function ReloadGrid() {
+        var manager = $("#AssociationGrid").ligerGetGridManager();
+        manager.reload();
+    }
+</script>
+<div id="ToolBar">
+    <a href="javascript:void(0)" id="lnkAdd" data-icon="fa fa-plus" onclick="AddFun(this)" data-lang="GlobalButton.Add">添加</a>
+    <a onclick="return DeleteFun(this);" id="" data-icon="fa fa-minus" href="javascript:void(0)" data-lang="GlobalButton.Delete">删除</a>
+</div>
+<div class="H3Panel">
+    <div id="AssociationGrid"></div>
+</div>

@@ -1,0 +1,90 @@
+﻿<ion-view hide-nav-bar="false" view-title="发起流程" class="bpm-startworkflow">
+    <div class="bar bar-header item-input-inset">
+        <input class="tab-search" placeholder="请输入搜索关键词" style="padding-right:30px;"
+               ng-model="searchKey" ng-change="doSearch()">
+        <i class="icon ion-ios-search tab-search-cur"></i>
+        <i class="icon ion-close-circled tab-search-close-cur" ng-show="SearchMode" ng-click="CancelSearch($event)"></i>
+        <a class="tab-cancel-btn" ng-click="goBack()">取消</a>
+    </div>
+    <div class="bar bar-subheader">
+        <div style="display:flex;width:100%;">
+            <div style="flex:1;text-align: center;" class="tab_default"
+                 ng-repeat="d in tabNames"
+                 ng-click="activeSlide($index)" ng-class="slectIndex==$index ? 'tab_select' : '' ">
+                {{d}}
+            </div>
+        </div>
+    </div>
+    <ion-content class="has-subheader">
+        <div ng-show="slectIndex==0">
+            <div ng-repeat="category in categories">
+                <ion-list>
+                    <ion-item ng-repeat="workflow in category.Workflows | filter:{'IsFavorite':true}"
+                              class="item-remove-animate item-icon-right" ng-click="startWorkflow('{{workflow.WorkflowCode}}')">
+                        <img height="36px" width="36px" ng-src="{{url+workflow.WorkflowImage}}" />
+                        <span style="padding-left:15px;font-size:14px;">
+                            {{ workflow.DisplayName | limitTo:16 }}
+                            {{ workflow.DisplayName.length > 16 ? '...' : '' }}
+                        </span>
+                        <ion-option-button class="button-assertive"
+                                           ng-click="changeFavorite('{{workflow.WorkflowCode}}')">
+                            <i ng-class="{true: 'icon ion-android-favorite', false: 'icon ion-android-favorite-outline'}[workflow.IsFavorite]" style="left:15px;right:initial;"></i>
+                        </ion-option-button>
+                        <i class="icon ion-chevron-right icon-accessory"></i>
+                    </ion-item>
+                </ion-list>
+            </div>
+        </div>
+        <div ng-show="!slectIndex==0">
+            <div ng-repeat="category in categories">
+                <div class="item item-divider" style="padding-top:5px;padding-bottom:5px;padding-left:13px;">
+                    <ion-scroll direction="x" scrollbar-x="false">{{category.DisplayName}}</ion-scroll>
+                </div>
+                <ion-list>
+                    <ion-item ng-repeat="workflow in category.Workflows"
+                              ng-click="startWorkflow('{{workflow.WorkflowCode}}')"
+                              class="item-remove-animate item-icon-right ">
+                        <img height="36px" width="36px" ng-src="{{url+workflow.WorkflowImage}}" />
+                        <span style="margin-left:15px;font-size:14px;">
+                            {{ workflow.DisplayName | limitTo:16 }}
+                            {{ workflow.DisplayName.length > 16 ? '...' : '' }}
+                        </span>
+                        <ion-option-button class="button-assertive"
+                                           ng-click="changeFavorite('{{workflow.WorkflowCode}}','{{category.DisplayName}}')">
+                            <i ng-class="{true: 'icon ion-android-favorite', false: 'icon ion-android-favorite-outline'}[workflow.IsFavorite]" style="left:15px;right:initial;"></i>
+                        </ion-option-button>
+                        <i class="icon ion-chevron-right icon-accessory button-assertive"></i>
+                    </ion-item>
+                </ion-list>
+            </div>
+        </div>
+        <ion-list>
+            <ion-item ng-show="!exception&&FavoriteNum==0&&slectIndex==0" class="item-remove-animate">
+                <span style="font-size:14px;" ng-show="!SearchMode">暂无常用流程</span>
+                <span style="font-size:14px;" ng-show="SearchMode">未搜索到常用流程</span>
+            </ion-item>
+
+            <ion-item ng-show="!exception&&categories.length==0&&!slectIndex==0" class="item-remove-animate">
+                <span style="font-size:14px;" ng-show="!SearchMode">暂无可发起流程</span>
+                <span style="font-size:14px;" ng-show="SearchMode">未搜索到可发起流程</span>
+            </ion-item>
+        </ion-list>
+    </ion-content>
+</ion-view>
+
+<style>
+    .bpm-startworkflow .item-content {
+        display: flex;
+        align-items: center;
+    }
+
+    .bpm-startworkflow .tab_default {
+        border-bottom: solid 1px #F2F2F2;
+        padding: 6px 0;
+    }
+
+    .bpm-startworkflow .tab_select {
+        border-bottom: solid 1px #3E89F5;
+        color: #00ACDC;
+    }
+</style>

@@ -1,0 +1,105 @@
+﻿
+<script>
+    $(function () {
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel({ excludeIDs: ["InvokingLogList"] });
+        initDefaultDate();
+        // 打开即执行查询
+        QueryFun();
+    })
+
+    function GetInvokingLogColumns() {
+        var userId = $.Lang("InvokingLog.UserId");
+        var serviceCode = $.Lang("InvokingLog.BizServiceCode");
+        var methodName = $.Lang("InvokingLog.MethodName");
+        var startTime = $.Lang("InvokingLog.StartTime");
+        var endTime = $.Lang("InvokingLog.EndTime");
+        var usedTime = $.Lang("InvokingLog.UsedTime");
+        var open = $.Lang("InvokingLog.Button_Open");
+        return [
+            { display: 'objectid', name: 'ObjectID', hide: true },
+            /*{ display: '时间', name: 'CREATETIME' },*/
+            //{ display: '服务器', name: 'SLAVECODE' },
+            { display: userId, name: 'UserID' },
+            //{ display: '事务ID', name: 'TRANSACTIONID' },
+            { display: serviceCode, name: 'BizServiceCode' },
+            { display: methodName, name: 'MethodName' },
+            { display: startTime, name: 'StartTime' },
+            { display: endTime, name: 'EndTime' },
+            { display: usedTime, name: 'UsedTime', width: 80 },
+            {
+                display: open, name: '', width: 50, render: function (row) {
+                    return "<a href='#' id='" + row.ObjectID + "'  onclick='RowEditClick(this)'>" + open + "</a>";
+                }
+            }
+        ];
+    }
+
+    function RowEditClick(obj) {
+        var title = $.Lang("InvokingLog.QueryLog");
+        ShowDialog(title,  _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=SysLog/GetInvokingLog.html&Id=" + obj.id);
+    }
+
+    function QueryFun() {
+        var startTime = $("input[id=startTime]").val();
+        var endTime = $("input[id=endTime]").val();
+        var serverCode = $("#txtServerCode").val();
+        if (startTime > endTime) {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.Portal_TimeMsg") });
+        }
+        else {
+            CreateLigerGrid(
+             $("#InvokingLogList"),
+             GetInvokingLogColumns(),
+             //"InvokingLog.aspx?Action=GetData&StartTime=" + startTime + "&EndTime=" + endTime + "&ServerCode=" + serverCode,
+             $.Controller.InvokingLog.GetInvokingLogList,
+             false, "98%", null, null, null,
+             {
+                 startTime: startTime,
+                 endTime: endTime,
+                 serverCode: serverCode
+             }
+            );
+        }
+    }
+</script>
+<div id="ToolBar">
+    <a href="#" id="lnkQuery" onclick="QueryFun()" data-icon="fa fa-search" data-lang="InvokingLog.QueryLog"></a>
+</div>
+<div class="H3Panel">
+    <table class="tableList">
+        <tr>
+            <td data-lang="InvokingLog.Query_date">
+                日期&nbsp;&nbsp;&nbsp;
+            </td>
+            <td>
+                <div class="tableNoCss">
+                    <table>
+                        <tr>
+                            <td class="tableNoCss" style="width:25px" data-lang="InvokingLog.From">
+                                从
+                            </td>
+                            <td class="tableNoCss">
+                                <input name="startTime" type="text" id="startTime" onclick="InitWdatePicker(this)" style="width:95px;" data-datetime="start">
+                            </td>
+                            <td class="tableNoCss" style="width:21px;padding-left:10px" data-lang="InvokingLog.To">
+                                到
+                            </td>
+                            <td class="tableNoCss">
+                                <input name="endTime" type="text" id="endTime" onclick="InitWdatePicker(this)" style="width:95px;" data-datetime="end">
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+            <td data-lang="InvokingLog.BizServiceCode">服务编码</td>
+            <td>
+                <input name="txtServerCode" type="text" maxlength="64" id="txtServerCode" style="width:200px;" />
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="H3Panel">
+    <span data-lang="InvokingLog.ListName"></span>
+    <div id="InvokingLogList"></div>
+</div>

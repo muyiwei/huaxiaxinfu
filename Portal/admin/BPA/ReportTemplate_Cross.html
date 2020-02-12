@@ -1,0 +1,398 @@
+﻿<link href="../WFRes/_Content/themes/H3Default/H3-ReportTemplate.css" rel="stylesheet" type="text/css" />
+<link href="../WFRes/_Content/designer/css/property.css" rel="stylesheet" type="text/css" />
+<script src="../WFRes/_Scripts/ReportDesigner/ReportBase.js"></script>
+<script src="../WFRes/_Scripts/ReportDesigner/ReportTemplate.js"></script>
+<script src="../WFRes/_Scripts/ReportDesigner/ReportTemplateCross.js"></script> 
+<script>
+    $(function () {
+        var reportSourceCode = getUrlParam("ReportSourceCode") || "";
+        var parentID = getUrlParam("ParentID") || "";
+        TemplateInit(reportSourceCode, parentID);
+    })
+</script>
+<div id="H3ToolBar">
+    <a onclick="btnSave_Click(this);" id="btnSave" data-icon="fa fa-save">保存</a>
+    <a id="btnView" href="javascript:void(0)" data-icon="fa fa-eye" data-lang="GlobalButton.View">查看</a>
+    <a onclick="btnDel_Click(this)" id="btnDel" data-icon="fa fa-minus" data-lang="GlobalButton.Delete" href="#">删除</a>
+</div>
+<div id="BodyContent">
+    <div position="left" data-title="ReportTemplate.DataSource">
+        <div class="left_Div_Block" id="divReportSource">
+            <select id="seleportSource"></select>
+        </div>
+        <div id="divSourceColumns">
+        </div>
+    </div>
+
+    <div position="center">
+        <div class="H3Panel">
+            <span data-lang="ReportTemplate.FilterSetting"></span>
+            <div id="paramsSetting" class="RragPlace">
+            </div>
+        </div>
+
+        <table style="width: 100%;">
+            <tr>
+                <td style="width: 150px; vertical-align: top;">
+                    <!--行标题-->
+                    <table id="RowTitleSetting" class="CrossSettingTable">
+                        <thead style="background-color: red;">
+                            <tr>
+                                <td></td>
+                            </tr>
+                        </thead>
+                        <tr>
+                            <td></td>
+                        </tr>
+                    </table>
+                </td>
+                <td style="vertical-align: top;">
+                    <!--列标题-->
+                    <table id="ColumnTitleSetting" class="CrossSettingTable">
+                        <thead>
+                            <tr>
+                                <td></td>
+                            </tr>
+                        </thead>
+                    </table>
+                    <table id="ReportDataView" class="CrossSettingTable">
+                        <tr>
+                            <td></td>
+                        </tr>
+                    </table>
+                    <!--统计字段-->
+                    <table id="ColumnSetting" class="CrossSettingTable">
+                        <thead style="background-color: yellow;">
+                            <tr>
+                                <td></td>
+                            </tr>
+                        </thead>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+
+        <div style="position: absolute; height: 100px; bottom: 50px; width: 100%;">
+            <span data-lang="ReportTemplate.Description"></span>:
+            <table>
+                <tr>
+                    <td>
+                        <div style="width: 16px; height: 16px; background-color: red; float: left;"></div>
+                        :<span data-lang="ReportTemplate.RowTitle"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div style="width: 16px; height: 16px; background-color: #3399ff; float: left;"></div>
+                        :<span data-lang="ReportTemplate.ColumnTitle"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div style="width: 16px; height: 16px; background-color: yellow; float: left;"></div>
+                        :<span data-lang="ReportTemplate.CountField"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span data-lang="ReportTemplate.Comment"></span>:
+                    </td>
+                </tr>
+                <tr>
+                    <td data-lang="ReportTemplate.Cross_Msg1"> </td>
+                </tr>
+                <tr>
+                    <td data-lang="ReportTemplate.Cross_Msg2">
+                        
+                    </td>
+                </tr>
+                <tr>
+                    <td data-lang="ReportTemplate.Cross_Msg3">
+                        
+                    </td>
+                </tr>
+                <tr>
+                    <td data-lang="ReportTemplate.Cross_Msg4">
+                        
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+    </div>
+
+    <div position="right" data-title="ReportTemplate.PropertySetting" style="overflow-x: hidden;">
+        <div class="content-r-item">
+            <table class="PropertyTable">
+                <tr group="ReportProperty" style="display: table-row; background-color: rgb(234, 229, 229); cursor: pointer;">
+                    <td group="ReportProperty" class="Expanded"></td>
+                    <td colspan="3" data-lang="ReportTemplate.ReportProperty"> </td>
+                </tr>
+                <tr group="ReportProperty" property="ReportProperty">
+                    <td></td>
+                    <td data-lang="ReportTemplate.Code"> </td>
+                    <td colspan="2">
+                        <input id="txtCode" type="text" />
+                    </td>
+                </tr>
+                <tr group="ReportProperty" property="ReportProperty">
+                    <td></td>
+                    <td data-lang="ReportTemplate.DisplayName"></td>
+                    <td colspan="2">
+                        <input id="txtDisplayName" type="text" />
+                    </td>
+                </tr>
+                <tr group="ReportProperty" property="ReportProperty">
+                    <td></td>
+                    <td data-lang="ReportTemplate.Drill"></td>
+                    <td colspan="2">
+                        <input type="checkbox" id="ckSupportDrill" />
+                    </td>
+                </tr>
+
+                <tbody id="DrillPanel">
+                    <tr group="DrillProperty" style="display: table-row; background-color: rgb(234, 229, 229); cursor: pointer;">
+                        <td group="DrillProperty" class="Expanded"></td>
+                        <td colspan="3" data-lang="ReportTemplate.DrillProperty"> </td>
+                    </tr>
+                    <tr group="DrillProperty" property="DrillProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.Method"></td>
+                        <td colspan="2">
+                            <select id="slSelectType">
+                                <option value="0" data-lang="ReportTemplate.CurrentReport"></option>
+                                <option value="1" data-lang="ReportTemplate.SelectReport"></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr group="DrillProperty" property="DrillProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.Select"></td>
+                        <td colspan="2">
+                            <select id="slReportCode"></select>
+                        </td>
+                    </tr>
+                    <tr group="DrillProperty" property="DrillProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.RowTitleCode1"></td>
+                        <td colspan="2">
+                            <select id="slRowTitleId1"></select>
+                        </td>
+                    </tr>
+                    <tr group="DrillProperty" property="DrillProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.ParamName1"></td>
+                        <td colspan="2">
+                            <input id="txtRowParamName1" type="text" />
+                        </td>
+                    </tr>
+                    <tr group="DrillProperty" property="DrillProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.RowTitleCode2"></td>
+                        <td colspan="2">
+                            <select id="slRowTitleId2"></select>
+                        </td>
+                    </tr>
+                    <tr group="DrillProperty" property="DrillProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.ParamName2"></td>
+                        <td colspan="2">
+                            <input type="text" id="txtRowParamName2" />
+                        </td>
+                    </tr>
+                    <tr group="DrillProperty" property="DrillProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.ColumnTitle">Id</td>
+                        <td colspan="2">
+                            <select id="slColumnTitleId"></select>
+                        </td>
+                    </tr>
+                    <tr group="DrillProperty" property="DrillProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.ParamName"></td>
+                        <td colspan="2">
+                            <input type="text" id="txtColumnParamName" />
+                        </td>
+                    </tr>
+                </tbody>
+
+                <tr group="ChartProperty" style="display: table-row; background-color: rgb(234, 229, 229); cursor: pointer;">
+                    <td group="ChartProperty" class="Expanded"></td>
+                    <td colspan="3" data-lang="ReportTemplate.ChartSetting"> </td>
+                </tr>
+                <tr group="ChartProperty" property="ChartProperty">
+                    <td></td>
+                    <td data-lang="ReportTemplate.SupportChart"></td>
+                    <td colspan="2">
+                        <input type="checkbox" name="ckCharts" value="Line" /><span data-lang="ReportTemplate.LineChart"></span><br />
+                        <input type="checkbox" name="ckCharts" value="Bar" /><span data-lang="ReportTemplate.Histogram"></span><br />
+                        <input type="checkbox" name="ckCharts" value="Pie" /><span data-lang="ReportTemplate.Pie"></span><br />
+                        <input type="checkbox" name="ckCharts" value="Area" /><span data-lang="ReportTemplate.Area"></span><br />
+                        <input type="checkbox" name="ckCharts" value="Radar" /><span data-lang="ReportTemplate.Radar"></span>
+                    </td>
+                </tr>
+                <tr group="ChartProperty" property="ChartProperty">
+                    <td></td>
+                    <td data-lang="ReportTemplate.DefaultChart"></td>
+                    <td colspan="2">
+                        <select id="SelChartType">
+                            <option value="Line" data-lang="ReportTemplate.LineChart"></option>
+                            <option value="Pie" data-lang="ReportTemplate.Pie"></option>
+                            <option value="Area" data-lang="ReportTemplate.Area"></option>
+                            <option value="Radar" data-lang="ReportTemplate.Radar"></option>
+                        </select>
+                    </td>
+                </tr>
+                <tr group="ChartProperty" property="ChartProperty">
+                    <td></td>
+                    <td data-lang="ReportTemplate.XAxis"></td>
+                    <td colspan="2">
+                        <select id="SelAxisDimension">
+                            <option value="0" data-lang="ReportTemplate.ColumnTitle"></option>
+                            <option value="1" data-lang="ReportTemplate.RowTitle"></option>
+                        </select>
+                    </td>
+                </tr>
+                <tr group="ChartProperty" property="ChartProperty">
+                    <td></td>
+                    <td data-lang="ReportTemplate.XAxisUnit"></td>
+                    <td colspan="2">
+                        <input type="text" id="txtXAxisUnit" maxlength="5" />
+                    </td>
+                </tr>
+                <tr group="ChartProperty" property="ChartProperty">
+                    <td></td>
+                    <td data-lang="ReportTemplate.YAxisUnit"></td>
+                    <td colspan="2">
+                        <input type="text" maxlength="5" id="txtAxisUnit" />
+                    </td>
+                </tr>
+
+                <tbody id="ColumnPanel">
+                    <tr group="ColumnProperty" style="display: table-row; background-color: rgb(234, 229, 229); cursor: pointer;">
+                        <td group="ColumnProperty" class="Expanded"></td>
+                        <td colspan="3" data-lang="ReportTemplate.FieldProperty"> </td>
+                    </tr>
+                    <tr group="ColumnProperty" property="ColumnProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.FieldCode"> </td>
+                        <td colspan="2">
+                            <label id="lbColumnCode"></label>
+                        </td>
+                    </tr>
+                    <tr group="ColumnProperty" property="ColumnProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.DisplayName"></td>
+                        <td colspan="2">
+                            <input id="txtColumnDisplayName" type="text" />
+                        </td>
+                    </tr>
+                    <tr group="ColumnProperty" property="ColumnProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.SummaryWay"></td>
+                        <td colspan="2">
+                            <select id="slFunctionType">
+                                <option value="1">Sum</option>
+                                <option value="2">Avg</option>
+                                <option value="3">Min</option>
+                                <option value="4">Max</option>
+                                <option value="0">Count</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+
+                <tbody id="ParamPanel">
+                    <tr group="ParamProperty" style="display: table-row; background-color: rgb(234, 229, 229); cursor: pointer;">
+                        <td group="ParamProperty" class="Expanded"></td>
+                        <td colspan="3" data-lang="ReportTemplate.ParamSetting"></td>
+                    </tr>
+                    <tr group="ParamProperty" property="ParamProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.FieldCode"></td>
+                        <td colspan="2">
+                            <label id="lbPColCode"></label>
+                        </td>
+                    </tr>
+                    <tr group="ParamProperty" property="ParamProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.FilterType"></td>
+                        <td colspan="2">
+                            <select id="slPColType"></select>
+                        </td>
+                    </tr>
+                    <tr group="ParamProperty" property="ParamProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.FixedItems"></td>
+                        <td colspan="2">
+                            <input id="txtFixedValue" type="text" />
+                        </td>
+                    </tr>
+                    <tr group="ParamProperty" property="ParamProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.SystemParamValue"></td>
+                        <td colspan="2">
+                            <select id="slSystem">
+                                <option value="0" data-lang="ReportTemplate.TopCurrUser"></option>
+                                <option value="1" data-lang="ReportTemplate.CurrOrg"></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr group="ParamProperty" property="ParamProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.OrgAcl"></td>
+                        <td colspan="2">
+                            <select id="slOrgnization">
+                                <option value="0" data-lang="ReportTemplate.NotVerified"></option>
+                                <option value="1" data-lang="ReportTemplate.Verified"></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr group="ParamProperty" property="ParamProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.DefaultValue"></td>
+                        <td colspan="2">
+                            <input id="txtDefaultValue" type="text" />
+                        </td>
+                    </tr>
+                    <tr group="ParamProperty" property="ParamProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.DefaultValue"></td>
+                        <td colspan="2">
+                            <select id="slDataTime">
+                                <option value="0" data-lang="DataSettings.CurrentDay"></option>
+                                <option value="1" data-lang="DataSettings.ThisWeek"></option>
+                                <option value="2" data-lang="DataSettings.ThisMouth"></option>
+                                <option value="3" data-lang="DataSettings.ThisYear"></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr group="ParamProperty" property="ParamProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.OtherSettings"></td>
+                        <td colspan="2">
+                            <label>
+                                <input type="checkbox" id="ckAllowNull" checked="checked" /><span data-lang="ReportTemplate.AllowNull"></span>
+                            </label>
+                            <label>
+                                <input type="checkbox" id="ckIsShow" checked="checked" data-lang="ReportTemplate.Visible" /><span data-lang="ReportTemplate.Visible"></span>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr group="ParamProperty" property="ParamProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.Description"></td>
+                        <td colspan="2">
+                            <textarea id="txtParamDes" style="width: 95%; height: 80px;"></textarea>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="proertyPanel_Desc">
+            <span id="desc_title" style="color: black; font-size: 13px; font-weight: bold;" data-lang="ReportTemplate.PropertyDesc"></span><br />
+            <span id="desc_content" style="color: black;"></span>
+        </div>
+    </div>
+</div>

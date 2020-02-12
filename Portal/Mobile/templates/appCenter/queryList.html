@@ -1,0 +1,54 @@
+﻿<ion-view view-title="{{languages.tabs.myProcess}}" hide-nav-bar="true" class="tab-myInstances tab-queryList {{SchemaCode}}" view-title="{{DisplayName}}">
+    <i ng-if="HasSheet" class="addqueryList ion-android-add f22" ng-click="startWorkflow(appCenterCode)">
+    </i>
+    <div class="menu-tittle  {{$root.dingMobile.dingHeaderClass}}" style="    border-bottom: 1px solid #edeff1">
+        <div class="menu-tittle-left">
+            <span ng-if="appCenterFlag" ng-click="backToAppCenter()">
+                <i class="f17 ion-chevron-left blue pr25"></i>
+            </span>
+        </div>
+        <div class="menu-tittle-middle f17">{{DisplayName}}</div>
+        <div class="menu-tittle-right f15">
+            <i class="icon-shaixuan f14 blue "></i>
+            <span ng-click="openPopover()" class="">{{languages.filter}}</span>
+        </div>
+    </div>
+    <ion-content class="{{$root.dingMobile.dingContentClass}}">
+        <div class="list-showEmpty" ng-if="viewModel.length == 0">
+            <img ng-show="!languages.inEnShow" src="img/empty.svg">
+            <img ng-show="languages.inEnShow" src="img/emptyEng.svg">
+        </div>
+
+        <div ng-class="$last?'home-list bb0':'home-list'" ng-if="viewModel.length>0" ng-repeat="Item in viewModel track by $index" ng-click="openBizObject('{{Item.ObjectID}}')">
+            <div class="home-list-left">
+            </div>
+            <div class="home-list-right">
+                <div class="right-header">
+                    <div class="right-header-left">
+                        <span class="f16">{{Item.itemName}} </span>
+                    </div>
+                </div>
+                <div class="right-content f13">
+                    <!--<pre ng-trim="true" ng-bind-html="Item.summary"></pre>-->
+                    <p ng-repeat="content in Item.summary" ng-if="Item.summary.length>0"><span>{{content.DisplayName}}：</span><span>{{content.Value}}</span></p>
+                </div>
+            </div>
+        </div>
+        <!--加载更多-->
+        <ion-infinite-scroll ng-if="!LoadFinished"
+                             on-infinite="LoadQueryData(true)"
+                             distance="10%">
+        </ion-infinite-scroll>
+    </ion-content>
+    <style>
+        .tab-queryList .has-tabs {
+            bottom: 0px;
+        }
+
+        .tab-queryList .home-list-left {
+            flex-basis: 0;
+            flex-shrink: 0;
+        }
+    </style>
+
+</ion-view>

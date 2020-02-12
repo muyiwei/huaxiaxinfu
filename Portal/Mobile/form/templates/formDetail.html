@@ -1,0 +1,21 @@
+﻿<ion-view cache-view="true" title="{{InstanceTitle}}" hide-nav-bar="{{$root.dingMobile.hideHeader}}">
+    <ion-nav-bar class="bar">
+        <ion-nav-buttons side="left">
+            <button class="button button-icon button-clear ion-ios-arrow-left"
+                    ng-click="ClosePage()">
+                {{names.Back}}
+            </button>
+        </ion-nav-buttons>
+    </ion-nav-bar>
+    <ion-content class="scroll-content ionic-scroll {{$root.dingMobile.dingHeaderClass}} has-footer ng-cloak"
+                 id="mobile-content">
+        <div ng-include="portalroot+'/Mobile/form/templates/flowStatus.html'" class="flowDetails" onload="flowStatusLoaded()">
+
+        </div>
+    </ion-content>
+    <ion-footer-bar align-title="left" class="bar">
+        <ul style="display: none!important" class="nav navbar-nav SheetToolBar" id="Ul1" runat="server"></ul>
+        <div class="button-bar button-full" id="dvmButtons">
+        </div>
+    </ion-footer-bar>
+</ion-view>

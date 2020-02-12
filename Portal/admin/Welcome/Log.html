@@ -1,0 +1,168 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>H3 BPM</title>
+    <link rel="stylesheet" href="welcome.css" />
+    <script src="../../WFRes/_Scripts/jquery/jquery.js"></script>
+    <script src="../../WFRes/_Scripts/jquery/jquery.lang.js" type="text/javascript"></script>
+    <script src="../../WFRes/_Scripts/vue/vue.min.js" type="text/javascript"></script>
+    <script src="Welcome.js"></script>
+    <script type="text/javascript">
+        var pageInfo = {
+            controls: {
+                divBody: ".body",
+                divSetting: "#divSetting",
+                divSync: "#divSync",
+                divOrg: "#divOrg",
+                divCategory: "#divCategory",
+                divOrgJob: "#divOrgJob",
+                divSearch: "#divSearch"
+            }
+        }
+
+        $(function () {
+            $.each(pageInfo.controls, function (k, v) {
+                pageInfo.controls[k] = $(v);
+            });
+            // $(".activityFoot").hide();
+            // 注册退格事件，回到主页
+            $("body").keydown(function (e) {
+                if (e.keyCode == 8) {
+                    window.location.href = "Home.html";
+                    e.preventDefault();
+                }
+            });
+            var a, b, c;
+        });
+
+        var getSidePoint = function (obj, side) {
+            if (side == "top") {
+                return {
+                    x: obj.position().left + obj.width() / 2,
+                    y: obj.position().top
+                };
+            }
+            else if (side == "left") {
+                return {
+                    x: obj.position().left,
+                    y: obj.position().top + obj.height() / 2
+                };
+            }
+            else if (side == "right") {
+                return {
+                    x: obj.position().left + obj.width(),
+                    y: obj.position().top + obj.height() / 2
+                };
+            }
+            else {
+                return {
+                    x: obj.position().left + obj.width() / 2,
+                    y: obj.position().top + obj.height()
+                };
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="head">
+        <div>
+            <div class="title">
+                系统日志
+            </div>
+            <hr class="line" />
+            <div class="description">
+                &nbsp;&nbsp;&nbsp;&nbsp;H3 BPM系统日志记录了用户登录日志、异常日志、业务集成日志、组织变更日志以及移动办公使用日志。
+            </div>
+        </div>
+    </div>
+    <div class="body">
+        <div id="divLoginLog" class="activity activityPointer" style="top: 20px; left: 40px;" onclick="openUrl('登录日志','../admin/SysLog/LoginLog.html')">
+            <div class="activityHead">
+                <div>
+                    登录日志
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    记录系统用户的登录日志
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#">点击进入>></a>
+                </div>
+            </div>
+        </div>
+        <div id="divExceptionLog" class="activity activityPointer" style="top: 20px; left: 360px" onclick="openUrl('异常日志','../admin/SysLog/QueryException.html')">
+            <div class="activityHead">
+                <div>
+                    异常日志
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    记录流程运行过程中的异常日志
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#">点击进入>></a>
+                </div>
+            </div>
+        </div>
+
+        <div id="divState" class="activity activityPointer" style="top: 20px; left: 680px" onclick="openUrl('业务集成日志','../admin/SysLog/ListInvokingLog.html')">
+            <div class="activityHead">
+                <div>
+                    业务集成日志
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    记录业务服务所有调用外部系统接口的过程日志
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#">点击进入>></a>
+                </div>
+            </div>
+        </div>
+        <div id="divDisplay" class="activity activityPointer" style="top: 260px; left: 40px" onclick="openUrl('组织变更日志','../admin/SysLog/OrganizationLog.html')">
+            <div class="activityHead">
+                <div>
+                    组织变更日志
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    记录H3 BPM组织机构变更日志
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#">点击进入>></a>
+                </div>
+            </div>
+        </div>
+        <div id="divNotice" class="activity activityPointer" style="top: 260px; left: 360px;" onclick="openUrl('移动办公日志','../admin/SysLog/MobileLog.html')">
+            <div class="activityHead">
+                <div>
+                    移动办公日志
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    记录用户移动办公登录日志
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#">点击进入>></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

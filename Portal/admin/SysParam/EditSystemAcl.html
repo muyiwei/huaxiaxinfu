@@ -1,0 +1,99 @@
+﻿<script>
+    $(function () {
+        var pageData = {
+            SystemAcl: {},
+            LanData: $.Languages
+        };
+        //初始化页面数据
+        initPageData();
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                }
+            }
+        });
+
+        function initPageData() {
+            var id = getUrlParam("id");
+            if (id && id != "") {
+                $.ajax({
+                    url: $.Controller.SystemAcl.GetSystemAcl,
+                    type: 'get',
+                    dataType: "json",
+                    data: { id: id },
+                    async: false,//同步执行
+                    success: function (result) {
+                        pageData.SystemAcl = result;
+                    }
+                });
+            }
+        };
+
+        function saveData() {
+            $.ajax({
+                url: $.Controller.SystemAcl.SaveSystemAcl,
+                type: "post",
+                dataType: "json",
+                data: pageData.SystemAcl,
+                success: function (result) {
+                    if (result.stat == "0") {
+                        parent.H3DialogManger.Close();
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.msg) });
+                    }
+                }
+            });
+        };
+    });
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a v-on:click="saveData" data-icon="fa fa-save" href="javascript:void(0)" data-lang="GlobalButton.Save">添加</a>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.msgGlobalString.Msg_BasciInfor}}</span>
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.SystemAcl.UserName}}
+                </td>
+                <!--<td style="padding-left: 0px;">
+                    <table id="tbUserSelector" class="UserSelector" width="161px" height="" cellpadding="0" cellspacing="0" border="0">
+                        <tr height="">
+                            <td width="144px">
+                                <textarea name="ctl00$BodyContent$UserSelector_UserNames" rows="2" cols="20" id="ctl00_BodyContent_UserSelector_UserNames" readonly="readonly" selectuseronly="False_Value" style="width:144px;"></textarea><input name="ctl00$BodyContent$UserSelector_UserIDs" type="text" id="ctl00_BodyContent_UserSelector_UserIDs" style="display:none;" />
+                            </td>
+                            <td style="width:20px">
+                                <a onclick="javascript:var visibleUnits='';var urlVar = '/Portal/SelectUser.aspx?UserControl=ctl00_BodyContent_UserSelector_UserNames&Mode=Multi&UserIDControl=ctl00_BodyContent_UserSelector_UserIDs&UnitType=31&VisibleUnitType=11&VisibleType=1&VisibleUnits=' + visibleUnits + '&VisbileCategories=&StartSelectableLevel=0&EndSelectableLevel=100&ExpandUnits=&OnChange=&MappingControls=&ExpandToLevel=1';childWindowProperties='toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=600,height=510,left=' + (window.screen.width - 600)/2 +',top='+ (window.screen.height - 510)/2;window.open(urlVar, '', childWindowProperties);" style="cursor:pointer;">
+                                    <img style="cursor:pointer" height="16" border="0" src="/Portal/WFRes/images/p_Add.gif" title="添加">
+                                </a>
+                            </td>
+                            <td style="width:20px">
+                                <a onclick="javascript:document.getElementById('ctl00_BodyContent_UserSelector_UserNames').value='';document.getElementById('ctl00_BodyContent_UserSelector_UserIDs').value='';if(typeof($) != 'undefined') $.closeUserSelect();"><img height="16" style="cursor:pointer" src="/Portal/WFRes/images/p_Del.gif" border=0 style="CURSOR: hand" title="清除"></a>
+                            </td>
+                            <td style="width:*">&nbsp;</td>
+                        </tr>
+                    </table>
+                </td>-->
+            </tr>
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.SystemAcl.Administrator}}
+                </td>
+                <td>
+                    <input id="chkAdministrator" type="checkbox" name="chkAdministrator" /><label for="chkAdministrator">{{LanData.SystemAcl.Permit}}</label>
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

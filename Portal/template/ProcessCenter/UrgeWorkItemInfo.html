@@ -1,0 +1,44 @@
+﻿<!-- 催办 -->
+<div class="modal-header">
+    <button type="button" class="close"
+            data-dismiss="modal" aria-hidden="true" ng-click="cancel()">
+        ×
+    </button>
+    <h4 class="modal-title" id="myModalLabel">
+        <span translate="InstanceDetail.UrgeInfo">催办信息</span>
+    </h4>
+</div>
+<div class="modal-body" style="padding-left:50px;padding-right:50px;">
+    <form class="bs-example form-horizontal" name="UserInfo">
+        <div class="row">
+            <div class="col-md-12">
+                <table class="table table-striped m-b-none">
+                    <tr>
+                        <th class="col-lg-3">
+                            <span translate="InstanceDetail.UrgencyPeople">催办人</span>
+                        </th>
+                        <th class="col-lg-3">
+                            <span translate="InstanceDetail.UrgencyTime">催办时间</span>
+                        </th>
+                        <th class="col-lg-6">
+                            <span translate="InstanceDetail.Content">催办内容</span>
+                        </th>
+                    </tr>
+                    <tr ng-repeat="row in UrgeWorkItemInfo">
+                        <th>
+                            <label ng-bind="row.UrgeUserName"></label>
+                        </th>
+                        <th>
+                            <label ng-bind="row.UrgeTime"></label>
+                        </th>
+                        <th>
+                            <label ng-bind="row.UrgeContent"></label>
+                        </th>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+</div>

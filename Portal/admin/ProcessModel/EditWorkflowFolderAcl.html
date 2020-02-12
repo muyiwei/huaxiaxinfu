@@ -1,0 +1,111 @@
+﻿<script>
+    var WorkflowFolderCode = "";
+    var AclID = "";
+    var FolderAcl = {};
+    $(function () {
+        //URL参数
+        WorkflowFolderCode = getUrlParam("WorkflowFolderCode");
+        AclID = getUrlParam("AclID");
+        //debugger;
+        //Load权限数据
+        $.ajax({
+            url: _PORTALROOT_GLOBAL + $.Controller.WorkflowFolderAcl.LoadWorkflowFolderAcl,
+            type: 'get',
+            data: { WorkflowFolderCode: WorkflowFolderCode, AclID: AclID },
+            async: false,//同步执行
+            success: function (result) {
+                FolderAcl = result;
+            }
+        });
+
+        var model = new Vue({
+            el: "#content",
+            data: FolderAcl,
+            methods: {}
+        });
+
+        InitToolbar();
+        InitControl(FolderAcl.ObjectID, FolderAcl.FunctionRun);
+            
+    });
+
+    function InitToolbar() {
+        try{
+            $("#H3ToolBar").AspLinkToolBar();
+            $(".H3Panel").BuildPanel();
+        }catch(e){}
+    }
+
+    function InitControl(AclID,FunctionRun)
+    {
+        //是否禁用按钮操作
+        setControlUsable(FunctionRun ? "1" : "0", $("a"));
+
+        if (AclID && AclID.length > 0) {
+            //编辑
+            $("#UserSelector").hide();
+            $("#lblUserAlias").val(FolderAcl.UserName);
+        }
+        else {
+            $("#lblUserAlias").hide();
+            $("#UserSelector").SheetUser({ Editable: true, Visiable: true, UserVisible: true, OrgUnitVisible: true, GroupVisible: true, IsMultiple: false });
+        }
+    }
+
+    function SaveData() {
+        if (AclID && AclID.length > 0) {}
+        else {
+            FolderAcl.UserID = $("#UserSelector").SheetUIManager().GetValue();
+        }
+
+        $.ajax({
+            url: _PORTALROOT_GLOBAL + $.Controller.WorkflowFolderAcl.SaveWorkflowFolderAcl,
+            type: 'post',
+            data: FolderAcl,
+            async: true,//同步执行
+            success: function (result) {
+                //debugger;
+                if (result.Success) {
+                    $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                    parent.H3DialogManger.Close();
+                }
+                else {
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                }
+            }
+        });
+    }
+</script>
+
+<div id="H3ToolBar">
+    <a id="btnSave" href="#"  data-icon="fa fa-save" onclick="SaveData(); return false;" data-lang="GlobalButton.Save"></a>
+</div>
+
+<div class="H3Panel">
+    <span data-lang="msgGlobalString.Msg_BasciInfor"></span>
+    <table>
+        <tr>
+            <td data-lang="WorkflowFolderAcl.AddProcessFolder_Process"></td>
+            <td>
+                <input type="text" disabled="disabled" id="lbWorkFolderName" v-model="WorkflowFolderName" />
+            </td>
+        </tr>
+        <tr>
+            <td data-lang="SystemAcl.UserName"></td>
+            <td>
+                
+                <input type="text" disabled="disabled" id="lblUserAlias" />
+                <div class="tableNoCss">
+                    <div id="UserSelector" style="width:255px"></div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td data-lang="H3TreeTools.FunctionAclByUnit_SetAcl"></td>
+            <td>
+                <input type="checkbox" id="cbViewFolder" v-model="Run"/>
+            </td>
+        </tr>
+    </table>
+</div>
+

@@ -1,0 +1,163 @@
+﻿
+<script>
+    $(function () {
+        var pageData = {
+            RoleData: {},
+            LanData: $.Languages
+        }
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel({ excludeIDs: ["RoleUserList"] });
+
+        InitPageData();
+        //初始化页面执行查询
+        QueryFun();
+
+
+        //重新加载表格数据
+        function ReloadGridData() {
+            H3GridManager.set("parms", { Action: "GetData", roleId: pageData.RoleUserData.RoleID });
+            H3GridManager.loadData();
+        }
+
+       
+    });
+
+    //角色用户列表列
+    function GetRoleViewColumns() {
+        var primaryKey = $.Lang("ListOrgJob.PrimaryKey");
+        var userAccount = $.Lang("ListOrgJob.UserAccount");
+        var userName = $.Lang("ListOrgJob.UserName");
+        var managerScope = $.Lang("ListOrgJob.ManagerScope");
+        var operation = $.Lang("ListOrgJob.Operation");
+
+        var edit = $.Lang("GlobalButton.Edit");
+        var del = $.Lang("GlobalButton.Delete");
+
+        return [
+            { display: primaryKey, name: "ObjectID", hide: true },
+            { display: userAccount, name: "UserCode" },
+            { display: userName, name: "UserName" },
+            { display: managerScope, name: "ManagerScope" },
+            {
+                display: operation, name: '', render: function (row) {
+                    return "<div style='float:left;'><a href='#' onclick=\"EditRoleUser('" + row.RoleID + "','" + row.ObjectID + "')\">" + edit + "</div>"
+                    + "<div style='padding-left:5px;float:left;'><a href='#' onclick='deleteOrgJob(\"" + row.ObjectID + "\")'>" + del + "</a></div>"
+                }
+            }];
+    }
+    //查询
+    function QueryFun() {
+        var roleId = $("#roleId").val();
+        var roleCode = $("input[id=roleCode]").val();
+        var roleName = $("input[id=roleName]").val();
+        var userAccount = $("input[id=userAccount]").val();
+        var userName = $("input[id=userName]").val();
+
+        CreateLigerGrid(
+         $("#RoleUserList"),
+         GetRoleViewColumns(),
+         $.Controller.ListOrgJob.GetRoleUserList,
+         false, "98%",
+         null, null, null,
+         {
+             roleId: roleId,
+             userCode: userAccount,
+             userName: userName
+         }
+        );
+    }
+
+    //根据传递的参数获取对应的数据，Vue绑定数据使用
+    function InitPageData()
+    {
+        var id = getUrlParam("id");
+        //岗位信息
+        if (id && id != "") {
+            $.ajax({
+                url: $.Controller.ListOrgJob.GetRoleByID,
+                type: 'get',
+                dataType: "json",
+                data: { roleId: id },
+                async: false,//同步执行
+                success: function (result) {
+                    $("#roleId").val(result.ObjectID);
+                    $("#roleCode").val(result.Code);
+                    $("#roleName").val(result.DisplayName);
+                }
+            });
+        }
+    }
+
+    function deleteOrgJob(id) {
+        var ajaxUrl = $.Controller.ListOrgJob.DelRoleUser
+        var deleteConfirm = $.Lang("msgGlobalString.AppMenuList_Msg0");
+        var roleid = $("#roleId").val();
+        $.ligerDialog.confirm(deleteConfirm, function (result) {
+            if (result) {
+                $.ajax({
+                    url: ajaxUrl,
+                    data: { roleUserId: id, roleId:roleid},
+                    success: function (result) {
+                        top.workTab.reload(top.workTab.getSelectedTabItemID());
+                    }
+                });
+            }
+        });
+    }
+
+    //编辑
+    function EditRoleUser(roleid,roleuserid) {
+        //debugger;
+        var editOrgJob = $.Lang("ListOrgJob.RoleUserEidt");
+        ShowDialog(editOrgJob, _PORTALROOT_GLOBAL+"/admin/TabMaster.html?url=Organization/EditRoleUser.html&roleid=" + roleid + "&id=" + roleuserid);
+    }
+    //添加
+    function addRoleUser() {
+        var addOrgJob = $.Lang("ListOrgJob.RoleUserAdd");
+        var roleId = $("#roleId").val();
+        ShowDialog(addOrgJob, _PORTALROOT_GLOBAL+"/admin/TabMaster.html?url=Organization/EditRoleUser.html&roleid=" + roleId);
+    }
+  
+</script>
+
+<div id="H3ToolBar">
+    <a data-icon="fa fa-plus" href="javascript:addRoleUser();" onclick="" data-lang="GlobalButton.Add"></a>
+    <a data-icon="fa fa-search" href="javascript: QueryFun();" onclick="" data-lang="GlobalButton.Search"></a>
+</div>
+<div class="H3Panel">
+    <table class="tableList">
+        <tr>
+            <td data-lang="ListOrgJob.Code">
+                角色编码
+            </td>
+            <td>
+                <input type="hidden" id="roleId" />
+                <input name="roleCode" disabled="disabled" type="text" id="roleCode">
+            </td>
+            <td data-lang="ListOrgJob.DisplayName">
+                角色名称
+            </td>
+            <td>
+                <input name="roleName" disabled="disabled" type="text" id="roleName">
+            </td>
+        </tr>
+        <tr>
+            <td data-lang="ListOrgJob.UserAccount">
+               用户账号
+            </td>
+            <td>
+                <input name="userAccount" type="text" id="userAccount">
+            </td>
+            <td  data-lang="ListOrgJob.UserName">
+                用户姓名
+            </td>
+            <td>
+                <input name="userName" type="text" id="userName">
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="H3Panel">
+    <span data-lang="ListOrgJob.RoleUserManager"></span>
+    <div id="RoleUserList"></div>
+</div>

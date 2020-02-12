@@ -1,0 +1,84 @@
+<ion-popover-view class="sideSlip" mykeyboard>
+   
+    <ion-header-bar class="menu-tittle">
+        <div class="menu-tittle-left pr25" ng-click="closePopover()"><i class="ion-chevron-right f22 blue"></i></div>
+        <div class="menu-tittle-middle f15"><i class="icon-shaixuan f14 blue"></i><span>{{languages.filter}}</span></div>
+        <div class="menu-tittle-right"></div>
+    </ion-header-bar>
+
+        <ion-content delegate-handle="filter">
+            <div class="menu-bar">
+                <div class="menu-bar-left f15">{{languages.Filter.processName}}</div>
+                <div class="menu-bar-right"></div>
+            </div>
+            <div class="input-container">
+                <input type="text" placeholder="{{languages.Filter.processNames}}" class="f14" ng-model="filter.keyWord" id="keyWord">
+            </div>
+            <div class="menu-bar" id="controlOriginator" ng-click="stateUser($event)" ng-show="searchItemShow" ng-model="filter.filterUsers" data-title="发起人" data-scopedata="Originator" data-loadurl="/Portal/SheetUser/LoadOrgTreeNodes?IsMobile=true&amp;Recursive=true" data-datafield="Originator">
+                <div class="menu-bar-left f15">{{languages.Filter.originator}}</div>
+                <div class="menu-bar-right f14">
+                    <i>{{filterUsers.Name}}</i>
+                    <span ng-repeat="d in filterUsers" ng-if="$index<1">
+                        <i>{{d.Name}}</i>
+                    </span>
+                    <span ng-if="filterUsers.length>1" ng-show="!languages.inEnShow">
+                        等{{filterUsers.length}}人
+                    </span>
+                    <span ng-if="filterUsers==false||filterUsers.length==0" ng-show="!languages.inEnShow">
+                        请选择
+                    </span>
+                    <span ng-if="filterUsers==false||filterUsers.length==0" ng-show="languages.inEnShow">
+                        Pleace select
+                    </span>
+                    <!-- 英文 -->
+                    <span ng-if="filterUsers.length>1" ng-show="languages.inEnShow">
+                        {{filterUsers.length}}{{languages.personTotal}}
+                    </span>
+                    <i class="ion-chevron-right f14 ml10"></i>
+                </div>
+            </div>
+            <div class="menu-bar">
+                <div class="menu-bar-left f15">{{languages.Filter.createdTime}}</div>
+                <div class="menu-bar-right"></div>
+            </div>
+            <div class="input-container" style="flex-wrap: nowrap;">
+                <div class="item item-input datepicker" ion-datetime-picker date ng-model="filter.startDate">
+                    <span class="showdate f14" ng-class="filter.startDate?'qqq' : ''">
+                        {{languages.Filter.star}}<img src="img/shijian.svg" class="calendar"/>
+                    </span>
+                    <span class="showdate f14" ng-class="!filter.startDate?'qqq' : ''">
+                        {{filter.startDate| date:"yyyy-MM-dd"}}
+                    </span>
+                </div>
+                <div class="shortline"></div>
+                <div class="item item-input datepicker" ion-datetime-picker date ng-model="filter.endDate">
+                    <span class="showdate f14" ng-class="filter.endDate?'qqq' : ''">
+                        {{languages.Filter.end}}<img src="img/shijian.svg" class="calendar" />
+                    </span>
+                    <span class="showdate f14" ng-class="!filter.endDate?'qqq' : ''">
+                        {{filter.endDate| date:"yyyy-MM-dd"}}
+                    </span>
+                </div>
+            </div>
+            <div class="menu-bar">
+                <div class="menu-bar-left f15">{{languages.Filter.urgent}}</div>
+                <div class="menu-bar-right"></div>
+            </div>
+            <div class="input-container f14">
+                <ion-radio ng-model="filter.IsPriority" ng-value="'2'">{{languages.Filter.yes}}</ion-radio>
+                <ion-radio ng-model="filter.IsPriority" ng-value="'0'">{{languages.Filter.no}}</ion-radio>
+                <ion-radio ng-model="filter.IsPriority" ng-value="">{{languages.Filter.all}}</ion-radio>
+
+            </div>
+        </ion-content>
+
+
+
+        <ion-footer-bar class="bottom-button">
+            <div class="bb-left f16" ng-click="resetSearch()">{{languages.reset}}</div>
+            <div class="bb-right f16" ng-click="toSearch(filter)">{{languages.confirm}}</div>
+        </ion-footer-bar>
+
+
+
+</ion-popover-view>

@@ -1,0 +1,166 @@
+﻿<script src="../WFRes/_Scripts/bizquery.js" type="text/javascript"></script>
+<script type="text/javascript">
+
+    var CustomColumns = [];
+    // 若要添加自定义的列,请参考以下示例
+    // CustomColumns.push({
+    //    display: "自定义列标题1",//列标题
+    //    width: "360px",//宽度
+    //    //显示逻辑
+    //    render: function (rowData, rowIndex) {
+    //        return "<div>行号:" + rowIndex + "; 字段[ObjectID]值为:" + rowData.ObjectID + "</div>";
+    //    }
+    // });
+    var SchemaCode = getUrlParam("SchemaCode") || "";//数据模型编码
+    var QueryCode = getUrlParam("QueryCode") || "";//查询列表编码
+    var outputPropertyMappings = getUrlParam("OutputParams") || "";
+    var inputMappings = getUrlParam("InputParam");
+    var CtrlID = getUrlParam("CtrlID") || "";
+    var OpenType = getUrlParam("OpenType") || "";
+    var IsPopup = getUrlParam("IsPopup") || "";
+
+    var isFrame = OpenType == "1";
+    var p = isFrame ? window.parent : window.opener;
+    var isReturn = "True" == "True";
+    var sourceObj = p == null ? null : (p.$ == null ? null : p.$.find("#" + CtrlID));
+    var ActionVisible = "false";
+    var Param_BizObjectID = "BizObjectID";
+    var Param_SchemaCode = "SchemaCode";
+    var LoginUrl = _PORTALROOT_GLOBAL + '/index.html#/platform/login';
+    var EditBizObjectUrl = $.Controller.RunBizQuery.EditBizObject;
+    var BizObjectHandlerUrl = $.Controller.RunBizQuery.InvokeMethod;
+    var GridParam = { schemaCode: SchemaCode, queryCode: QueryCode };//表格数据请求参数
+    var Controller = $.Controller.RunBizQuery.GetGridData;//表格数据请求地址
+    var FilterData = [];//查询条件数组
+    var DisplayFormats = [];//显示格式
+    var GirdColumns = [];//表格显示列
+    $(function () {
+        initPage();
+        BuildFilter(isFrame);
+        BuildPage();
+        GridParam = GetGridParam();
+        LoadGridViewData();
+        $("#H3ToolBar").AspLinkToolBar();
+    });
+
+    //初始化页面数据
+    function initPage() {
+        if (SchemaCode && QueryCode) {
+            $.ajax({
+                url: $.Controller.RunBizQuery.GetRunBizQueryData,
+                type: 'get',
+                dataType: "json",
+                data: { schemaCode: SchemaCode, queryCode: QueryCode },
+                async: false,//同步执行
+                success: function (result) {
+                    if (result.Success) {
+                        GirdColumns = result.Extend.GirdColumns;
+                        for (var i = 0; i < GirdColumns.length; i++) {
+                            GirdColumns[i].render = function (row, rowindex, value) {
+                                if (value != null && value != "") {
+                                    var reg = /<[^>]+>/g;
+                                    if (reg.test(value)) {
+                                        return "<span title=\"" + $(value).text() + "\">" + value + "</span>"
+                                    }
+                                    return "<span title=\"" + value + "\">" + value + "</span>"
+                                }
+                                return value;
+                            }
+                        }
+                        DisplayFormats = result.Extend.DisplayFormats;
+                        FilterData = result.Extend.FilterData;
+                    } else {
+                        parent.$.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        }
+    };
+    function btnSearchClick() {
+        GridParam = GetGridParam();
+        DocumentReady();
+        LoadGridViewData();
+        //if (masterDataGridManager) {
+        //    $("#hfPageSize").val(masterDataGridManager.options.pageSize);
+        //}
+    }
+
+    function btnConfirmClick() {
+        //新开窗查询模式
+        if (sourceObj && p[sourceObj[0].id].ListMasterCallBack) {
+            p[sourceObj[0].id].ListMasterCallBack(resultItemM);
+            if (p.ListMasterCallBack) p.ListMasterCallBack(sourceObj);
+        }
+    }
+</script>
+<body>
+    <form id="form1">
+        <div>
+            <div id="H3ToolBar">
+                <a onclick="btnSearchClick();" id="btnSearch" data-icon="l-icon fa fa-search" title="query" href="javascript:void(0)" data-lang="GlobalButton.Search">查询</a>
+
+                <a onclick="btnConfirmClick();" id="btnSearch11" data-icon="l-icon fa fa-check" title="query" href="javascript:void(0)" data-lang="GlobalButton.Confirm">确定</a>
+            </div>
+            <div id="panelSearch">
+                <div class="H3Panel" style="padding:0px 10px">
+                    <div id="tableSearch" border="0"></div>
+                </div>
+            </div>
+            <div class="H3Panel">
+                <div id="excludePanel">
+                    <div id="masterDataGrid"></div>
+                    <input type="hidden" name="hfPageSize" id="hfPageSize" value="20" />
+                </div>
+            </div>
+        </div>
+    </form>
+</body>
+<style>
+    /*批量和开船查询样式*/
+    #tableSearch {
+        padding: 0px 10px;
+    }
+
+        #tableSearch .conditionRow {
+            margin: 5px 0;
+            display: inline-flex;
+        }
+
+            #tableSearch .conditionRow label.tableLeft {
+                display: inline-block;
+                width: 85px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                line-height: 30px;
+                overflow: hidden;
+            }
+
+            #tableSearch .conditionRow label {
+                font-size: 14px;
+                color: #333;
+                line-height: 28px;
+                min-width: 100px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            #tableSearch .conditionRow > input, #tableSearch .conditionRow > textarea, #tableSearch .conditionRow > select {
+                width: 250px;
+                z-index: inherit;
+                min-width: 150px;
+            }
+
+    div#panelSearch {
+        max-height: 120px;
+        overflow-y: scroll;
+    }
+
+    .l-panel-body .l-grid {
+        min-height: 213px;
+    }
+
+    .l-frozen .l-grid2 .l-grid-body, .l-grid-body.l-grid-body1 {
+        min-height: 184px;
+    }
+</style>

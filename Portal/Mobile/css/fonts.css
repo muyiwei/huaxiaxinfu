@@ -1,0 +1,159 @@
+@font-face {
+  font-family: 'icomoona';
+  src:  url('fonts/icomoon.eot?ug91ia');
+  src:  url('fonts/icomoon.eot?ug91ia#iefix') format('embedded-opentype'),
+    url('fonts/icomoon.ttf?ug91ia') format('truetype'),
+    url('fonts/icomoon.woff?ug91ia') format('woff'),
+    url('fonts/icomoon.svg?ug91ia#icomoon') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+.icon-emp:before,
+.icon-eye:before,
+.icon-eyeclose:before,
+.icon-faqinew:before,
+.icon-faqiopen:before,
+.icon-liuchengnew:before,
+.icon-liuchengopen:before,
+.icon-shouyenew:before,
+.icon-shouyeopen:before ,
+.icon-setting:before,
+.icon-shoucaang_2:before,
+.icon-goug:before,
+.icon-gouxuang:before,
+.icon-star:before,
+.icon-search:before,
+.icon-shaixuan:before,
+.icon-yingyongweixuanzhong:before,
+.icon-yingyongxuanzhong:before,
+.icon-faqiliuc:before,
+.icon-faqiliuc-o:before, 
+.icon-shouye:before,
+.icon-shouye-o:before,
+.icon-tongxunlu:before,
+.icon-tongxunlu-o:before,
+.icon-wodelc:before,
+.icon-wodelc-o:before,
+.icon-yingyong:before, 
+.icon-yingyong-o:before  {
+    /* use !important to prevent issues with browser extensions that change fonts */
+    font-family: 'icomoona' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-faqiliuc:before {
+  content: "\e911";
+  color: rgb(191,0,8);
+}
+.icon-faqiliuc-o:before {
+  content: "\e912";
+  color: #78828f;
+}
+.icon-shouye:before {
+  content: "\e913";
+  color: rgb(191,0,8);
+}
+.icon-shouye-o:before {
+  content: "\e914";
+  color: #78828f;
+}
+.icon-tongxunlu:before {
+  content: "\e915";
+  color: rgb(191,0,8);
+}
+.icon-tongxunlu-o:before {
+  content: "\e916";
+  color: #78828f;
+}
+.icon-wodelc:before {
+  content: "\e917";
+  color: rgb(191,0,8);
+}
+.icon-wodelc-o:before {
+  content: "\e918";
+  color: #78828f;
+}
+.icon-yingyong:before {
+  content: "\e919";
+  color: rgb(191,0,8);
+}
+.icon-yingyong-o:before {
+  content: "\e91a";
+  color: #78828f;
+}
+.icon-yingyongweixuanzhong:before {
+  content: "\e90f";
+  color: #78828f;
+}
+.icon-yingyongxuanzhong:before {
+  content: "\e910";
+  color: rgb(191,0,8);
+}
+.icon-emp:before {
+  content: "\e900";
+ color: rgb(191,0,8);
+}
+.icon-eye:before {
+  content: "\e901";
+  color: rgb(191,0,8);
+}
+.icon-eyeclose:before {
+  content: "\e902";
+  color: #8b939f;
+}
+.icon-faqinew:before {
+  content: "\e903";
+  color: #78828f;
+}
+.icon-faqiopen:before {
+  content: "\e904";
+  color: rgb(191,0,8);
+}
+.icon-goug:before {
+  content: "\e905";
+  color: #fff;
+}
+.icon-liuchengnew:before {
+  content: "\e906";
+  color: #78828f;
+}
+.icon-liuchengopen:before {
+  content: "\e907";
+  color: rgb(191,0,8);
+}
+.icon-search:before {
+  content: "\e908";
+ color: #BDBDBD;
+}
+.icon-setting:before {
+  content: "\e909";
+  color: rgb(191,0,8);
+}
+.icon-shaixuan:before {
+  content: "\e90a";
+  color: #a7a7a7;
+}
+.icon-shoucaang_2:before {
+  content: "\e90b";
+  color: #d3d8dc;
+}
+.icon-shouyenew:before {
+  content: "\e90c";
+  color: #78828f;
+}
+.icon-shouyeopen:before {
+  content: "\e90d";
+  color: rgb(191,0,8);
+}
+.icon-star:before {
+  content: "\e90e";
+  color: #edac5b;
+}

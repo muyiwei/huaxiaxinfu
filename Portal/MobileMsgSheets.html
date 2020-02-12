@@ -1,0 +1,169 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8;no-cache" />
+    <title>流程中心</title>
+    <!-- jQuery -->
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="Mobile/js/dingTalk.js"></script>
+    <script>
+        //钉钉、微信打开消息
+        var url = "";
+        loginform = "";
+        getUrlParam = function (name) {
+            var reg = new RegExp("(^|&)" + name.toLocaleLowerCase() + "=([^&]*)(&|$)");
+            var r = window.location.search.replace("__", "&").substr(1).match(reg);
+            if (r != null) return unescape(r[2]); return null;
+        };
+        $(function () {
+            url = window.location.toString().replace("__", "&");
+            loginform = getUrlParam("loginfrom");
+            var state = getUrlParam("state");
+            var code = getUrlParam("code");
+            var workItemID = getUrlParam("WorkItemID");
+            //根据URL参数判断是否钉钉登录
+            if (loginform == "dingtalk") { //TODO
+                LoginForDingTalk(url);
+            } else {
+                LoginForWechat(state, code);
+            }
+        });
+
+        LoginForDingTalk = function () {
+            if (dd && dd.version) {
+                var _config = {}
+                $.ajax({
+                    url: "DingTalk/GetSignConfig",
+                    data: {
+                        url: url,
+                        t:Math.random()
+                    },
+                    async: false,
+                    success: function (res) {
+                        console.log(res);
+                        //获取签名信息成功
+                        _config = res;
+                        // 配置jsAPI
+                        dd.config({
+                            agentId: _config.agentId,
+                            corpId: _config.corpId,
+                            timeStamp: _config.timeStamp,
+                            nonceStr: _config.nonce,
+                            signature: _config.signature,
+                            jsApiList: ['runtime.info',
+                                'biz.contact.choose',
+                                'device.notification.confirm',
+                                'device.notification.alert',
+                                'device.notification.prompt',
+                                'biz.ding.post',
+                            'runtime.permission.requestAuthCode',
+                            'device.geolocation.get',
+                            'biz.ding.post',
+                            'biz.contact.complexChoose']
+                        })
+                        dd.ready(function () {
+                            //获取免登授权码 -- 注销获取免登服务，可以测试jsapi的一些方法
+                            dd.runtime.permission.requestAuthCode({
+                                corpId: _config.corpId,
+                                onSuccess: function (result) {
+                                    var code = result["code"];
+                                    var state = getUrlParam("state");
+                                    var tartget = getUrlParam("target");
+                                    //WorkItemID 参数要和后台配置打开URL中的参数一致
+                                    var WorkItemID = getUrlParam("WorkItemID");
+                                    $.ajax({
+                                        url: "DingTalk/ValidateLoginForDingTalk",
+                                        data: {
+                                            state: state,
+                                            code: code
+                                        },
+                                        async: false,
+                                        success: function (res) {
+                                            Redirect();
+                                        }
+                                    })
+                                },
+                                onFail: function (err) {
+                                    console.log("error fail:" + err)
+                                }
+                            });
+                        })
+                        dd.error(function (err) {
+                            //钉钉验证出错
+                            console.log(err);
+                        })
+                    }
+                });
+            }
+        }
+
+        LoginForWechat = function (state, code) {
+            $.ajax({
+                url: "WeChat/ValidateLoginForWeChat",
+                data: {
+                    state: state,
+                    code: code
+                },
+                async: false,
+                success: function (res) {
+                    Redirect();
+                }
+            })
+        }
+        Redirect = function () {
+            //获取URL参数
+            params = getUrlVars();
+            var paramString = JSON.stringify(params);
+            $.ajax({
+                type: "POST",
+                async: false,
+                url: "WorkItemSheets/WorkItemSheets",
+                data: { paramString: paramString },
+                dataType: "json",
+                success: function (data) {
+                    if (data.Success) {
+                        if (loginform == "dingtalk") {
+                            window.location.href = data.Message + "&loginfrom=dingtalk&source=message";
+                        } else {
+                            window.location.href = data.Message + "&loginfrom=wechat&source=message";
+                        }
+                    } else { 
+                        if (loginform == "dingtalk") {
+                            dd.device.notification.alert({
+                                message: data.Message,
+                                title: "提示",//可传空
+                                buttonName: "确定",
+                                onSuccess: function () {
+                                    dd.biz.navigation.close({
+                                        onSuccess: function (result) { },
+                                        onFail: function (err) { }
+                                    });
+                                },
+                                onFail: function (err) { }
+                            });
+                        }
+
+                    }
+                },
+                error: function (data) {
+
+                }
+            });
+        }
+        getUrlVars = function () {
+            var vars = {};
+            var hash;
+            var hashs = window.location.href.replace("__", "&").slice(window.location.href.indexOf('?') + 1).split('&');
+            for (var i = 0; i < hashs.length; i++) {
+                hash = hashs[i].split('=');
+                vars[hash[0]] = hash[1];
+            }
+            vars["IsMobile"] = "true";
+            return vars;
+        }
+    </script>
+</head>
+<body>
+
+</body>
+</html>

@@ -1,0 +1,202 @@
+﻿<!-- navbar header -->
+<div class="navbar-header {{app.settings.navbarHeaderColor}}" style="height:50px;">
+    <button class="pull-right visible-xs dk" ui-toggle-class="show" data-target=".navbar-collapse">
+        <i class="glyphicon glyphicon-cog"></i>
+    </button>
+    <button class="pull-right visible-xs" ui-toggle-class="off-screen" data-target=".app-aside" ui-scroll="app">
+        <i class="glyphicon glyphicon-align-justify"></i>
+    </button>
+    <!-- brand -->
+    <!--<a href="#/app/default" class="navbar-brand text-lt">-->
+    <a ui-sref="home" class="navbar-brand text-lt">
+        <div style="margin-top:0px;bottom:0px;padding-top:0px;">
+            <img class="m-1-xs" ng-src="{{app.logoSimple}}" style="width:30px;height:30px;" ng-if="app.settings.asideFolded" />
+            <img class="hidden-folded m-1-xs" ng-src="{{app.logoFull}}" ng-if="!app.settings.asideFolded" />
+        </div>
+
+    </a>
+    <!-- / brand -->
+</div>
+<!-- / navbar header -->
+<!-- navbar collapse -->
+<div class="collapse pos-rlt navbar-collapse box-shadow {{app.settings.navbarCollapseColor}}">
+    <!-- buttons -->
+    <div class="nav navbar-nav hidden-xs">
+        <a href class="btn no-shadow navbar-btn asideFolded" ng-click="app.settings.asideFolded = !app.settings.asideFolded">
+            <i class="fa {{app.settings.asideFolded ? 'fa-indent' : 'fa-dedent'}} fa-fw"></i>
+        </a>
+        <!--<a href class="btn no-shadow navbar-btn" ui-toggle-class="show" target="#aside-user">
+            <i class="icon-user fa-fw"></i>
+        </a>-->
+    </div>
+    <!-- / buttons -->
+    <!-- link and dropdown -->
+    <ul class="nav navbar-nav hidden-sm" style="font-size: 13px;">
+        <li class="dropdown pos-stc"
+            ng-repeat="list in user.FunctionViewModels" ng-if="$index<7"
+            ng-show="list.DockOnHomePage">
+            <a class="dropdown-toggle"
+               ng-if="(list.Children[0].Url?list.Children[0].Url:list.Children[0].Children[0].Url).indexOf('http')==-1"
+               ui-sref="{{list.Children[0].Url?list.Children[0].Url:list.Children[0].Children[0].Url}}"
+               title="{{list.DisplayName}}">
+                <span translate="HomePage.{{list.Code}}" translate-default="{{list.DisplayName}}">{{list.DisplayName}}</span>
+            </a>
+            <a class="dropdown-toggle"
+               ng-click="GoHrefState({{list.Children.length>1||list.Children[0].Children.length>1}},'{{list.Code}}','{{(list.Children[0].Url?list.Children[0].Url:list.Children[0].Children[0].Url)}}',{{list.Children.length>0}})"
+               ng-if="(list.Children[0].Url?list.Children[0].Url:list.Children[0].Children[0].Url).indexOf('http')!=-1"
+               ng-href="{{list.Children[0].Url?list.Children[0].Url:list.Children[0].Children[0].Url}}"
+               target="_blank" title="{{list.DisplayName}}">
+                <span translate="HomePage.{{list.Code}}" translate-default="{{list.DisplayName}}">{{list.DisplayName}}</span>
+            </a>
+        </li>
+        <li class="dropdown pos-stc andMore" style="  position: relative !important;" ng-show="user.FunctionViewModels.length>=7">
+            <a class="dropdown-toggle">
+                <span>更多</span>
+            </a>
+            <ul class="nav navbar-nav hidden-sm" style="font-size: 13px;display: none;position: absolute;z-index: 999999; background: #1199c4; min-width: 110px;max-height:300px;overflow:auto;">
+                <li class="dropdown pos-stc" style="    float: initial;"
+                    ng-repeat="list in user.FunctionViewModels" ng-show="$index>=7"
+                    ng-show="list.DockOnHomePage">
+                    <a class="dropdown-toggle"
+                       ng-if="(list.Children[0].Url?list.Children[0].Url:list.Children[0].Children[0].Url).indexOf('http')==-1"
+                       ui-sref="{{list.Children[0].Url?list.Children[0].Url:list.Children[0].Children[0].Url}}">
+                        <span translate="HomePage.{{list.Code}}" translate-default="{{list.DisplayName}}">{{list.DisplayName}}</span>
+                    </a>
+                    <a class="dropdown-toggle"
+                       ng-click="GoHrefState({{list.Children.length>1||list.Children[0].Children.length>1}},'{{list.Code}}','{{(list.Children[0].Url?list.Children[0].Url:list.Children[0].Children[0].Url)}}',{{list.Children.length>0}})"
+                       ng-if="(list.Children[0].Url?list.Children[0].Url:list.Children[0].Children[0].Url).indexOf('http')!=-1"
+                       ng-href="{{list.Children[0].Url?list.Children[0].Url:list.Children[0].Children[0].Url}}" target="_blank">
+                        <span translate="HomePage.{{list.Code}}" translate-default="{{list.DisplayName}}">{{list.DisplayName}}</span>
+                    </a>
+                </li>
+            </ul>
+        </li>
+    </ul>
+    <!-- / link and dropdown -->
+    <!-- nabar right -->
+    <!--<ul class="nav navbar-nav navbar-right" >-->
+    <ul id="ulHomeApps" class="nav navbar-nav right-navbar-nav navbar-right">
+        <li class="dropdown hidden-sm" title="点击申请注册码(click to apply register code.)" ng-show="ShowTrialTag">
+            <a href="http://h3bpm.net/Portal/onlinePlatform/registerLicense.html" target="_blank" translate="PortalTemplates.Trial"> 试用版 </a>
+        </li>
+
+        <li class="dropdown hidden-sm" is-open="lang.isopen" dropdown>
+            <a href class="dropdown-toggle" dropdown-toggle>
+                {{selectLang}}<b class="caret"></b>
+            </a>
+            <!-- dropdown -->
+            <ul class="dropdown-menu animated fadeInUp w">
+                <li ng-repeat="(langKey, label) in langs">
+                    <a ng-click="setLang(langKey, $event)" href>{{label}}</a>
+                </li>
+            </ul>
+            <!-- / dropdown -->
+        </li>
+
+        <!--消息通知-->
+        <li class="dropdown" dropdown>
+            <a href class="dropdown-toggle" dropdown-toggle>
+                <i class="menu-icon glyphicon glyphicon-th"></i>
+                <!--<span class="badge badge-sm up bg-danger pull-right-xs">{{user.FunctionViewModels.length}}</span>-->
+            </a>
+            <div class="dropdown-menu w-xl animated fadeInUp">
+                <div class="panel bg-white">
+                    <div class="list-group">
+                        <div ng-repeat="list in user.FunctionViewModels"
+                             ng-click="switchFuncton(list)"
+                             class="pull-left" style="max-width:30%;height:150px;overflow:hidden;">
+                            <a class="media list-group-item"
+                               ng-if="(list.Children[0].Url?list.Children[0].Url:list.Children[0].Children[0].Url).indexOf('http')==-1" ui-sref="{{list.Children[0].Url?list.Children[0].Url:list.Children[0].Children[0].Url}}">
+                                <!--list.IconType=0标是存在路径。为1为css字帖图标 ，否则应该显示成默认图标 -->
+                                <img ng-if="list.IconType==0&&list.IconUrl" ng-src="{{list.IconUrl}}" class="img-circle" style="height:64px;width:64px;">
+                                <i ng-if="list.IconType==1&&list.IconUrl" class="defaultIconCss" ng-class="{{list.IconUrl}}"></i>
+                                <i ng-if="(list.IconType==1||list.IconType==0)&&!list.IconUrl" class="defaultIcon user-a"></i>
+
+                                <div class="caption text-center" style="padding-top:5px;">
+                                    <span translate="HomePage.{{list.Code}}" translate-default="{{list.DisplayName}}">
+                                        {{list.DisplayName | limitTo:6}}
+                                    </span>
+                                </div>
+                            </a>
+                            <!-- http地址 -->
+                            <a class="media list-group-item "
+                               ng-if="(list.Children[0].Url?list.Children[0].Url:list.Children[0].Children[0].Url).indexOf('http')!=-1" ng-href="{{list.Children[0].Url?list.Children[0].Url:list.Children[0].Children[0].Url}}" target="_blank">
+                                <!--list.IconType=0标是存在路径。为1为css字帖图标 ，否则应该显示成默认图标 -->
+                                <img ng-if="list.IconType==0&&list.IconUrl" ng-src="{{list.IconUrl}}" class="img-circle" style="height:64px;width:64px;">
+                                <i ng-if="list.IconType==1&&list.IconUrl" class="defaultIconCss" ng-class="{{list.IconUrl}}"></i>
+                                <i ng-if="(list.IconType==1||list.IconType==0)&&!list.IconUrl" class="defaultIcon user-a"></i>
+
+                                <div class="caption text-center" style="padding-top:5px;">
+                                    <span translate="HomePage.{{list.Code}}" translate-default="{{list.DisplayName}}">
+                                        {{list.DisplayName | limitTo:6}}
+                                    </span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </li>
+        <li class="dropdown" dropdown>
+            <a class="dropdown-toggle clear" dropdown-toggle>
+                <span class="thumb-sm avatar pull-right m-t-n-sm m-b-n-sm m-l-sm">
+                    <img ng-src="{{user.ImageUrl}}" alt="..." style="width: 40px; height: 40px;" />
+                </span>
+                <span class="hidden-sm hidden-md">{{user.Name}}</span> <b class="caret"></b>
+            </a>
+            <!-- 下拉菜单Start -->
+            <ul class="dropdown-menu animated fadeInRight w">
+                <li ng-show="user.IsAdministrator&&ShowDesignMode">
+                    <a ui-sref="home" ng-click="StartEdit()">
+                        <i class="marginRight5 fa fa-building-o"></i>
+                        <span ng-show="!OT_EditorModel" translate="HomePage.DesignMode"></span>
+                        <span ng-hide="!OT_EditorModel" translate="HomePage.ViewMode"></span>
+                    </a>
+                </li>
+                <li ng-show="user.IsAdministrator">
+                    <a ui-sref="appTemplate.PortalTemplates">
+                        <i class="marginRight5 icon-home"></i>
+                        <span translate="PortalTemplates.PortalManager">门户管理</span>
+                    </a>
+                </li>
+
+
+                <li ng-show="user.IsAdministrator||user.IsConsoleUser">
+                    <a href="admin/index.html">
+                        <i class="marginRight5 icon-notebook"></i>
+                        <span translate="HomePage.AdminManage"></span>
+                    </a>
+                </li>
+                <li>
+                    <a ng-click="showUserInfoModal(user.ObjectID);">
+                        <i class="marginRight5 icon-user"></i>
+                        <span translate="HomePage.PersonalSetting"></span>
+                    </a>
+                </li>
+                <li>
+                    <a ng-click="showUserPasswordModal();">
+                        <i class="marginRight5 icon-key"></i>
+                        <span translate="HomePage.PasswordSetting"></span>
+                    </a>
+                </li>
+                <li class="divider"></li>
+                <li>
+                    <!--ui-sref="lock"-->
+                    <a ng-click="doLock();">
+                        <i class="marginRight5 icon-lock"></i>
+                        <span translate="HomePage.DoLock"></span>
+                    </a>
+                </li>
+                <li>
+                    <a ng-click="loginOut();">
+                        <i class="marginRight5 icon-logout"></i>
+                        <span translate="HomePage.LoginOut"></span>
+                    </a>
+                </li>
+            </ul>
+            <!-- 下拉菜单End -->
+        </li>
+    </ul>
+    <!-- / navbar right -->
+</div>
+<!-- / navbar collapse -->

@@ -1,0 +1,139 @@
+﻿<script>
+    $(function () {
+        var pageData = {
+            TestBizObject: {},
+            LanData: $.Languages
+        };
+        //初始化页面数据
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                testBizQuery: function () {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        testBizQuery();
+                    }
+                }
+            }
+        });
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+        //初始化页面数据
+        function initPageData() {
+            var SchemaCode = getUrlParam("SchemaCode");
+            var Method = getUrlParam("Method");
+            if (SchemaCode) {
+                $.ajax({
+                    url: $.Controller.TestBizObject.GetTestBizObject,
+                    type: 'get',
+                    dataType: "json",
+                    data: { schemaCode: SchemaCode, method: Method },
+                    async: false,//同步执行
+                    success: function (result) {
+                        pageData = result.Extend;
+                        pageData.AssociatedColunms.push({
+                            "Text": $.Lang("GlobalButton.Open"),
+                            "value": ""
+                        });
+                        pageData.LanData = $.Languages;
+                    }
+                });
+            }
+        };
+        //
+        function testBizQuery() {
+            var data = pageData.TestBizObject;
+            data["PropertyGrid"] = JSON.stringify(pageData.PropertyGrid);
+            $.ajax({
+                url: $.Controller.TestBizObject.RunTestBizObject,
+                type: "post",
+                dataType: "json",
+                data: data,
+                success: function (result) {
+                    if (result.Success) {
+                        pageData.PropertyGrid = result.Extend.PropertyGrid;
+                        if (result.Extend.Mode == 0) {
+                            pageData.AssociatedColunms = result.Extend.AssociatedColunms;
+                        }
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.RunSucced") });
+                    } else {
+                        if (result.Extend)
+                            $.H3Dialog.Warn({ content: result.Extend + $.Lang(result.Message) });
+                        else
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                },
+                error: function (e) {
+                    $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.ParamError") });
+                }
+            });
+        }
+    });
+
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a v-on:click="testBizQuery" data-icon="icon-yunxing" href="javascript:void(0)" data-lang="GlobalButton.Run">运行</a>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.TestBizObject.OperatingFunction}}</span>
+        <table border="0" style="width: 100%">
+            <tr>
+                <td>{{LanData.TestBizObject.MethodName}}</td>
+                <td>
+                    <select v-model="TestBizObject.Method">
+                        <option v-for="option in Methods" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.TestBizObject.MainTable}}</span>
+        <table class="tableList" cellspacing="0" rules="all" border="0" border="1" id="PropertyGrid" style="width:100%;border-collapse:collapse;">
+            <tr>
+                <td>{{LanData.TestBizObject.PropertyGridName}}</td>
+                <td>{{LanData.TestBizObject.PropertyGridValue}}</td>
+            </tr>
+            <tr v-for="item in PropertyGrid" v-show="item.Extend.Visible">
+                <td spacetd="spacetd" style="width: 20px;"></td>
+                <td class="tableLeft">{{item.Text}}</td>
+                <td><input type="text" v-model="item.Value" v-bind:disabled="!item.Extend.Edit" /></td>
+            </tr>
+        </table>
+    </div>
+    <div v-show="PanelAssociation">
+        <div class="H3Panel">
+            <span>{{LanData.TestBizObject.SubTableMethod}}</span>
+            <table class="tableList">
+                <tr>
+                    <td>
+                        {{LanData.TestBizObject.BObject}}
+                    </td>
+                    <td>
+                        <select v-model="TestBizObject.AssociationName">
+                            <option v-for="option in AssociationNames" v-bind:value="option.Value">{{option.Text}}</option>
+                        </select>
+                        <a href="javascript:void(0);" onclick="AddTestDialog(this)">{{LanData.GlobalButton.Add}}</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="H3Panel">
+            <span>{{LanData.TestBizObject.SubTable}}</span>
+            <table class="tableList" cellspacing="0" rules="all" border="0" border="1" style="width:100%;border-collapse:collapse;">
+                <tr>
+                    <td v-for="item in AssociatedColunms">{{item.Text}}</td>
+                </tr>
+                <tr v-for="item in AssociatedObjectGrid">
+                    <td v-for="m in item.Values">{{m.Value}}</td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+</validator>

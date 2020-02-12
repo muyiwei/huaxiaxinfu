@@ -1,0 +1,161 @@
+﻿<script>
+    $(function () {
+        var pageData = {
+            LanData: $.Languages
+        };
+        //初始化页面数据
+        initPageData();
+        //构造vue对象
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                }
+            }
+        });
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+        //构造SheetUser
+        $("#divUser").SheetUser({ Editable: !pageData.BizObjectAcl.ObjectID, Visiable: true, Originate: true, IsMultiple: true, DefaultValue: pageData.BizObjectAcl.UserID, OrgUnitVisible: true, GroupVisible: true });
+        $("#divOrgScope").SheetUser({ Editable: !pageData.BizObjectAcl.ObjectID, Visiable: true,UserVisible:false, Originate: true, OrgUnitVisible: true, IsMultiple: true, DefaultValue: pageData.BizObjectAcl.OrgScope });
+        //初始化页面数据
+        function initPageData() {
+            var SchemaCode = getUrlParam("SchemaCode") || "";
+            var aclID = getUrlParam("AclID") || "";
+            $.ajax({
+                url: $.Controller.BizObjectAcl.GetBizObjectAclPageData,
+                type: 'get',
+                dataType: "json",
+                data: { schemaCode: SchemaCode, aclID: aclID },
+                async: false,//同步执行
+                success: function (result) {
+                    if (result.Success) {
+                        pageData.OrgScopeTypes = $.LangArray(result.Extend.OrgScopeTypes, "Text");
+                        pageData.BizObjectAcl = result.Extend.BizObjectAcl;
+                    } else {
+                        parent.$.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        parent.H3DialogManger.Cancel();
+                        setControlUsable(0, $("a"));
+                    }
+                }
+            });
+        };
+        //保存权限变量
+        function saveData() {
+            var UserID = $("#divUser").SheetUIManager().GetValue();
+            if (UserID) {
+                debugger
+                var Tempstr="";
+                for (var i = 0; i < UserID.length; i++) {
+                    Tempstr += UserID[i] + ",";
+                }
+                pageData.BizObjectAcl.UserID = Tempstr;
+            } 
+            var orgScopeArr = $("#divOrgScope").SheetUIManager().GetValue();
+            pageData.BizObjectAcl.OrgScopeArr = orgScopeArr;
+            $.ajax({
+                url: $.Controller.BizObjectAcl.SaveBizObjectAcl,
+                type: "post",
+                dataType: "json",
+                traditional: true,
+                data: pageData.BizObjectAcl,
+                success: function (result) {
+                    if (result.Success) {
+                        parent.$.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                        parent.reloadList();
+                        parent.H3DialogManger.Cancel();
+                    } else {
+                        parent.reloadList();
+                        if (result.Extend) {
+                            var errorMessage = "";
+                            $.each(result.Extend, function (i, n) {
+                                errorMessage += $.Lang(n)+"；";
+                            });
+                            $.H3Dialog.Warn({ content: $.format($.Lang(result.Message), errorMessage) });
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a id="lnkOK" v-on:click="saveData" data-icon="fa fa-save" href="javascript:void(0)" data-lang="GlobalButton.Save">保存</a>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.BizObjectAcl.BasicInfo}}</span>
+        <table>
+            <tr>
+                <td>{{LanData.BizObjectAcl.BusinessObject}}</td>
+                <td>
+                    <input type="text" v-model="BizObjectAcl.SchemaName" disabled="disabled" />
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.BizObjectAcl.User}}</td>
+                <td style="padding-left: 0px;">
+                    <div id="divUser" style="width: 250px;"></div>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.BizObjectAcl.OrgScopeType}}</td>
+                <td colspan="3" class="tableNoCss">
+                    <table border="0">
+                        <tr>
+                            <td v-for="item in OrgScopeTypes">
+                                <label style="padding-right:15px;">
+                                    <input type="radio" name="OrgScopeType" value="{{item.Value}}" v-model="BizObjectAcl.OrgScopeType" v-bind:disabled="BizObjectAcl.ObjectID" />
+                                    {{item.Text}}
+                                </label>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+
+            </tr>
+            <tr id="tr_OrgScope" v-show="BizObjectAcl.OrgScopeType=='0'">
+                <td>{{LanData.BizObjectAcl.OrgScope}}</td>
+                <td colspan="2" class="tableNoCss">
+                    <table border="0">
+                        <tr>
+                            <td>
+                                <div id="divOrgScope" style="width: 250px;"></div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.BizObjectAcl.SetAcl}}
+                </td>
+                <td>
+                    <label >
+                        <input type="checkbox" v-model="BizObjectAcl.IsCreate"  />&nbsp;{{LanData.GlobalButton.Create}}
+                    </label>&nbsp;&nbsp;
+                    <label>
+                        <input type="checkbox" v-model="BizObjectAcl.IsView" />&nbsp;{{LanData.GlobalButton.View}}
+                    </label>&nbsp;&nbsp;
+                    <label>
+                        <input type="checkbox" v-model="BizObjectAcl.IsAdmin" />&nbsp;{{LanData.GlobalButton.Manage}}
+                    </label>&nbsp;&nbsp;
+                </td>
+            </tr>
+        </table>
+    </div>
+
+
+</validator>

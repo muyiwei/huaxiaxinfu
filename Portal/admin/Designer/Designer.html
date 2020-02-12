@@ -1,0 +1,1459 @@
+﻿<!--<link href="../WFRes/_Content/designer/css/designer.css" type="text/css" rel="stylesheet" />-->
+<link href="../WFRes/_Content/designer/css/property.css" type="text/css" rel="stylesheet" />
+
+<style>
+    .l-dialog-table, l-dialog-body {
+        height: auto;
+    }
+
+    .l-dialog-win {
+        bottom: auto;
+    }
+
+    li {
+        line-height: normal;
+    }
+</style>
+
+<script>
+
+    //var WorkflowCode = getUrlParam("WorkflowCode");//流程编码
+    //加载Designer.css，加载完成后再执行JS，否则会导致JS计算活动节点位置有问题
+    $.ajax({
+        url: '../WFRes/_Content/designer/css/designer.css',
+        async: false,
+        success: function (data) {
+            // debugger;
+            $('<style type="text/css">' + data.replace(/url\(images/g, 'url(/css/images') + '</style>').appendTo('head');
+        }
+    });
+
+    //流程包不是本人锁定时，禁用页面控件
+    var setControlUsable = function (isUsable, controls) {
+        if (isUsable == "0") {
+            controls.removeAttr("href").removeAttr("onclick").removeAttr("v-on:click").attr("disabled", "disabled").unbind("click")
+                .children("div").addClass("l-toolbar-item-disable");
+        }
+    }
+
+    var ActivityTemplateConfigs = {};//设置可选的活动模板
+    var WorkflowTemplate;//流程模板
+    //var NotifyTypes = [];//可选的通知方式
+    var ClauseName = "";
+    var DataItems = [];//数据项
+    var Package;
+    var WorkflowViewUrl = "";
+    var BizMethods = [];//可选的业务方法
+    var MapTypes = [];//子流程映射方式
+    var WorkflowNames = [];//流程名称映射
+    var DataDisposalTypes = [];//数据项映射类型
+    var ParantID = getUrlParam("ParantID"); //上级目录ID
+
+    //树和下拉框的数据使用Vue绑定
+    var pageData = {
+        EntryCondition: [],//前置条件
+        SyncOrASync: [],//同步异步
+        ParAbnormalPolicy: [],//参与者策略
+        OriginatorParAbnormalPolicy:[],//发起者参与者策略
+        ParticipantMode: [],//参与方式:单人/多人
+        ParticipateMethod: [],//可选参与方式:并行/串行
+        SubmittingValidation: [],//提交时检查
+        LockLevel: [],//表单锁
+        LockPolicy: [],//锁策略
+        OvertimePolicy: [],//超时策略
+        NotifyCondition: [],//发送条件
+        ApprovalDataItem: [],//审批结果
+        CommentDataItem: [],//意见数据项
+        SheetCodes: [],//表单列表
+        NotifyTypes: [],//可选的通知方式
+        DataItemsSelect: [],//可选择的数据项
+        LanData: $.Languages //语言包
+    }
+
+    function btnSave_Click(obj) {
+        //清空复制的节点
+        localStorage.setItem("_activityCopy", "");
+        localStorage.setItem("_activityWorkflowCopy", "");
+        WorkflowDocument.SaveWorkflow();
+    }
+    function btnCheck_Click(obj) {
+        WorkflowDocument.FullValidateWorkflow();
+    }
+    function btnRelease_Click(obj) {
+        WorkflowDocument.PublishWorkflow();
+    }
+    function btnImage_Click(obj) {
+        WorkflowDocument.SaveAsImage();
+    }
+    function btnHigth_Click(obj) {
+        workflow.setSameStyle(WorkflowSettings.SameStyle.Height);
+    }
+    function btnWidth_Click(obj) {
+        workflow.setSameStyle(WorkflowSettings.SameStyle.Width);
+    }
+    function btnSize_Click(obj) {
+        workflow.setSameStyle(WorkflowSettings.SameStyle.Size);
+    }
+    function btnVertical_Click(obj) {
+        workflow.setSameStyle(WorkflowSettings.SameStyle.VerticalDistance);
+    }
+    function btnHorizontal_Click(obj) {
+        workflow.setSameStyle(WorkflowSettings.SameStyle.HorizontalDistance);
+    }
+    function btnUndo_Click(obj) {
+        TraceManager.Undo();
+    }
+    function btnRedo_Click(obj) {
+        debugger;
+        TraceManager.Redo();
+    }
+
+    function CreateWorkflowDocument(workflowDocument) {
+        this.WorkflowDocument = workflowDocument;
+    }
+
+    //绑定选择数据项树
+    function LoadDataItems() {
+        //debugger;
+        //绑定树数据
+        $("#tvDataSelector").ligerTree({
+            checkbox: false,
+            width: "100%",
+            idFieldName: 'ObjectID',
+            textFieldName: 'Text',
+            iconFieldName: "Icon",
+            parentIDFieldName: "ParentID",
+            btnClickToToggleOnly: true,
+            isExpand: 1,
+            data: pageData.DataItemsSelect,
+            isLeaf: function (data) {
+                if (!data) return false;
+                return data.IsLeaf;
+            },
+            delay: function (e) {
+                var node = e.data;
+                node.TextCode = node.Text;
+                if (node.Text == $.Lang(node.Text)) {
+                    node.Text = node.Text
+                } else {
+                    node.Text = $.Lang(node.Text);
+                }
+                if (node == null) return false;
+                if (node.IsLeaf == null) return false;
+                if (node.LoadDataUrl == null) return false;
+                if (!node.IsLeaf && node.LoadDataUrl.length > 0) {
+                    return node.LoadDataUrl;
+                }
+                return false;
+            },
+            onSelect: DataItemSelect
+        });
+    }
+
+    var DataItemSelect = function (node) {
+        if (node == null) return;
+        if (node.data == null) return;
+        if (!node.data.Value) return;
+
+        DataItemSelected(node.data.Text, "{" + node.data.Value + "}");
+    }
+</script>
+
+<div id="H3ToolBar" style="height: 30px;">
+    <a href="javascript:void(0);" id="btnSave" data-icon="fa fa-save" onclick="btnSave_Click(this)" data-lang="GlobalButton.Save"></a>
+    <a href="javascript:void(0);" id="btnCheck" data-icon="fa fa-check" onclick="btnCheck_Click(this)" data-lang="GlobalButton.Validate"></a>
+    <a href="javascript:void(0);" id="btnRelease" data-icon="fa fa-upload" onclick="btnRelease_Click(this)" data-lang="GlobalButton.Publish"></a>
+    <a href="javascript:void(0);" id="btnImage" data-icon="fa fa-picture-o" onclick="btnImage_Click(this)" data-lang="Designer.SaveImage"></a>
+    <a href="javascript:void(0);" id="btnHigth" data-icon="fa icon-denggaodu" onclick="btnHigth_Click(this)" data-lang="Designer.Heigth"></a>
+    <a href="javascript:void(0);" id="btnWidth" data-icon="fa icon-dengkuandu" onclick="btnWidth_Click(this)" data-lang="Designer.Width"></a>
+    <a href="javascript:void(0);" id="btnSize" data-icon="fa icon-dengdaxiao" onclick="btnSize_Click(this)" data-lang="Designer.Size"></a>
+    <a href="javascript:void(0);" id="btnVertical" data-icon="fa icon-shupaidengjianju" onclick="btnVertical_Click(this)" data-lang="Designer.Vertical"></a>
+    <a href="javascript:void(0);" id="btnHorizontal" data-icon="fa icon-hengpaidengjianju" onclick="btnHorizontal_Click(this)" data-lang="Designer.Horizontal"></a>
+    <a href="javascript:void(0);" id="btnUndo" data-icon="fa fa-mail-reply" onclick="btnUndo_Click(this)" data-lang="Designer.Revoke"></a>
+    <a href="javascript:void(0);" id="btnRedo" data-icon="fa fa-mail-forward" onclick="btnRedo_Click(this)" data-lang="Designer.Repeat"></a>
+</div>
+
+<div id="divDesigner">
+    <div position="top">
+        <div class="model_container"></div>
+    </div>
+    <div position="center" title="{{LanData.Designer.Designer_Modeling}}" style="overflow: visible;">
+        <div class="workspace_container">
+            <div class="workspace">
+            </div>
+        </div>
+        <div class="div-thumbnail">
+            <iframe id="frmThumbnail" name="frmThumbnail" src="Designer/WorkflowThumbnail.html"></iframe>
+            <div class="thumbnail-top"></div>
+        </div>
+    </div>
+    <iframe id="ifrmExport" name="ifrmExport" style="display: none; margin-left: -150px; margin-top: -100px" src="Designer/WorkflowExport.html"></iframe>
+    <div id="divPropertyContainer" style="overflow: auto" position="right" title="{{LanData.Designer.Designer_Modeling}}">
+        <table class="PropertyTable" style="overflow: auto">
+            <!--流程模板属性 Start-->
+            <tr group="WorkflowBasic">
+                <td group="WorkflowBasic"></td>
+                <td colspan="3" data-lang="Designer.Settings_General"></td>
+            </tr>
+            <tr group="WorkflowBasic" property="WorkflowCode">
+                <td></td>
+                <td data-lang="Designer.Designer_ProcessCode"></td>
+                <td colspan="2" style="width: 70%">
+                    <span></span>
+                </td>
+            </tr>
+            <tr group="WorkflowBasic" property="InstanceName">
+                <td></td>
+                <td data-lang="Designer.Designer_InstanceName"></td>
+                <td colspan="2">
+                    <input type="text" maxlength="200" style="width: 82%" />
+                    <input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <tr group="WorkflowBasic" property="Description">
+                <td></td>
+                <td data-lang="Designer.Designer_Description"></td>
+                <td colspan="2">
+                    <textarea id="Textarea2" rows="3"></textarea><input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <tr group="WorkflowBasic" property="RequirePost">
+                <td></td>
+                <td>{{LanData.Designer.Designer_RequirePost}}</td>
+                <td colspan="2">
+                    <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_ChoosePost}}</label>
+                </td>
+            </tr>
+            <tr group="WorkflowBasic" property="Notify">
+                <td></td>
+                <td>{{LanData.Designer.Designer_NewItemNotify}}</td>
+                <td colspan="2">
+                    <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_NewItemNotifyText}}</label>
+                </td>
+            </tr>
+            <tr group="WorkflowBasic" property="CirculateOriginator">
+                <td></td>
+                <td>{{LanData.Designer.Designer_CirculateOriginator}}</td>
+                <td colspan="2">
+                    <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_CirculateOriginatorText}}</label>
+                </td>
+            </tr>
+            <tr group="WorkflowBasic" property="FlowSummary">
+                <td></td>
+                <td>{{LanData.Designer.Designer_FlowSummary}}</td>
+                <td colspan="2">
+                    <textarea id="Textarea3" rows="3"></textarea><input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <!--计划时长-->
+            <tr group="WorkflowPlan">
+                <td group="WorkflowPlan"></td>
+                <td colspan="3">
+                    {{LanData.Designer.Designer_WorkflowPlan}}
+                </td>
+            </tr>
+            <tr group="WorkflowPlan" property="PlanUsedTime">
+                <td></td>
+                <td>{{LanData.Designer.Designer_PlanUsedTime}}</td>
+                <td colspan="2">
+                    <input type="text" class="TimeSpan" />
+                </td>
+            </tr>
+            <!--<tr group="WorkflowPlan" property="PlanRecurrences">
+                <td></td>
+                <td>{{LanData.Designer.Designer_PlanRecurrences}}</td>
+                <td colspan="2">
+                    <input type="text" maxlength="32" />
+                </td>
+            </tr>-->
+
+
+            <tr group="WorkflowExtend" property="">
+                <td group="WorkflowExtend" property=""></td>
+                <td colspan="3">
+                    {{LanData.Designer.Designer_Extended}}
+                </td>
+            </tr>
+            <tr group="WorkflowExtend" property="ShortText1">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Extended}}1</td>
+                <td colspan="2">
+                    <input type="text" maxlength="256" style="width: 82%" /><input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <tr group="WorkflowExtend" property="ShortText2">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Extended}}2</td>
+                <td colspan="2">
+                    <input type="text" maxlength="256" style="width: 82%" /><input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <tr group="WorkflowExtend" property="ShortText3">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Extended}}3</td>
+                <td colspan="2">
+                    <input type="text" maxlength="256" style="width: 82%" /><input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <tr group="WorkflowExtend" property="ShortText4">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Extended}}4</td>
+                <td colspan="2">
+                    <input type="text" maxlength="256" style="width: 82%" /><input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <tr group="WorkflowExtend" property="ShortText5">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Extended}}5</td>
+                <td colspan="2">
+                    <input type="text" maxlength="256" style="width: 82%" /><input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <tr group="WorkflowExtend" property="LongText6">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Extended}}6</td>
+                <td colspan="2">
+                    <textarea class="RichText" style="width: 82%"></textarea><input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <tr group="WorkflowExtend" property="LongText7">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Extended}}7</td>
+                <td colspan="2">
+                    <textarea class="RichText" style="width: 82%"></textarea><input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <tr group="WorkflowBizActions">
+                <td group="WorkflowBizActions"></td>
+                <td colspan="3">
+                    {{LanData.Designer.Designer_Action}}
+                </td>
+            </tr>
+            <tr group="WorkflowBizActions" property="OnCancelActions">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Cancel}}</td>
+                <td colspan="2" style="width: 70%">
+                    <select class="biz-actions-list" multiple></select>
+                </td>
+            </tr>
+            <tr group="WorkflowBizActions" property="OnStartActions">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Begin}}</td>
+                <td colspan="2">
+                    <select class="biz-actions-list" multiple></select>
+                </td>
+            </tr>
+            <tr group="WorkflowBizActions" property="OnFinishActions">
+                <td></td>
+                <td>{{LanData.Designer.Designer_End}}</td>
+                <td colspan="2">
+                    <select class="biz-actions-list" multiple></select>
+                </td>
+            </tr>
+            <!--流程模板属性 End-->
+            <!--线条属性 Start-->
+            <tr group="LineBasic">
+                <td group="LineBasic"></td>
+                <td colspan="3">
+                    {{LanData.Designer.Settings_General}}
+                </td>
+            </tr>
+            <tr group="LineBasic" property="DisplayName">
+                <td></td>
+                <td>{{LanData.Designer.DisplayName}}</td>
+                <td colspan="2">
+                    <input type="text" maxlength="32" />
+                </td>
+            </tr>
+            <tr group="LineBasic" property="UtilizeElse">
+                <td></td>
+                <td>{{LanData.Designer.Designer_UtilizeElse}}</td>
+                <td colspan="2">
+                    <input type="checkbox" />
+                </td>
+            </tr>
+            <tr group="LineBasic" property="Formula">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Formula}}</td>
+                <td colspan="2">
+                    <input type="text" class="FormulaEditable" formula-type="bool" />
+                </td>
+            </tr>
+            <!--线条属性 End-->
+            <!--活动属性 Start-->
+            <tr group="ActivityBasic">
+                <td group="ActivityBasic"></td>
+                <td colspan="3">
+                    {{LanData.Designer.Settings_General}}
+                </td>
+            </tr>
+            <tr group="ActivityBasic" property="ActivityCode">
+                <td></td>
+                <td>{{LanData.Designer.Designer_ActivityCode}}</td>
+                <td colspan="2">
+                    <input type="text" maxlength="32" />
+                </td>
+            </tr>
+            <tr group="ActivityBasic" property="DisplayName">
+                <td></td>
+                <td>{{LanData.Designer.DisplayName}}</td>
+                <td colspan="2">
+                    <input type="text" maxlength="256" />
+                </td>
+            </tr>
+            <tr group="ActivityBasic" property="SortKey">
+                <td></td>
+                <td>{{LanData.Designer.Designer_SortKey}}</td>
+                <td colspan="2">
+                    <input type="text" />
+                </td>
+            </tr>
+            <tr group="ActivityBasic" property="EntryCondition">
+                <td></td>
+                <td>{{LanData.Designer.Designer_EntryCondition}}</td>
+                <td colspan="2">
+                    <!--<asp:RadioButtonList ID="rblEntryCondition" RepeatDirection="Horizontal" runat="server"></asp:RadioButtonList>-->
+                    <template v-for="option in EntryCondition">
+                        <input type="radio" id='{{"rblEntryCondition_"+ option.Index }}' name="rblEntryCondition" value="{{option.Value}}" /> <label for="rblEntryCondition">{{getText(option.Text)}}</label>
+                    </template>
+                </td>
+
+
+            </tr>
+            <!--<tr group="ActivityBasic" property="WorkItemDisplayName">
+                <td></td>
+                <td>{{LanData.Designer.Designer_WorkItemDisplayName}}</td>
+                <td colspan="2">
+                    <input type="text" maxlength="256" style="width: 82%" />
+                    <input type="button" value="..." class="BizData" />
+                </td>
+            </tr>-->
+            <tr group="ActivityBasic" property="SheetCode">
+                <td></td>
+                <td>{{LanData.Designer.Designer_SheetCode}}</td>
+                <td colspan="2">
+                    <select id="sltSheetCodes" runat="server">
+                        <option v-for="option in SheetCodes" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+            </tr>
+            <tr group="ActivityBasic" property="ApprovalDataItem">
+                <td></td>
+                <td>{{LanData.Designer.Designer_ApprovalDataItem}}</td>
+                <td colspan="2">
+                    <!--<asp:DropDownList ID="ddlApprovalDataItem" runat="server"></asp:DropDownList>-->
+                    <select id="ddlApprovalDataItem">
+                        <option v-for="option in ApprovalDataItem" v-bind:value="option.Value">{{getText(option.Text)}}</option>
+                    </select>
+                </td>
+            </tr>
+            <tr group="ActivityBasic" property="CommentDataItem">
+                <td></td>
+                <td>{{LanData.Designer.Designer_CommentDataItem}}</td>
+                <td colspan="2">
+                    <!--<asp:DropDownList ID="ddlCommentDataItem" runat="server"></asp:DropDownList>-->
+                    <select id="ddlCommentDataItem">
+                        <option v-for="option in CommentDataItem" v-bind:value="option.Value">{{getText(option.Text)}}</option>
+                    </select>
+                </td>
+            </tr>
+            <tr group="ActivityBasic" property="WaitCondition">
+                <td></td>
+                <td>{{LanData.Designer.Designer_WaitCondition}}</td>
+                <td colspan="2">
+                    <input type="text" class="FormulaEditable" formula-type="bool" />
+                </td>
+            </tr>
+            <tr group="ActivityBasic" property="IntervalByMinute">
+                <td></td>
+                <td>{{LanData.Designer.Designer_IntervalByMinute}}</td>
+                <td colspan="2">
+                    <select>
+                        <option>{{LanData.Designer.Designer_NotPoling}}</option>
+                        <option>10{{LanData.Designer.InstanceToken_Minute}}</option>
+                        <option>30{{LanData.Designer.InstanceToken_Minute}}</option>
+                        <option>1{{LanData.Designer.InstanceToken_Hour}}</option>
+                        <option>6{{LanData.Designer.InstanceToken_Hour}}</option>
+                        <option>24{{LanData.Designer.InstanceToken_Hour}}</option>
+                    </select>
+                </td>
+            </tr>
+            <tr group="ActivityBasic" property="NotifyType">
+                <td></td>
+                <td>{{LanData.Designer.Designer_NotifyType}}</td>
+                <td colspan="2">
+                    <select id="sltNotifyTypes">
+                        <option v-for="option in NotifyTypes" v-bind:value="option.Value">{{getText(option.Text)}}</option>
+                    </select>
+                </td>
+            </tr>
+            <tr group="ActivityBasic" property="Receivers">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Receivers}}</td>
+                <td colspan="2">
+                    <input type="text" class="FormulaEditable" formula-type="Participants" />
+                </td>
+            </tr>
+            <tr group="ActivityBasic" property="Title">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Title}}</td>
+                <td colspan="2">
+                    <input type="text" maxlength="128" style="width: 82%" />
+                    <input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <tr group="ActivityBasic" property="Content">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Content}}</td>
+                <td colspan="2">
+                    <textarea id="Textarea6" rows="3" style="width: 82%"></textarea><input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <tr group="ActivityBasic" property="BizActions">
+                <td></td>
+                <td>{{LanData.Designer.Designer_BizActions}}</td>
+                <td colspan="2">
+                    <select class="biz-actions-list" multiple></select>
+                </td>
+            </tr>
+            <!--子流程属性-->
+            <tr group="ActivityBasic" property="WorkflowCode">
+                <td></td>
+                <td>{{LanData.Designer.Designer_WorkflowCode}}</td>
+                <td colspan="2">
+                    <!--<SheetControls:WorkflowSelector ID="ws" ContainDraft="true" runat="server" />-->
+                    <input type="text" id="ws" style="width:150px;">
+                    <input type="button" value="..." class="BizData" data-select-mode="replace" />
+                </td>
+            </tr>
+            <tr group="ActivityBasic" property="WorkflowVersion">
+                <td></td>
+                <td>{{LanData.Designer.Designer_WorkflowVersion}}</td>
+                <td colspan="2">
+                    <input type="text" value="0" maxlength="5" />
+                </td>
+            </tr>
+            <tr group="ActivityBasic" property="Sync">
+                <td></td>
+                <td>{{LanData.Designer.Designer_SyncOrAsync}}</td>
+                <td colspan="2">
+                    <template v-for="option in SyncOrASync">
+                        <input type="radio" id='{{"ralSync"+ option.Index }}' name="SyncOrASync" value="{{option.Value}}" /> <label for="ralSync">{{getText(option.Text)}}</label>
+                    </template>
+                </td>
+            </tr>
+            <tr group="ActivityBasic" property="FinishStartActivity">
+                <td></td>
+                <td>{{LanData.Designer.Designer_FinishStartActivity}}</td>
+                <td colspan="2">
+                    <input type="checkbox" />{{LanData.Designer.Designer_AutomaticEnd}}
+                </td>
+            </tr>
+            <!--END-->
+            <tr group="ActivityBasic" property="Summary">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Summary}}</td>
+                <td colspan="2">
+                    <textarea rows="3" style="width: 82%"></textarea>
+                    <input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <tr group="Participants" property="">
+                <td group="Participants" property=""></td>
+                <td colspan="3">
+                    {{LanData.Designer.InstanceToken_Participant}}
+                </td>
+            </tr>
+            <tr group="Participants" property="Participants">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Participants}}</td>
+                <td colspan="2" style="width: 70%">
+                    <input type="text" class="FormulaEditable" formula-type="Participants" />
+                </td>
+            </tr>
+            <tr group="Participants" property="ParticipateType">
+                <td></td>
+                <td>{{LanData.Designer.Designer_ParticipateType}}</td>
+                <td colspan="2">
+                    <!--<asp:RadioButtonList ID="rblParticipantMode" RepeatDirection="Horizontal" runat="server"></asp:RadioButtonList>-->
+                    <template v-for="option in ParticipantMode">
+                        <input type="radio" id='{{"rblParticipantMode_"+ option.Index }}' name="ParticipantMode" value="{{option.Value}}" /> <label for="ParticipantMode">{{getText(option.Text)}}</label>
+                    </template>
+
+                </td>
+            </tr>
+            <tr group="Participants" property="ParticipateMethod">
+                <td></td>
+                <td>{{LanData.Designer.Designer_ParticipateMethod}}</td>
+                <td colspan="2">
+                    <!--<asp:RadioButtonList ID="rblParticipateMethod" RepeatDirection="Horizontal" runat="server"></asp:RadioButtonList>-->
+                    <template v-for="option in ParticipateMethod">
+                        <input type="radio" id='{{"rblParticipateMethod_"+ option.Index }}' name="rblParticipateMethod" value="{{option.Value}}" /> <label for="rblParticipateMethod">{{getText(option.Text)}}</label>
+                    </template>
+                </td>
+            </tr>
+            <tr group="Participants" property="FinishExit">
+                <td></td>
+                <td>{{LanData.Designer.Designer_FinishExit}}</td>
+                <td colspan="2">
+                    <input type="text" />
+                </td>
+            </tr>
+            <tr group="Participants" property="ApproveExit">
+                <td></td>
+                <td>{{LanData.Designer.Designer_ApproveExit}}</td>
+                <td colspan="2">
+                    <input type="text" />
+                </td>
+            </tr>
+            <tr group="Participants" property="DisapproveExit">
+                <td></td>
+                <td>{{LanData.Designer.Designer_DisapproveExit}}</td>
+                <td colspan="2">
+                    <input type="text" value="1" />
+                </td>
+            </tr>
+            <tr group="Participants" property="NoParPolicy">
+                <td></td>
+                <td>{{LanData.Designer.Designer_NoParPolicy}}</td>
+                <td colspan="2">
+                    <!--asp:DropDownList ID="ddlNoParPolicy" runat="server"></asp:DropDownList>-->
+                    <select id="ddlNoParPolicy">
+                        <option v-for="option in ParAbnormalPolicy" v-bind:value="option.Value">{{getText(option.Text)}}</option>
+                    </select>
+                </td>
+            </tr>
+            <tr group="Participants" property="OriginatorParPolicy">
+                <td></td>
+                <td>{{LanData.Designer.Designer_OriginatorParPolicy}}</td>
+                <td colspan="2">
+                    <!--<asp:DropDownList ID="ddlOriginatorParPolicy" runat="server"></asp:DropDownList>-->
+                    <select id="ddlOriginatorParPolicy">
+                        <option v-for="option in OriginatorParAbnormalPolicy" v-bind:value="option.Value">{{getText(option.Text)}}</option>
+                    </select>
+                </td>
+            </tr>
+            <tr group="Participants" property="DupParPolicy">
+                <td></td>
+                <td>{{LanData.Designer.Designer_DupParPolicy}}</td>
+                <td colspan="2">
+                    <!--<asp:DropDownList ID="ddlDupParPolicy" runat="server"></asp:DropDownList>-->
+                    <select id="ddlDupParPolicy">
+                        <option v-for="option in ParAbnormalPolicy" v-bind:value="option.Value">{{getText(option.Text)}}</option>
+                    </select>
+                </td>
+            </tr>
+            <tr group="Participants" property="ParticipatedParPolicy">
+                <td></td>
+                <td>{{LanData.Designer.Designer_ParticipatedParPolicy}}</td>
+                <td colspan="2">
+                    <!--<asp:DropDownList ID="ddlParticipatedParPolicy" runat="server"></asp:DropDownList>-->
+                    <select id="ddlParticipatedParPolicy">
+                        <option v-for="option in ParAbnormalPolicy" v-bind:value="option.Value">{{getText(option.Text)}}</option>
+                    </select>
+                </td>
+            </tr>
+            <tr group="SubInstanceDataMaps">
+                <td group="SubInstanceDataMaps"></td>
+                <td colspan="3">
+                    {{LanData.Designer.Designer_SubInstanceDataMaps}}
+                </td>
+            </tr>
+            <tr group="SubInstanceDataMaps" property="DataMaps">
+                <td></td>
+                <td>{{LanData.Designer.Designer_DataMaps}}</td>
+                <td colspan="2" style="width: 60%">
+                    <ul class="SubInstanceDataMap-list"></ul>
+                </td>
+            </tr>
+            <tr group="DataItem">
+                <td group="DataItem"></td>
+                <td colspan="3">
+                    {{LanData.Designer.Designer_DataPermissions}}
+                </td>
+            </tr>
+            <tr group="DataItem" property="DataPermissions">
+                <td></td>
+                <td colspan="3">
+                    <table style="border-width: 0px; width: 100%">
+                        <tr style="line-height: 12px">
+                            <td></td>
+                            <td>{{LanData.Designer.DataFilter_DataItem}}</td>
+                            <td style="text-align: center">
+                                <input type="checkbox" /><br />
+                                {{LanData.Designer.SetColumnProperty_Visible}}
+                            </td>
+                            <td style="text-align: center">
+                                <input type="checkbox" /><br />
+                                {{LanData.Designer.EditBizObjectSchemaView_Editable}}
+                            </td>
+                            <td style="text-align: center">
+                                <input type="checkbox" /><br />
+                                {{LanData.Designer.Script_RP_Required}}
+                            </td>
+                            <td style="text-align: center">
+                                <input type="checkbox" /><br />
+                                {{LanData.Designer.InstanceDataTrack_Track}}
+                            </td>
+                            <td style="text-align: center">
+                                <input type="checkbox" /><br />
+                                {{LanData.Designer.MasterPage_Mobile}}
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr group="Operation">
+                <td group="Operation"></td>
+                <td colspan="3">
+                    {{LanData.Designer.Designer_OperationAuthorithy}}
+                </td>
+            </tr>
+            <tr group="Operation" property="PermittedActions">
+                <td></td>
+                <td style="border-bottom: 1px solid #F0F0F0;">{{LanData.Designer.Designer_BasicOperation}}</td>
+                <td style="border-bottom: 1px solid #F0F0F0;" colspan="2">
+                    <table style="border-width: 0px; width: 100%">
+                        <tr>
+                            <td colspan="2" permitted-action="Choose">
+                                <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_Choose}}</label>
+                            </td>
+                            <td colspan="2" permitted-action="Jump">
+                                <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_Jump}}</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="text-align: left" permitted-action="Forward">
+                                <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_Forward}}</label>
+                            </td>
+                            <td colspan="2" style="text-align: left" permitted-action="Retrieve">
+                                <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_Retrieve}}</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="text-align: left" permitted-action="AdjustParticipant">
+                                <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_AdjustParticipant}}</label>
+                            </td>
+
+                        </tr>
+                        <tr style="display: none;">
+                            <td colspan="2" style="text-align: left; display: none;" permitted-action="ViewInstanceState">
+                                <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_ViewInstanceState}}</label>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr group="Operation" property="PermittedActions">
+                <td></td>
+                <td style="border-bottom: 1px solid #F0F0F0;">
+                    <label>{{LanData.Designer.Designer_ProcessOperation}}</label>
+                </td>
+                <td style="border-bottom: 1px solid #F0F0F0;" colspan="2">
+                    <table style="border-width: 0px; border-collapse: collapse; width: 100%">
+                        <tr>
+                            <td colspan="2" permitted-action="CancelIfUnfinished">
+                                <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_CancelIfUnfinished}}</label>
+                            </td>
+                            <td colspan="2" permitted-action="CancelIfFinished">
+                                <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_CancelIfFinished}}</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="text-align: left" permitted-action="BatchProcessing">
+                                <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_BatchProcessing}}</label>
+                            </td>
+                            <td colspan="2" style="text-align: left" permitted-action="MobileProcessing">
+                                <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_MobileProcessing}}</label>
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <!--
+                            <td colspan="2" style="text-align: left" permitted-action="SMSApprove">
+                                <input type="checkbox" />短信审批
+                            </td>-->
+                            <!--邮件通知-->
+                            <!--<td colspan="2" style="text-align: left" permitted-action="EmailNotification">
+                                <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_EmailNotification}}</label>
+                            </td>-->
+                            <td colspan="2" style="text-align: left" permitted-action="FinishInstance">
+                                <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_FinishInstance}}</label>
+                            </td>
+
+                        </tr>
+                        <!--<tr>
+
+                            <td colspan="2" style="text-align: left"></td>
+                        </tr>-->
+                    </table>
+                </td>
+            </tr>
+            <tr group="Operation" property="PermittedActions">
+                <td></td>
+                <td style="border-bottom: 1px solid #F0F0F0;">{{LanData.Designer.Designer_RejectedOperation}}</td>
+                <td style="border-bottom: 1px solid #F0F0F0;" colspan="2">
+                    <table style="border-width: 0px; width: 100%; border-collapse: collapse">
+                        <tr>
+                            <td colspan="2" permitted-action="RejectToStart">
+                                <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_RejectToStart}}</label>
+                            </td>
+                            <td colspan="2" permitted-action="Reject">
+                                <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_ToLastStep}}</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="text-align: left" permitted-action="RejectToFixed">
+                                <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_RejectToFixed}}</label>
+                            </td>
+                            <td colspan="2" style="text-align: left" permitted-action="SubmitToRejectedActivity">
+                                <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_SumbittedActibity}}</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" permitted-action="RejectToActivityCodes">
+                                <select multiple></select>
+                            </td>
+
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr group="Operation" property="PermittedActions">
+                <td></td>
+                <td>{{LanData.Designer.Designer_CoOperation}}</td>
+                <td colspan="2">
+                    <table style="border-width: 0px; width: 100%; border-collapse: collapse">
+                        <tr>
+                            <td colspan="2" permitted-action="Assist">
+                                <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_Assist}}</label>
+                            </td>
+                            <td colspan="2" permitted-action="Consult">
+                                <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_Consult}}</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" permitted-action="Circulate">
+                                <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_Circulate}}</label>
+                            </td>
+                            <td colspan="2" permitted-action="Recirculate">
+                                <span style="display: none">
+                                    <input type="checkbox" checked="checked" /><label class="Action-Label">{{LanData.Designer.Designer_ReCirculated}}</label>
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr group="Assist" property="">
+                <td group="Assist" property=""></td>
+                <td colspan="3">
+                    {{LanData.Designer.Designer_Assists}}
+                </td>
+            </tr>
+            <tr group="Assist" property="Assistants">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Assistants}}</td>
+                <td colspan="2" style="width: 70%">
+                    <input type="text" class="FormulaEditable" formula-type="Participants" />
+                </td>
+            </tr>
+            <tr group="Assist" property="Consultants">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Consultants}}</td>
+                <td colspan="2">
+                    <input type="text" class="FormulaEditable" formula-type="Participants" />
+                </td>
+            </tr>
+            <tr group="Assist" property="Circulatees">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Circulatees}}</td>
+                <td colspan="2">
+                    <input type="text" class="FormulaEditable" formula-type="Participants" />
+                </td>
+            </tr>
+            <tr group="ActivitySenior" property="">
+                <td group="ActivitySenior" property=""></td>
+                <td colspan="3">
+                    {{LanData.Designer.Designer_Senior}}
+                </td>
+            </tr>
+            <tr group="ActivitySenior" property="SubmittingValidation">
+                <td></td>
+                <td>{{LanData.Designer.Designer_SubmittingValidation}}</td>
+                <td colspan="2" style="width: 70%">
+                    <!--<asp:DropDownList ID="ddlSubmittingValidation" runat="server"></asp:DropDownList>-->
+                    <select id="ddlSubmittingValidation">
+                        <option v-for="option in SubmittingValidation" v-bind:value="option.Value">{{getText(option.Text)}}</option>
+                    </select>
+                </td>
+            </tr>
+            <tr group="ActivitySenior" property="LockPolicy">
+                <td></td>
+                <td>{{LanData.Designer.Designer_LockPolicy}}</td>
+                <td colspan="2">
+                    <!--<asp:DropDownList ID="ddlLockPolicy" runat="server"></asp:DropDownList>-->
+                    <select id="ddlLockPolicy">
+                        <option v-for="option in LockPolicy" v-bind:value="option.Value">{{getText(option.Text)}}</option>
+                    </select>
+                </td>
+            </tr>
+            <tr group="ActivitySenior" property="LockLevel">
+                <td></td>
+                <td>{{LanData.Designer.Designer_LockLevel}}</td>
+                <td colspan="2">
+                    <!--<asp:DropDownList ID="ddlLockLevel" runat="server"></asp:DropDownList>-->
+                    <select id="ddlLockLevel">
+                        <option v-for="option in LockLevel" v-bind:value="option.Value">{{getText(option.Text)}}</option>
+                    </select>
+                </td>
+            </tr>
+            <tr group="ActivitySenior" property="AllowedTime">
+                <td></td>
+                <td>{{LanData.Designer.Designer_AllowedTime}}</td>
+                <td colspan="2">
+                    <input type="text" style="width: 82%" /><input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <tr group="ActivitySenior" property="OvertimePolicy">
+                <td></td>
+                <td>{{LanData.Designer.Designer_OvertimePolicy}}</td>
+                <td colspan="2">
+                    <!--<asp:DropDownList ID="ddlOvertimePolicy" runat="server"></asp:DropDownList>-->
+                    <select id="ddlOvertimePolicy">
+                        <option v-for="option in OvertimePolicy" v-bind:value="option.Value">{{getText(option.Text)}}</option>
+                    </select>
+                </td>
+            </tr>
+            <!--<tr group="ActivitySenior" property="RequireGroup">
+                <td></td>
+                <td>{{LanData.Designer.Designer_RequireGroup}}</td>
+                <td colspan="2">
+                    <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_ChooseGroup}}</label>
+                </td>
+            </tr>-->
+            <!--<tr group="ActivitySenior" property="RequirePost">
+                <td></td>
+                <td>{{LanData.Designer.Designer_RequirePost}}</td>
+                <td colspan="2">
+                    <input type="checkbox" /><label class="Action-Label">{{LanData.Designer.Designer_ChoosePost}}</label>
+                </td>
+            </tr>-->
+            <tr group="ActivitySenior" property="PageScript">
+                <td></td>
+                <td>{{LanData.Designer.Designer_PageScript}}</td>
+                <td colspan="2">
+                    <textarea rows="8" class="RichText"></textarea>
+                </td>
+            </tr>
+            <tr group="ActivityEvent" property="BeforeDisposal">
+                <td group="ActivityEvent"></td>
+                <td colspan="3">
+                    {{LanData.Designer.Designer_ActivityEvent}}
+                </td>
+            </tr>
+            <tr group="ActivityEvent" property="BeforeDisposal">
+                <td></td>
+                <td>{{LanData.Designer.Designer_BeforeDisposal}}</td>
+                <td colspan="2" style="width: 70%">
+                    <div class="BizEvents"></div>
+                </td>
+            </tr>
+            <tr group="ActivityEvent" property="ActivatedDisposal">
+                <td></td>
+                <td>{{LanData.Designer.Designer_ActivatedDisposal}}</td>
+                <td colspan="2">
+                    <div class="BizEvents"></div>
+                </td>
+            </tr>
+            <tr group="ActivityEvent" property="AfterDisposal">
+                <td></td>
+                <td>{{LanData.Designer.Designer_AfterDisposal}}</td>
+                <td colspan="2">
+                    <div class="BizEvents"></div>
+                </td>
+            </tr>
+            <tr group="ActivityEvent" property="CancelledDisposal">
+                <td></td>
+                <td>{{LanData.Designer.Designer_CancelledDisposal}}</td>
+                <td colspan="2">
+                    <div class="BizEvents"></div>
+                </td>
+            </tr>
+            <tr group="ActivityEvent" property="AsyncEndedDisposal">
+                <td></td>
+                <td>{{LanData.Designer.Designer_AsyncEndedDisposal}}</td>
+                <td colspan="2">
+                    <div class="BizEvents"></div>
+                </td>
+            </tr>
+            <tr group="ActivityEvent" property="ApprovedDisposal">
+                <td></td>
+                <td>{{LanData.Designer.Designer_ApprovedDisposal}}</td>
+                <td colspan="2">
+                    <div class="BizEvents"></div>
+                </td>
+            </tr>
+            <tr group="ActivityEvent" property="RejectedDisposal">
+                <td></td>
+                <td>{{LanData.Designer.Designer_RejectedDisposal}}</td>
+                <td colspan="2">
+                    <div class="BizEvents"></div>
+                </td>
+            </tr>
+            <tr group="ActivityEvent" property="ExpectedDuration">
+                <td></td>
+                <td>{{LanData.Designer.Designer_ExpectedDuration}}</td>
+                <td colspan="2">
+                    <input type="text" style="width: 82%" /><input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <tr group="ActivityEvent" property="OvertimeDisposal">
+                <td></td>
+                <td>{{LanData.Designer.Designer_OvertimeDisposal}}</td>
+                <td colspan="2">
+                    <div class="BizEvents"></div>
+                </td>
+            </tr>
+
+            <!--活动计划时长-->
+            <!--<tr group="ActivityPlan" property="" style="display: table-row; background-color: rgb(234, 229, 229); cursor: pointer;">
+                <td group="ActivityPlan" property=""></td>
+                <td colspan="3">
+                    {{LanData.Designer.Designer_ActivityPlan}}
+                </td>
+            </tr>
+            <tr group="ActivityPlan" property="InstanceProgress">
+                <td></td>
+                <td>{{LanData.Designer.Designer_InstanceProgress}}</td>
+                <td colspan="2" style="width: 70%">
+                    <input type="text" />
+                </td>
+            </tr>
+            <tr group="ActivityPlan" property="PlanUsedTime">
+                <td></td>
+                <td>{{LanData.Designer.Designer_PlanUsedTime}}</td>
+                <td colspan="2">
+                    <input type="text" class="TimeSpan" />
+                </td>
+            </tr>
+            <tr group="ActivityPlan" property="Recurrence">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Recurrence}}</td>
+                <td colspan="2">
+                    <input type="text" />
+                </td>
+            </tr>-->
+
+            <tr group="Extend" property="">
+                <td group="Extend" property=""></td>
+                <td colspan="3">
+                    {{LanData.Designer.Designer_Extend}}
+                </td>
+            </tr>
+            <tr group="Extend" property="WorkItemFlag">
+                <td></td>
+                <td>{{LanData.Designer.Designer_WorkItemFlag}}</td>
+                <td colspan="2" style="width: 70%">
+                    <input type="text" maxlength="256" style="width: 82%" /><input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <tr group="Extend" property="ShortText1">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Extend}}1</td>
+                <td colspan="2">
+                    <input type="text" maxlength="256" style="width: 82%" /><input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <tr group="Extend" property="ShortText2">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Extend}}2</td>
+                <td colspan="2">
+                    <input type="text" maxlength="256" style="width: 82%" /><input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <tr group="Extend" property="ShortText3">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Extend}}3</td>
+                <td colspan="2">
+                    <input type="text" maxlength="256" style="width: 82%" /><input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <tr group="Extend" property="ShortText4">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Extend}}4</td>
+                <td colspan="2">
+                    <input type="text" maxlength="256" style="width: 82%" /><input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <tr group="Extend" property="ShortText5">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Extend}}5</td>
+                <td colspan="2">
+                    <input type="text" maxlength="256" style="width: 82%" /><input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <tr group="Extend" property="LongText6">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Extend}}6</td>
+                <td colspan="2">
+                    <textarea class="RichText" style="width: 82%"></textarea><input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <tr group="Extend" property="LongText7">
+                <td></td>
+                <td>{{LanData.Designer.Designer_Extend}}7</td>
+                <td colspan="2">
+                    <textarea class="RichText" style="width: 82%"></textarea><input type="button" value="..." class="BizData" />
+                </td>
+            </tr>
+            <!--<tr group="CustomCode" style="display: table-row; background-color: rgb(234, 229, 229); cursor: pointer;">
+                <td group="CustomCode"></td>
+                <td colspan="3">
+                    {{LanData.Designer.Designer_CustomCode}}
+                </td>
+            </tr>
+            <tr group="CustomCode" property="Custom">
+                <td></td>
+                <td>{{LanData.Designer.Designer_WhetherEnable}}</td>
+                <td colspan="2" style="width: 70%">
+                    <input type="checkbox" />
+                    <input type="button" value="designer_generatingcode}}" id="btnActivityCode" />
+                </td>
+            </tr>
+            <tr group="CustomCode" property="CustomCode">
+                <td></td>
+                <td>{{LanData.Designer.Settings_coding}}</td>
+                <td colspan="2">
+                    <textarea style="width: 100%" rows="10" class="RichText"></textarea>
+                </td>
+            </tr>-->
+            <tr group="Style">
+                <td group="Style"></td>
+                <td colspan="3" style="border: none">
+                    {{LanData.Designer.Settings_Display}}
+                </td>
+            </tr>
+            <tr group="Style" property="FontSize">
+                <td></td>
+                <td>{{LanData.Designer.Designer_FontSize}}</td>
+                <td colspan="2" style="width: 70%">
+                    <input type="number" min="6" max="60" />
+                </td>
+            </tr>
+            <tr group="Style" property="FontColor">
+                <td></td>
+                <td>{{LanData.Designer.Designer_FontColor}}</td>
+                <td colspan="2">
+                    <input type="text" />
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<!--参与者选择控件 Start-->
+
+<div id="divParticipat">
+    <table style="margin-left: 5px; margin-top: 10px;">
+        <tr>
+            <td style="width: 46%;">
+                <table style="border: 1px solid silver;">
+                    <tr>
+                        <td style="text-align: right; width: 85px;">{{LanData.Designer.Designer_Conditions}}</td>
+                        <td style="text-align: left; width: 164px; padding-left: 5px; height: 24px;">
+                            <input type="text" class="FormulaEditable" formula-type="bool" id="txtEffectiveCondition" />
+                        </td>
+                    </tr>
+                    <tr style="line-height: 24px">
+                        <td style="text-align: right">{{LanData.Designer.Designer_Function}}</td>
+                        <td style="text-align: left; padding-left: 5px;">
+                            <!--<asp:DropDownList ID="sltParticipantParser" class="sltParticipantParser" Style="width: 100%" runat="server"></asp:DropDownList>-->
+                        </td>
+                    </tr>
+                    <tr id="trArgs" style="line-height: 24px">
+                        <td style="text-align: right">{{LanData.Designer.Designer_Parameters}}</td>
+                        <td style="text-align: left; padding-left: 5px;">
+                            <input type="text" class="txtArgs" style="width: 99%; line-height: 24px;" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <div id="dvUserTree">
+                                <!--<asp:TreeView ID="tvUserSelector" OnTreeNodePopulate="UserTree_TreeNodePopulate" runat="server"
+                                                  ExpandDepth="0" ShowLines="true" ForeColor="Black">
+                                    </asp:TreeView>
+                                </div>-->
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td style="width: 8%; vertical-align: middle; text-align: left;" rowspan="2">
+                <input type="button" value="->" style="width: 40px; height: 26px; margin-left: 2px;"
+                       id="btnAddOrg" />
+                <br />
+                <input type="button" value="<-" style="width: 40px; margin-top: 10px; height: 26px; margin-left: 2px;"
+                       id="btnRemoveOrg" />
+            </td>
+            <td style="width: 46%; vertical-align: top;">
+                <ul id="ulSelectedUser" class="selected-user"></ul>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<!--参与者选择控件 End-->
+<!--事件设置 Start-->
+
+<div id="divBizEvents" style="margin-left: -6px; margin-top: 0px;overflow:auto;">
+    <div title="{{LanData.Designer.Designer_Notify}}">
+        <div id="divEventNotificatin" lselected="true" style="margin: 10px; height: 500px;">
+            <table style="width: 100%;">
+                <tr>
+                    <td class="activity-event-td-title tableLeft" style="width:15%;">{{LanData.Designer.Designer_SendCondition}}</td>
+                    <td class="activity-event-td-data" activity-event-property="Condition">
+                        <!--<asp:DropDownList ID="sltNotifyCondition" runat="server"></asp:DropDownList>-->
+                        <select id="sltNotifyCondition">
+                            <option v-for="option in NotifyCondition" v-bind:value="option.Value">{{option.Text}}</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="activity-event-td-title tableLeft" style="width:15%;">{{LanData.Designer.Designer_NotifyType}}</td>
+                    <td class="activity-event-td-data" activity-event-property="NotifyType">
+                        <select id="sltNotifyTypes2" runat="server">
+                            <option v-for="option in NotifyTypes" v-bind:value="option.Value">{{getText(option.Text)}}</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="activity-event-td-title tableLeft" style="width:15%;">{{LanData.Designer.Designer_Receiver}}</td>
+                    <td class="activity-event-td-data" activity-event-property="Receivers" style="padding-left: 8p;">
+                        <input type="text" class="FormulaEditable" formula-type="Participants" formula-button="true" />
+                        <style type="text/css">
+                        </style>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="activity-event-td-title tableLeft" style="width:15%;">{{LanData.Designer.Designer_Title}}</td>
+                    <td class="activity-event-td-data" activity-event-property="Title">
+                        <div class="activity-event-input">
+                            <input type="text" />
+                        </div>
+                        <div class="BizData activity-event-div">
+                            <a class="fa fa-plus activity-event-a"></a>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="activity-event-td-title tableLeft" style="width:15%;">{{LanData.Designer.Designer_Content}}</td>
+                    <td class="activity-event-td-data" activity-event-property="Content">
+                        <textarea style="margin: 1px; width: 371px; height: 106px; resize: none; float: left; margin-left: 10px;"></textarea>
+                        <div class="BizData activity-event-div">
+                            <a class="fa fa-plus activity-event-a"></a>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div title="{{LanData.Designer.Designer_SetDataItem}}">
+        <div id="divEventDataMap" style="margin: 10px; height: 500px;">
+            <table style="width: 100%; height: 100%">
+                <tr>
+                    <th style="width: 160px;">{{LanData.Designer.Designer_DataItem}}</th>
+                    <th style="width: 100px;">{{LanData.Designer.Designer_OperationType}}</th>
+                    <th style="width: 160px;">{{LanData.Designer.Designer_Value}}</th>
+                    <th style="width: 40px;">{{LanData.Designer.Button_Remove}}</th>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div title="{{LanData.Designer.Designer_BizActions}}">
+        <div id="divEventBizActions" style="margin: 10px; height: 500px;">
+            <table style="width: 100%">
+                <tr>
+                    <td class="activity-event-td-title" style="width: 15%">{{LanData.Designer.Designer_CancelParllelActivities}}</td>
+                    <td class="activity-event-td-data" activity-event-property="CancelParllelActivities"
+                        style="padding-left: 0px; overflow: auto;">
+                        <input type="checkbox" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="activity-event-td-title" style="vertical-align: top; width: 15%">{{LanData.Designer.Designer_Implementation}}</td>
+                    <td class="activity-event-td-data" activity-event-property="BizActions" style="padding-left: 0px; overflow: auto; height: 270px; vertical-align: top;">
+                        <select class="sltBizMethods" multiple="true" style="width: 95%"></select>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <script type="text/javascript">
+        $(function () {
+            var tab = $("#divBizEvents").ligerTab({
+                onAfterSelectTabItem: function (tabid) {
+                    if (tabid == "tabitem2") {
+                        $(this.element).closest("table").find(".l-dialog-btn").eq(2).show();
+                    }
+                    else {
+                        $(this.element).closest("table").find(".l-dialog-btn").eq(2).hide();
+                    }
+                }
+            });
+        });
+    </script>
+</div>
+
+<!--事件设置 End-->
+<!--时间段 Start-->
+<div id="divTimeSpan">
+    <table style="width: 100%;">
+        <tr>
+            <td>
+                <select id="sltTimeSpanType">
+                    <option value="input" selected="selected">{{LanData.Designer.Designer_TimeSpan_Input}}</option>
+                    <option value="choose">{{LanData.Designer.Designer_TimeSpan_Choose}}</option>
+                </select>
+            </td>
+        </tr>
+        <tr data-input-type="number">
+            <td>
+                <input type="number" max="999" style="width: 64px" min="0" value="0" />{{LanData.Designer.InstanceToken_Day}}
+                <input type="number" max="23" style="width: 64px" min="0" value="0" />{{LanData.Designer.InstanceToken_Hour}}
+                <input type="number" max="59" style="width: 64px" min="0" value="0" />{{LanData.Designer.InstanceToken_Minute}}
+                <input type="number" max="59" style="width: 64px" min="0" value="0" />{{LanData.Designer.InstanceToken_Second}}
+            </td>
+        </tr>
+        <tr data-input-type="dataitem" style="display: none">
+            <td>
+                <input type="text" /><input type="button" value="..." class="BizData" data-select-mode="replace" />
+            </td>
+        </tr>
+
+    </table>
+</div>
+<!--时间段 End-->
+<!--数据项选择控件 Start-->
+
+<div id="divDataItems">
+    <!--<asp:TreeView ID="tvDataSelector" runat="server" ExpandDepth="0" ShowLines="true" ForeColor="Black">
+    </asp:TreeView>-->
+    <ul id="tvDataSelector"></ul>
+</div>
+
+<!--数据项选择控件 End-->
+<!--子流程数据映射选择控件 Start-->
+<div id="divSubInstanceDataMaps" style="overflow-y: auto">
+    <table style="width: 100%;">
+        <tr>
+            <th style="height: 30px; width: 180px; text-align: center;">{{LanData.Designer.Designer_ParentProcess}}</th>
+            <th style="width: 100px; text-align: center;">{{LanData.Designer.EditBizObjectSchemaParamMap_MapType}}</th>
+            <th style="width: 180px; text-align: center;">{{LanData.Designer.Designer_ChildProcess}}</th>
+            <th style="text-align: center;">{{LanData.Designer.Button_Remove}}</th>
+        </tr>
+    </table>
+</div>
+<!--子流程数据映射选择控件 End-->
+<!--富文本框控件 Start-->
+
+<div id="divRichText">
+    <textarea></textarea>
+</div>
+
+<div id="divImage">
+    <img style="border: 1px solid black" />
+</div>
+
+<style>
+    /*@font-face {
+        fnt-family: 'LigrUIFont';
+        src: url('../WFRes/assets/fonts/font-awesoe/LigerUIFont.eot?-jh7wx');
+        src: url('../WFRes/assets/fonts/font-awesome/LigerUIFon.eot?#iefix-7j 'embedded-op ntype') ssets/fonts font-aw r off?-7jh7wx') format('woff'), url('../WFRes/assets/fonts/font-awesome/LigerUIFont.ttf?-7jh7wx') format('truetype'), url('../WFRes/assets/fonts/font-awesome/LigerUIFont.svg?-7jh7wx#LigerUIFont') format('svg');
+        font-weight: normal;
+        font-style: normal;
+    }*/
+</style>
+<!--富文本框控件 End-->
+
+<script type="text/javascript" src="../WFRes/_Scripts/designer/Activity.js"></script>
+<script type="text/javascript" src="../WFRes/_Scripts/designer/ActivityDrag.js"></script>
+<script type="text/javascript" src="../WFRes/_Scripts/designer/ActivityModel.js"></script>
+<script type="text/javascript" src="../WFRes/_Scripts/designer/Line.js?20150318"></script>
+<script type="text/javascript" src="../WFRes/_Scripts/designer/misc.js"></script>
+<script type="text/javascript" src="../WFRes/_Scripts/designer/Workflow.js?20150901"></script>
+<script type="text/javascript" src="../WFRes/_Scripts/designer/WorkflowDocument.js?20150204005"></script>
+<script type="text/javascript" src="../WFRes/_Scripts/designer/loader.js"></script>
+<script type="text/javascript" src="../WFRes/_Scripts/designer/DataItem.js?20150323"></script>
+<script type="text/javascript" src="../WFRes/_Scripts/designer/Porperty.js?20150901"></script>
+<script type="text/javascript" src="../WFRes/_Scripts/designer/ActivityEvent.js"></script>
+<script type="text/javascript" src="../WFRes/_Scripts/designer/SubInstanceDataMap.js?20150323"></script>
+<script type="text/javascript" src="../WFRes/_Scripts/designer/ContextMenu.js"></script>
+<script type="text/javascript" src="../WFRes/_Scripts/designer/Package.js"></script>
+<script type="text/javascript" src="../WFRes/_Scripts/designer/WorkflowTrace.js"></script>
+
+<script type="text/javascript" src="../WFRes/_Scripts/designer/FormulaEditable.js?20150422"></script>
+
+<link type="text/css" rel="stylesheet" href="../WFRes/_Scripts/designer/chosen/chosen.css" />
+<script type="text/javascript" src="../WFRes/_Scripts/designer/chosen/chosen.jquery.min.js"></script>
+<script src="../WFRes/Scripts/WorkflowSelector.js"></script>
+<script>
+    workflowMode = 1;//流程编辑模式
+    $(function () {
+        //VUE
+        //debugger;
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                getText: function (key) { try { return $.Lang(key); } catch (e) { return ""; } }
+            }
+        });
+
+        $("#H3ToolBar").AspLinkToolBar({ IsFixed: false });
+
+        // 检查是否有权限进行表单设计
+        if (IsControlUsable == 0) {
+            $("#H3ToolBar").children("div").addClass("l-toolbar-item-disable")
+            setControlUsable("0", $("#H3ToolBar").find("a"));
+            setControlUsable("0", $("input,select,textarea,div"));
+            $("div").addClass("l-toolbar-item-disable");
+        }
+
+        //子流程模板选择器
+        var wfSelector = $("#ws").WorkflowSelector({ ContainDraft: true, IsBizObjectMode: false, IsDispalyCode: true })
+        //先显示隐藏域控件，供js注册事件
+        wfSelector.show();
+        wfSelector.hiddenSelector();
+
+        var myTabId = top.workTab.selectedTabId;
+        var wd = new CreateWorkflowDocument(WorkflowDocument);
+        top.workTab.unbind("beforeRemoveTabItem" + myTabId);
+        top.workTab.bind("beforeRemoveTabItem" + myTabId, function (tabid) {
+            if (wd.WorkflowDocument.ChangedAfterSave()) {
+                if (confirm($.Lang("Designer.Designer_Mssg1"))) {
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        top.workTab.unbind("beforeReloadTabItem" + myTabId);
+        top.workTab.bind("beforeReloadTabItem", function (tabid) {
+            if (wd.WorkflowDocument.ChangedAfterSave()) {
+                if (confirm($.Lang("Designer.Designer_Mssg1"))) {
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        $(window).unbind("beforeunload").bind("beforeunload", function () {
+            if (WorkflowDocument.ChangedAfterSave()) {
+                return $.Lang("Designer.Designer_Mssg1");
+            }
+        });
+
+        LoadDataItems();
+
+    });
+</script>

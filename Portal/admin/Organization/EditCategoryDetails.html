@@ -1,0 +1,103 @@
+﻿
+<script>
+    $(function () {
+        var pageData = {
+            CategoryData: { },
+            LanData: $.Languages
+        };
+       
+        //初始化页面数据
+        initPageData();
+
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+       
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        //$.H3Dialog.Warn({ content: $.Lang("msgGlobalString.CodeOrNameNotNull") });
+                    } else {
+                        saveData();
+                    }
+                }
+            }
+        });
+
+        //根据传递的参数获取对应的数据，Vue绑定数据使用
+        function initPageData() {
+            var id = getUrlParam("id");
+            if (id && id != "") {
+                $.ajax({
+                    url: $.Controller.OrgCategory.GetCategoryDetailByID,
+                    type: 'get',
+                    dataType: "json",
+                    data: { id: id },
+                    async: false,//同步执行
+                    success: function (result) {
+                        pageData.CategoryData = result;
+                    }
+                });
+            }
+        };
+
+
+        function saveData() {
+            $.ajax({
+                url: $.Controller.OrgCategory.SaveCategory,
+                type: "post",
+                dataType: "json",
+                data: pageData.CategoryData,
+                success: function (result) {
+                    if (result.Success) {
+                        parent.H3DialogManger.Close();
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        };
+    });
+
+</script>
+
+<validator name="formValidator">
+    <div id="H3ToolBar">
+        <a id="SaveBtn" v-on:click="saveData" data-icon="fa fa-save" data-lang="GlobalButton.Save"></a>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.msgGlobalString.Msg_BasciInfor}}</span>
+        <input v-model="CategoryData.ObjectID" hidden="hidden" />
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft">{{LanData.EditCategory.Code}}</td>
+                <td>
+                    <template v-if="CategoryData.ObjectID">
+                        <input v-model="CategoryData.Code" disabled="disabled" type="text" />
+                    </template>
+                    <template v-else>
+                        <input type="text" id="txtCode" v-model="CategoryData.Code" detect-change="on" detect-blur="off" initial="off" v-validate:item-code="{required:true}" />
+                        <span style="color:Red;" v-if="$formValidator.itemCode.required" >{{LanData.msgGlobalString.EnumValueRequired}}</span>
+                    </template>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.EditCategory.DisplayName}}</td>
+                <td>
+                    <input type="text" id="txtName" v-model="CategoryData.DisplayName"  detect-change="on" detect-blur="off" initial="off" v-validate:item-name="{maxlength:3,maxlength:30}" />
+                    <span style="color:Red;" v-if="$formValidator.itemName.required">{{LanData.msgGlobalString.EnumValueRequired}} </span>
+                    <span style="color:Red;" v-if="$formValidator.itemName.maxlength">{{LanData.msgGlobalString.MaxlengthLessThan30}} </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.EditCategory.Description}}</td>
+                <td>
+                    <textarea v-model="CategoryData.Description"></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

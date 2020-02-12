@@ -1,0 +1,43 @@
+<ion-view hide-nav-bar='true' class="settings">
+    <div class="menu-tittle f17  {{$root.dingMobile.dingHeaderClass}}">
+        <div class="menu-tittle-left pr25" ng-click="goback()">
+            <i class="f17 ion-chevron-left blue"></i>
+        </div>
+        <div class="menu-tittle-middle">{{languages.setting.systemSetting}}</div>
+        <div class="menu-tittle-right f14" ng-click="setIPAndGoBack()">{{languages.confirm}}</div>
+    </div>
+    <!-- app头像 -->
+    <div class="menu-bar f16 user" ng-show="ShowIPSetting&&settingUser.ObjectID">
+        <div ng-click="goUserDetail()" class="avatar">
+            <img ng-src="{{settingUser.ImageUrl}}" ng-if="settingUser.ImageUrl.length>0">
+            <!--没有头像路径时，要默认名字 -->
+            <img src="img/usermen.png" ng-if="settingUser.ImageUrl.length==0||settingUser.ImageUrl==null?settingUser.Gender==0||settingUser.Gender==1:false">
+            <img src="img/userwomen.png" ng-if="settingUser.ImageUrl.length==0||settingUser.ImageUrl==null?settingUser.Gender==2:false">
+        </div>
+    </div>
+
+  <div class="menu-bar f16" style="border-top: 1px solid #D3D8DC;">
+    <div class="menu-bar-left">{{languages.setting.currentVersion}}</div>
+    <div class="menu-bar-right">{{clientInfo.AppVersion||'v2.0'}}</div>
+  </div>
+
+  <div class="line-bottom"></div>
+
+    <div class="menu-bar f16 ipconfig" ng-if="ShowIPSetting">
+        <div class="menu-bar-left">{{languages.setting.IP}}</div>
+        <div class="menu-bar-right" style="color: #3c8cea" ng-click="CheckService()">{{languages.setting.checkService}}</div>
+    </div>
+
+    <div class="menu-bar f16 ipconfig" ng-if="ShowIPSetting">
+        <div class="menu-bar-right" style="width:100%"><input style="width:100%" type="text" class="f16" ng-model="$parent.settingIP" ng-readonly="{true:'readonly',false:''}[!dingMobile.hideOther]" /></div>
+    </div>
+  <div class="line-bottom"></div>
+  <div class="menu-bar f16" ng-click="goLanguage()">
+    <div class="menu-bar-left">{{languages.setting.languageSetting}}</div>
+    <div class="menu-bar-right" >
+      <span class="mr10">{{H3.language=='en_us'?'English':'中文'}}</span>
+      <i class="icon ion-chevron-right f17"></i>
+    </div>
+  </div>
+    <div class="menu-button f16 " ng-show="dingMobile.hideOther" ng-click="logout()">{{languages.loginOut}}</div>
+</ion-view>

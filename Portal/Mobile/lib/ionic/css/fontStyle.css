@@ -1,0 +1,107 @@
+@font-face {
+  font-family: 'icomoon';
+
+  src:  url('/lib/ionic/fonts/icomoon.eot?biu9eb');
+  src:  url('/lib/ionic/fonts/icomoon.eot?biu9eb#iefix') format('embedded-opentype'),
+    url('/lib/ionic/fonts/icomoon.ttf?biu9eb') format('truetype'),
+    url('/lib/ionic/fonts/icomoon.woff?biu9eb') format('woff'),
+    url('/lib/ionic/fonts/icomoon.svg?biu9eb#icomoon') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+.icon-baobaio:before,
+.icon-change:before,
+.icon-faqi:before,
+.icon-jiaji:before,
+.icon-liucheng:before,
+.icon-saoyisao:before,
+.icon-search:before,
+.icon-shouye:before,
+.icon-shuiban:before,
+.icon-sx_icon:before,
+.icon-tubian:before,
+.icon-excel:before,
+.icon-pdf:before,
+.icon-qita:before,
+.icon-word:before,
+.icon-shenpi:before,
+.icon-star:before,
+.icon-shoucaang_2:before,
+[class^="icon-"], [class*=" icon-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'icomoon' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+
+[data-dpr='1'] [class^="icon-"], [data-dpr='1'] [class*=" icon-"]{
+  font-size: 26px;
+}
+[data-dpr='2'] [class^="icon-"], [data-dpr='2'] [class*=" icon-"]{
+  font-size: 52px;
+}
+[data-dpr='3'] [class^="icon-"], [data-dpr='3'] [class*=" icon-"]{
+  font-size: 78px;
+}
+.icon-shoucaang_2:before {
+  content: "\e90f";
+  color: #d3d8dc;
+}
+.icon-shaixuan:before {
+  content: "\e900";
+  color: #a7a7a7;
+}
+.icon-shenpi:before {
+  content: "\e901";
+  color: #77bcfa;
+}
+.icon-star:before {
+  content: "\e902";
+  color: #edac5b;
+}
+.icon-baobaio:before {
+  content: "\e903";
+  color: #d4d4d6;
+}
+.icon-change:before {
+  content: "\e904";
+  color: #77bcfa;
+}
+/*.icon-faqi:before {*/
+  /*content: "\e905";*/
+  /*color: #d4d4d6;*/
+/*}*/
+.icon-jiaji:before {
+  content: "\e906";
+  color: #ed6c5b;
+}
+/*.icon-liucheng:before {*/
+  /*content: "\e907";*/
+  /*color: #d4d4d6;*/
+/*}*/
+.icon-saoyisao:before {
+  content: "\e90b";
+  color: #77bcfa;
+}
+.icon-search:before {
+  content: "\e90c";
+  color: #77bcfa;
+}
+/*.icon-shouye:before {*/
+  /*content: "\e90d";*/
+  /*color: #d4d4d6;*/
+/*}*/
+.icon-shuiban:before {
+  content: "\e90e";
+  color: #edac5b;
+}

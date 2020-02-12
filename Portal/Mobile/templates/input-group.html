@@ -1,0 +1,205 @@
+<ion-view hide-nav-bar='true' class="inputGroup" xmlns="http://www.w3.org/1999/html">
+
+
+    <div class="menu-tittle">
+      <div class="menu-tittle-left">
+        <img src="../img/settings/left.svg" class="left">
+      </div>
+      <div class="menu-tittle-middle f17">所有控件</div>
+      <div class="menu-tittle-right"></div>
+    </div>
+
+    <ion-content>
+      <form>
+        <div class="menu-sub f13">基本信息</div>
+        <div class="menu-input">
+          <div class="menu-input-left f16">单行文本</div>
+          <div class="menu-input-right f14">
+            <input type="txt" placeholder="请输入单行文本" class="f14">
+          </div>
+        </div>
+        <div class="menu-input">
+          <div class="menu-input-left f16">数值</div>
+          <div class="menu-input-right f14">
+            <input type="number" placeholder="请输入数值" class="f14">
+          </div>
+        </div>
+        <div class="menu-input">
+          <div class="menu-input-left f16">日期</div>
+          <div class="menu-input-right f14">
+            <input type="date" placeholder="请选择日期" class="f14">
+          </div>
+        </div>
+        <div class="menu-input">
+          <div class="menu-input-left f16">单选<span class="f16 red">*</span></div>
+          <div class="menu-input-right f14">
+            <span>请选择单选</span>
+            <i class="icon ion-chevron-right icon-accessory f13"></i>
+          </div>
+        </div>
+        <div class="menu-input">
+          <div class="menu-input-left f16">复选<span class="f16 red">*</span></div>
+          <div class="menu-input-right f14">
+            <span>请选择复选</span>
+            <i class="icon ion-chevron-right icon-accessory f13"></i>
+          </div>
+        </div>
+        <div class="menu-input">
+          <div class="menu-input-left f16">下拉</div>
+          <div class="menu-input-right f14">
+            <span>请选择下拉</span>
+            <i class="icon ion-chevron-right icon-accessory f13"></i>
+          </div>
+        </div>
+        <div class="menu-input">
+          <div class="menu-input-left f16">单人/部门</div>
+          <div class="menu-input-right f14">
+            <span>请选择单人/部门</span>
+            <i class="icon ion-chevron-right icon-accessory f13"></i>
+          </div>
+        </div>
+        <div class="menu-input">
+          <div class="menu-input-left f16">多人/部门</div>
+          <div class="menu-input-right f14">
+            <span>请选择多人/部门</span>
+            <i class="icon ion-chevron-right icon-accessory f13"></i>
+          </div>
+        </div>
+        <div class="menu-input-multi menu-input">
+          <div class="menu-input-left f16">多行文本</div>
+          <div class="menu-input-right">
+            <textarea placeholder="多行文本" class="f14"></textarea>
+          </div>
+        </div>
+
+
+        <div class="menu-bar">
+          <div class="menu-bar-left f15">附件</div>
+          <div class="menu-bar-right">
+            <img src="../img/inputGroup/paperclip.svg" class="paperclip">
+          </div>
+        </div>
+
+        <div class="menu-bar switch">
+          <div class="menu-bar-left f15">是否</div>
+          <div class="menu-bar-right">
+            <li class="item item-toggle">&nbsp;
+              <label class="toggle toggle-light">
+                <input type="checkbox" checked="">
+                <div class="track">
+                  <div class="handle"></div>
+                </div>
+              </label>
+            </li>
+          </div>
+        </div>
+
+        <div class="address">
+          <div class="menu-input">
+            <div class="menu-input-left f16">地址</div>
+            <div class="menu-input-right f14">
+              <span>请选择地区</span>
+              <i class="icon ion-chevron-right icon-accessory f13"></i>
+            </div>
+          </div>
+          <div class="textarea-control">
+            <textarea class="f14" placeholder="请输入详细地址"></textarea>
+          </div>
+        </div>
+
+
+        <div class="child-table">
+          <div class="ct-header">
+            <div class="ct-header-left f13">表单信息</div>
+            <div class="ct-header-right f13">切换模式</div>
+          </div>
+          <!--tab模式-->
+          <div class="ct-content tab-mode">
+            <div class="ct-control-bar">
+              <ul>
+                <li class="f16 on">1</li>
+                <li class="f16">2</li>
+                <li class="f16">3</li>
+              </ul>
+              <img src="../img/inputGroup/plus.svg" class="plus">
+            </div>
+            <div class="ct-item">
+              <div class="ct-item-header">
+                <div class="cti-header-left f15">子表1</div>
+                <div class="cti-header-right">
+                  <img src="../img/inputGroup/blockadd.svg" class="blockadd mr17">
+                  <img src="../img/inputGroup/delete.svg" class="delete">
+                </div>
+              </div>
+              <div class="ct-item-content">
+                <div class="menu-input">
+                  <div class="menu-input-left f16">姓名</div>
+                  <div class="menu-input-right f14">
+                    <input type="text" placeholder="请输入姓名" class="f14">
+                  </div>
+                </div>
+              </div>
+              <div class="menu-input">
+                <div class="menu-input-left f16">所属组织</div>
+                <div class="menu-input-right f14">
+                  <span>请选择所属组织</span>
+                  <i class="icon ion-chevron-right icon-accessory f13"></i>
+                </div>
+              </div>
+              <div class="menu-input">
+                <div class="menu-input-left f16">电话</div>
+                <div class="menu-input-right f14">
+                  <input type="number" placeholder="请输入电话" class="f14">
+                </div>
+              </div>
+            </div>
+            </div>
+          </div>
+          <!--list模式-->
+          <div class="ct-content list-mode">
+            <div class="ct-item">
+              <div class="ct-item-header">
+                <div class="cti-header-left f15">子表1</div>
+                <div class="cti-header-right">
+                  <img src="../img/inputGroup/blockadd.svg" class="blockadd mr17">
+                  <img src="../img/inputGroup/delete.svg" class="delete">
+                </div>
+              </div>
+              <div class="ct-item-content">
+                <div class="menu-input">
+                  <div class="menu-input-left f16">姓名</div>
+                  <div class="menu-input-right f14">
+                    <input type="text" placeholder="请输入姓名" class="f14">
+                  </div>
+                </div>
+              </div>
+              <div class="menu-input">
+                <div class="menu-input-left f16">所属组织</div>
+                <div class="menu-input-right f14">
+                  <span>请选择所属组织</span>
+                  <i class="icon ion-chevron-right icon-accessory f13"></i>
+                </div>
+              </div>
+              <div class="menu-input">
+                <div class="menu-input-left f16">电话</div>
+                <div class="menu-input-right f14">
+                  <input type="number" placeholder="请输入电话" class="f14">
+                </div>
+              </div>
+            </div>
+            <div class="add-ct-item">
+              <img src="../img/inputGroup/plus.svg" class="plus mr17">
+              <span class="f16">添加字表明细</span>
+            </div>
+          </div>
+        </div>
+
+
+      </form>
+    </ion-content>
+
+    <div class="tab-bottom-single f17">
+      提交
+    </div>
+
+</ion-view>

@@ -1,0 +1,229 @@
+﻿<ion-view title="我的流程" hide-nav-bar="{{$root.dingMobile.hideHeader}}" class="bpm-myinstance">
+    <ion-nav-bar class="bar-calm ">
+        <ion-nav-buttons side="left">
+            <button class="button button-icon button-clear ion-navicon" menu-toggle="left"></button>
+        </ion-nav-buttons>
+    </ion-nav-bar>
+    <div class="bar {{$root.dingMobile.dingHeaderClass}}  item-input-inset">
+        <div style="display:flex;width:100%;">
+            <div style="flex:1;text-align: center;" class="tab_default"
+                 ng-repeat="d in tabNames"
+                 ng-click="activeSlide($index)" ng-class="slectIndex==$index ? 'tab_select' : '' ">
+                {{d}}
+            </div>
+        </div>
+    </div>
+    <div class="bar item-input-inset" ng-class="{'search-input':!dingMobile.isDingMobile}">
+        <label class="item-input-wrapper"
+               ng-class="{'placeholder-icon-focus':focus,'placeholder-icon-unfocus':!focus}"
+               style="transition: all linear 0.1s;">
+            <i class="icon ion-ios-search-strong"></i>
+            <input type="search" placeholder="搜索"
+                   class="input-placeholder"
+                   ng-model="searchKey" ng-change="doSearch()"
+                   ng-focus="focus=true" ng-blur="searchKey==''?focus=false:focus=true">
+            <i class="icon ion-close-circled placeholder-icon" style="vertical-align: middle;"
+               on-tap="clearSearch()" ng-if="searchKey.length"></i>
+        </label>
+    </div>
+    <div class="ng-hide animated fadeIn scrollTop" ng-show="displayTop" ng-click="scrollTop()">
+        <i class="icon ion-arrow-up-a"></i>
+    </div>
+    <!-- {{$root.dingMobile.dingSubHeaderClass}} -->
+    <ion-content on-scroll="getScrollPosition();" class="scroll-content ionic-scroll has-subheader"
+                 ng-class="{'ding-subheader':dingMobile.isDingMobile}">
+        <ion-refresher on-refresh="doRefresh()" pulling-text="{{pullingText}}"
+                       refreshing-text="{{refreshingText}}" refreshing-icon="ion-loading-b">
+        </ion-refresher>
+        <ion-slide-box on-slide-changed="slideChanged(index)" active-slide="slideIndex"
+                       does-continue="true" show-pager="false">
+            <ion-slide>
+                <!--进行中 -->
+                <ion-item ng-repeat="unfinished in instances.unfinished.list" class="circle-item"
+                          ng-click="openInstance(unfinished.ObjectID)"
+                          style="min-height:68px;">
+                    <div class="circle-left">
+                        <i class="circle-name"
+                           ng-class="{'user-a':$index%4==0,'user-b':$index%4==1,'user-c':$index%4==2,'user-d':$index%4==3}">
+                            <span>{{unfinished.Orginator|limitTo :-2}}</span>
+                        </i>
+                    </div>
+                    <div class="circle-center">
+                        <h2 style="padding-top:8px;">{{unfinished.InstanceName}}</h2>
+                    </div>
+                </ion-item>
+                <ion-item ng-if="instances.unfinished.list.length > 0 &&instances.unfinished.moredata&&!exception"
+                          style="cursor:pointer">
+                    <div class="item-icon-left" style="padding-left:30px;">
+                        <i class="icon ion-android-happy"></i>
+                        <h2>全部加载完成</h2>
+                    </div>
+                </ion-item>
+                <ion-item ng-if="instances.unfinished.list.length == 0
+                          && instances.unfinished.moredata
+                          && searchKey=='' && !exception"
+                          style="cursor:pointer">
+                    <div class="item-icon-left" style="padding-left:30px;">
+                        <i class="icon ion-checkmark"></i>
+                        <h2>暂无进行中流程</h2>
+                    </div>
+                </ion-item>
+                <ion-item ng-if="instances.unfinished.list.length == 0
+                          && searchKey!='' && !exception"
+                          style="cursor:pointer">
+                    <div class="item-icon-left" style="padding-left:30px;">
+                        <i class="icon ion-information-circled"></i>
+                        <h2>未搜索到任务</h2>
+                    </div>
+                </ion-item>
+                <ion-item ng-if="exception"
+                          style="cursor:pointer">
+                    <div class="item-icon-left" style="padding-left:30px;">
+                        <i class="icon ion-information-circled"></i>
+                        <h2>系统数据加载失败，请稍候再试！</h2>
+                    </div>
+                </ion-item>
+            </ion-slide>
+            <ion-slide>
+                <!--已完成-->
+                <ion-item ng-repeat="finished in instances.finished.list" class="circle-item"
+                          ng-click="openInstance(finished.ObjectID)"
+                          style="min-height:68px;">
+                    <div class="circle-left">
+                        <i class="circle-name"
+                           ng-class="{'user-a':$index%4==0,'user-b':$index%4==1,'user-c':$index%4==2,'user-d':$index%4==3}">
+                            <span>{{finished.Orginator|limitTo :-2}}</span>
+                        </i>
+                    </div>
+                    <div class="circle-center">
+                        <h2>{{finished.InstanceName}}</h2>
+                        <p>
+                            发起时间： {{finished.CreatedTime}}
+                            <br>
+                            完成时间： {{finished.FinishedTime}}
+                        </p>
+                    </div>
+                </ion-item>
+                <ion-item ng-if="instances.finished.list.length > 0 &&instances.finished.moredata&&!exception"
+                          style="cursor:pointer">
+                    <div class="item-icon-left" style="padding-left:30px;">
+                        <i class="icon ion-android-happy"></i>
+                        <h2>全部加载完成</h2>
+                    </div>
+                </ion-item>
+                <ion-item ng-if="instances.finished.list.length == 0
+                          && instances.finished.moredata
+                          && searchKey=='' && !exception"
+                          style="cursor:pointer">
+                    <div class="item-icon-left" style="padding-left:30px;">
+                        <i class="icon ion-checkmark"></i>
+                        <h2>暂无已完成流程</h2>
+                    </div>
+                </ion-item>
+                <ion-item ng-if="instances.finished.list.length == 0
+                          && searchKey!='' && !exception"
+                          style="cursor:pointer">
+                    <div class="item-icon-left" style="padding-left:30px;">
+                        <i class="icon ion-information-circled"></i>
+                        <h2>未搜索到任务</h2>
+                    </div>
+                </ion-item>
+                <ion-item ng-if="exception"
+                          style="cursor:pointer">
+                    <div class="item-icon-left" style="padding-left:30px;">
+                        <i class="icon ion-information-circled"></i>
+                        <h2>系统数据加载失败，请稍候再试！</h2>
+                    </div>
+                </ion-item>
+            </ion-slide>
+            <ion-slide>
+                <!--已取消 -->
+                <ion-item ng-repeat="cancel in instances.cancel.list" class="circle-item"
+                          ng-click="openInstance(cancel.ObjectID)"
+                          style="min-height:68px;">
+                    <div class="circle-left">
+                        <i class="circle-name"
+                           ng-class="{'user-a':$index%4==0,'user-b':$index%4==1,'user-c':$index%4==2,'user-d':$index%4==3}">
+                            <span>{{cancel.Orginator|limitTo :-2}}</span>
+                        </i>
+                    </div>
+                    <div class="circle-center">
+                        <h2>{{cancel.InstanceName}}</h2>
+                        <p>
+                            发起时间： {{ cancel.CreatedTime}}
+                            <br>
+                            取消时间： {{ cancel.FinishedTime}}
+                        </p>
+                    </div>
+                </ion-item>
+                <ion-item ng-if="instances.cancel.list.length > 0
+                          &&instances.cancel.moredata
+                          && searchKey=='' &&!exception"
+                          style="cursor:pointer">
+                    <div class="item-icon-left" style="padding-left:30px;">
+                        <i class="icon ion-android-happy"></i>
+                        <h2>全部加载完成</h2>
+                    </div>
+                </ion-item>
+                <ion-item ng-if="instances.cancel.list.length == 0
+                          && instances.cancel.moredata
+                          && searchKey==''&& !exception"
+                          style="cursor:pointer">
+                    <div class="item-icon-left" style="padding-left:30px;">
+                        <i class="icon ion-checkmark"></i>
+                        <h2>暂无已取消流程</h2>
+                    </div>
+                </ion-item>
+                <ion-item ng-if="instances.cancel.list.length == 0
+                          && searchKey!='' && !exception"
+                          style="cursor:pointer">
+                    <div class="item-icon-left" style="padding-left:30px;">
+                        <i class="icon ion-information-circled"></i>
+                        <h2>未搜索到任务</h2>
+                    </div>
+                </ion-item>
+                <ion-item ng-if="exception"
+                          style="cursor:pointer">
+                    <div class="item-icon-left" style="padding-left:30px;">
+                        <i class="icon ion-information-circled"></i>
+                        <h2>系统数据加载失败，请稍候再试！</h2>
+                    </div>
+                </ion-item>
+            </ion-slide>
+        </ion-slide-box>
+        <ion-infinite-scroll ng-if="!currentTab.moredata" on-infinite="loadMore()" distance="10%">
+        </ion-infinite-scroll>
+    </ion-content>
+</ion-view>
+
+<style type="text/css">
+    .bpm-myinstance .search-input {
+        top: 44px;
+    }
+
+    .platform-ios.platform-cordova:not(.fullscreen) .bpm-myinstance .search-input{
+        top:64px;
+    }
+
+    .bpm-myinstance .has-subheader {
+        top: 132px;
+    }
+
+    .platform-ios.platform-cordova:not(.fullscreen) .bpm-myinstance .has-subheader{
+        top:148px;
+    }
+
+    .bpm-myinstance .ding-subheader {
+        top: 90px;
+    }
+
+    .bpm-myinstance .tab_default {
+        border-bottom: solid 1px #F2F2F2;
+        padding: 6px 0;
+    }
+
+    .bpm-myinstance .tab_select {
+        border-bottom: solid 1px #3E89F5;
+        color: #00ACDC;
+    }
+</style>

@@ -1,0 +1,156 @@
+﻿
+<script src="../WFRes/_Scripts/jquery/ajaxfileupload.js"></script>
+<script>
+    var BizServiceImport = {};
+    DocumentReady = function () {
+        var ParentID = getUrlParam("ParentID");
+        var ParentCode = getUrlParam("ParentCode");
+        BizServiceImport.ParentID = ParentID;
+        BizServiceImport.ParentCode = ParentCode;
+
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+
+        $("input[CodeInfo='BizObject']").change(function () {
+            $("input[CodeInfo='BizObject']").val($(this).val());
+        });
+    };
+
+    $(function () {
+        DocumentReady();
+    });
+
+    CheckFile = function () {
+        var fileVal = $("#btnFileUpload").val();
+        if (fileVal == "") {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SelectFile") });
+            return false;
+        }
+        if (fileVal.toLowerCase().indexOf(".xml") < 0) {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FileMustIsXML") });
+            return false;
+        }
+        return true
+    }
+
+    btnupload_click = function () {
+        if (CheckFile()) {
+            var uploadUrl = $.Controller.BizServiceHandler.Upload;
+            $.ajaxFileUpload({
+                url: uploadUrl,
+                type:"post",
+                dataType:"json",
+                fileElementId: "btnFileUpload",
+
+                success: function (data) {
+                    if (data.Success) {
+                        BizServiceImport = data.Extend;
+                        BizServiceImport.XMLString = encodeURIComponent(BizServiceImport.XMLString);
+
+                        var ParentID = getUrlParam("ParentID");
+                        var ParentCode = getUrlParam("ParentCode");
+                        BizServiceImport.ParentID = ParentID;
+                        BizServiceImport.ParentCode = ParentCode;
+
+                        //显示服务编码标签,上传标签隐藏
+                        $("#panelServiceCode").show();
+                        $("#panelUpload").hide();
+
+                        //给服务编码中的控件赋值
+                        $("input[txtType=CodeInfo]").val(BizServiceImport.ServiceCode);
+                        $("input[txtType=CodeInfo]").attr("CodeInfo", BizServiceImport.ServiceCode);
+                        $("input[txtType=CodeInfo]").attr("Code", BizServiceImport.ServiceCode);
+                        var display = $.format($.Lang("BizServiceHandler.ServiceCodeDisplay"), BizServiceImport.ServiceName);
+                        $("#codeDisplay").html(display);
+
+                        //设置按钮可用
+                        $("#btnImport").removeAttr("disabled");
+                        $("#btnImport").children().removeClass("l-toolbar-item-disable");
+                        
+                        $("#btnReset").removeAttr("disabled");
+                        $("#btnReset").children(":first").removeClass("l-toolbar-item-disable");
+
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(data.Message) });
+                    }
+                }
+            });
+        }
+    }
+
+    BeforeImort = function () {
+        BizServiceImport.Cover = $("span[txtType='ckIsCover']").find("input[type='checkbox']")[0].checked;
+        BizServiceImport.ServiceCode = $("input[txtType='CodeInfo']").val();
+        if (BizServiceImport.ServiceCode == "") {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.CodeOrNameNotNull") });
+            return false;
+        }
+        return true;
+    }
+
+    Import = function () {
+        if (!BeforeImort()) { return;}
+        var importUrl = $.Controller.BizServiceHandler.ImportService;
+        $.ajax({
+            url: importUrl,
+            type: 'post',
+            dataType: "json",
+            data: BizServiceImport,
+            async: false,//同步执行
+            success: function (result) {
+                if (result.Success) {
+                    $.H3Dialog.Success({ content: $.Lang(result.Message) });
+
+                    //更新节点 top.ReloadNode('ParentID')
+                    top.ReloadNode(BizServiceImport.ParentID);
+                    parent.H3DialogManger.Close(); //关闭当前对话框
+                } else {
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                }
+            }
+        });
+    }
+
+    Reset = function () {
+        window.location.href = window.location.href;
+    }
+</script>
+
+<div id="H3ToolBar">
+    <a id="btnImport" href="javascript:Import()" disabled="true" data-icon="fa fa-upload" data-lang="GlobalButton.Import"></a>
+    <a id="btnReset" href="javascript:Reset()" disabled="true" data-icon="fa fa-minus" data-lang="BizServiceHandler.Reload"></a>
+</div>
+<input type="hidden" id="CodeInfo"  />
+<input type="hidden" id="fileName" />
+<input type="hidden" id="ckIsCover" />
+    <div class="H3Panel" id="panelUpload">
+        <table>
+            <tr>
+                <td>
+                    <input type="file" id="btnFileUpload" name="btnFileUpload" />
+                    <a id="btnUpLoad" href="javascript:btnupload_click();" data-lang="BizServiceHandler.Upload"></a>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="H3Panel" id="panelServiceCode" style="display:none">
+        <span data-lang="BizServiceHandler.ServiceCode"></span>
+         <table id="CodeTable">
+             <tr>
+                 <td data-lang="msgGlobalString.IsCover"></td>
+                 <td>
+                     <span txtType="ckIsCover"><input id="IsCover" type="checkbox"/>
+                         <label for="IsCover" data-lang="msgGlobalString.IsCover"></label></span>
+                 </td>
+                 <td data-lang="msgGlobalString.CoverMsg"></td>
+             </tr>
+             <tr>
+                 <td id="codeDisplay"></td>
+                 <td style="width:300px">
+                    <input type="text" txtType="CodeInfo" CodeInfo="" Code="" />
+                 </td>
+                 <td style="color:Red">*</td>
+             </tr>
+         </table>
+    </div>

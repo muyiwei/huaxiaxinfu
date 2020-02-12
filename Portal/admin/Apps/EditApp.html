@@ -1,0 +1,298 @@
+﻿<script src="../WFRes/_Scripts/jquery/ajaxfileupload.js"></script>
+<script src="../WFRes/_Scripts/jquery/plugin/imagepreview/jquery.imagepreview.js"></script>
+<script>
+    $(function () {
+        var pageData = {
+            Apps: {},
+            LanData: $.Languages
+        };
+        //初始化页面数据
+        initPageData();
+        $("tr").each(function () {
+            if ($(this).children().length == 4) {
+                $(this).children(":eq(2)").addClass("tableLeft");
+            }
+        });
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        //$.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                },
+                setAppAcl: function (event) {
+                    SetAppAcl();
+                },
+                DelData: function (obj) {
+
+                },
+                OpenPublishPop: function (event) {
+                    if (pageData.Apps.DingTalkID != null) {
+                        $.H3Dialog.Warn({ content: $.Lang("Apps.Published") });
+                    }
+                    //this.$validate(true);//表单验证
+                    $.ligerDialog.open({
+                        target: $("#LogoUploadDiv"), title: $.Lang("GlobalButton.PublicToDingTalk"), width: 380,
+                        buttons: [{ text: $.Lang("ligeruiGlobalString.LigerDialogString_ok"), onclick: Publishing }, { text: $.Lang("ligeruiGlobalString.LigerDialogString_cancel"), onclick: function (item, dialog) { dialog.close(); } }]
+                    });
+                }
+
+            }
+        });
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+        //初始化页面数据
+        function initPageData() {
+            var appCode = getUrlParam("AppCode") || "";
+            if (!appCode) {
+                $("#btnDel").attr("disabled", "disabled");
+                $("#btnAcl").attr("disabled", "disabled");
+            }
+            if (appCode) {
+                $.ajax({
+                    url: $.Controller.Apps.GetApps,
+                    type: 'get',
+                    dataType: "json",
+                    data: { appCode: appCode },
+                    async: false,//同步执行
+                    success: function (result) {
+                        if (result.Success) {
+                            pageData.Apps = result.Extend;
+                            //tll:流程中心不能发布到钉钉
+                            if (result.Extend.AppCode == "Workflow") {
+                                window.console.log("成功");
+                                result.Extend.VisibleOnMobile = false;
+                                $("#dingTalk").css("display", "none");//流程中心不出现ding发布
+                                $("#dingTalk").removeAttr("v-on:click");
+                                $("#mobileCheck").attr("disabled", "disabled");
+                            }
+                            if (result.Extend.DingTalkID) {
+                                $("#dingTalk").removeAttr("v-on:click");//已发布则取消点击
+                            }
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        }
+                    }
+                });
+            } else {
+                pageData.Apps.SortKey = 0;
+                pageData.Apps.VisibleOnMobile = true;
+                pageData.Apps.DockOnHomePage = true;
+                pageData.Apps.VisibleOnPortal = true;
+            }
+        };
+
+        //保存变量
+        function saveData() {
+            $.ajax({
+                url: $.Controller.Apps.SaveApps,
+                type: "post",
+                dataType: "json",
+                data: pageData.Apps,
+                success: function (result) {
+                    if (result.Success) {
+                        parent.$.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                        top.$("iframe[id='" + top.workTab.getSelectedTabItemID() + "']").attr("src", _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=Apps/EditApp.html&AppCode=" + result.Extend.AppCode);
+                        top.ReloadNode(result.Extend.ParentId);
+                    } else {
+                        if (result.Message) {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SaveFailed") });
+                        }
+                    }
+                }
+            });
+        };
+
+        var SetAppAcl = function () {
+            var AppCode = pageData.Apps.AppCode;
+            if (typeof (AppCode) != "undefined" && AppCode) {
+                $.ligerDialog.open({
+                    title: "菜单权限",
+                    url: _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=Apps/FunctionAcl.html&Code=" + AppCode,
+                    height: 500,
+                    width: 800,
+                    showMax: true
+                });
+            }
+            return false;
+        };
+    });
+    $("#fileApplogo").uploadPreview({ Img: "userFace" });
+    var DelApp = function (obj) {
+        var appCode = $("#AppCode").val();
+        if (ConfirmDel(obj)) {
+            $.ajax({
+                url: $.Controller.Apps.DelApp,
+                type: 'post',
+                dataType: "json",
+                data: { appCode: appCode },
+                async: false,//同步执行
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.DeleteSucced") });
+                        top.ReloadNode(result.Extend);
+                        top.workTab.removeTabItem(top.workTab.getSelectedTabItemID());
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.DeleteFailed") });
+                    }
+                }
+            });
+        }
+    }
+
+    var Publishing = function (item, dialog) {
+        if (ValidateLogo()) {
+            $.ajaxFileUpload({
+                url: $.Controller.Apps.PublishToDingTalk,
+                fileElementId: 'fileApplogo',
+                type: 'post',
+                dataType: "json",
+                data: { appCode: $("#AppCode").val() },
+                secureuri: false,
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang("Apps.PublishSuccess") });
+                        dialog.close();
+                        $("#dingTalk .l-toolbar-item").css("pointer-events", "none").css("color", "#A1A1A1");//已发布则取消点击
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        dialog.close();
+                    }
+                }
+            });
+        }
+    }
+    var ValidateLogo = function () {
+        var TypeLimit = '.bmp,.jpg,.jpeg,.gif,.png';
+        var logoFile = $("#fileApplogo");
+        if (!logoFile.val()) {
+            $.H3Dialog.Warn({ content: $.Lang("Apps.FileEmptyError") });
+            return false;
+        }
+        if (TypeLimit.indexOf(logoFile.val().substr(logoFile.val().lastIndexOf('.'), 10)) == -1) {
+            $.H3Dialog.Warn({ content: $.Lang("Apps.FileTypeError") });
+            return false;
+        }
+        if (logoFile[0].size > 1000) {
+            $.H3Dialog.Warn({ content: $.Lang("Apps.FileSizeError") });
+            return false;
+        }
+        return true;
+    }
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a v-on:click="saveData" data-icon="fa fa-save" href="javascript:void(0)" data-lang="GlobalButton.Save">保存</a>
+        <a onclick="DelApp(this)" id="btnDel" data-icon="fa fa-minus" href="#" data-lang="GlobalButton.Delete" v-bind:disabled="!Apps.ObjectID">删除</a>
+        <a v-on:click="setAppAcl" id="btnAcl" data-icon="icon-quanxianshezhi" href="javascript:void(0)" data-lang="GlobalButton.SetAcl" v-bind:disabled="!Apps.ObjectID">设置权限</a>
+        <a id="dingTalk" v-on:click="OpenPublishPop" data-icon="fa fa-save" href="javascript:void(0)" data-lang="GlobalButton.PublicToDingTalk" v-bind:disabled="Apps.DingTalkID">发布到钉钉</a>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.Apps.BasicProperty}}</span>
+        <table style="table-layout: fixed">
+            <tr>
+                <td>{{LanData.Apps.AppCode}}</td>
+                <td>
+                    <input hidden="hidden" v-model="Apps.ObjectID" />
+                    <input id="AppCode" v-model="Apps.AppCode" type="text" detect-change="on" detect-blur="on" initial="off" v-validate:app-code="{required:true}" v-bind:disabled="Apps.ObjectID" />
+                    <span style="color:Red;" v-if="$formValidator.appCode.required">{{LanData.msgGlobalString.EnumValueRequired}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 190px">{{LanData.Apps.DisplayName}}</td>
+                <td>
+                    <input v-model="Apps.DisplayName" type="text" detect-change="on" detect-blur="on" initial="off" v-validate:display-name="{required:true}" maxlength="10" />
+                    <span style="color:Red;" v-if="$formValidator.displayName.required">{{LanData.msgGlobalString.EnumValueRequired}}</span>
+                </td>
+            </tr>
+            <tr v-show="Apps.DingTalkID">
+                <td style="width: 190px">{{LanData.Apps.DingTalkID}}</td>
+                <td>
+                    {{Apps.DingTalkID}}
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.Apps.Status}}</span>
+        <table style="table-layout: fixed">
+            <tr>
+                <td>{{LanData.Apps.SortKey}}</td>
+                <td>
+                    <input v-model="Apps.SortKey" type="text" detect-change="on" detect-blur="on" initial="off" v-validate:sort-key="['number']" />
+                    <span style="color:Red;" v-if="$formValidator.sortKey.number">{{LanData.msgGlobalString.NumberValidate}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.Apps.VisibleOnPortal}}</td>
+                <td style="width: 230px;">
+                    <input v-model="Apps.VisibleOnPortal" type="checkbox" />
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.Apps.VisibleOnMobile}}</td>
+                <td style="width: 230px;">
+                    <input v-model="Apps.VisibleOnMobile" type="checkbox" id="mobileCheck" />
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.Apps.DockOnHomePage}}</td>
+                <td style="width: 230px;">
+                    <input v-model="Apps.DockOnHomePage" type="checkbox" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.Apps.Image}}
+                </td>
+                <td>
+                    <input v-model="Apps.Image" type="text" /><span style="color:#999;margin-left:5px;"> WFRes/_Content/themes/H3Default/Images/FunctionIcons/Workflow.png</span>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.Apps.Description}}</td>
+                <td>
+                    <textarea rows="2" cols="20" v-model="Apps.Description" style="height:80px;"></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>
+<div id="LogoUploadDiv" style="display:none">
+    <tr>
+        <td style="padding-left: 0px">
+            <table>
+                <tr>
+                    <td class="tableDesCol">
+                        应用Logo:
+                    </td>
+                    <td width="120px">
+                        <label class="col-md-10 control-label alignLeft">
+                            <input type="file" id="fileApplogo" name="fileApplogo" style="display:none" />
+                            <div>
+                                <img id="userFace" style="cursor:pointer" width="100" height="120" src="../img/Upload.png" alt="点击图片上传" title="点击图片上传" />
+                            </div>
+                        </label>
+                    </td>
+                    <td class="tableDesCol">
+                        图片大小在100kb以下
+                        支持格式：.bmp,.jpg,.jpeg,.gif,.png
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span style="color: Red; display: none">{{LanData.msgGlobalString.ImgNotEmpty}}</span>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</div>
+

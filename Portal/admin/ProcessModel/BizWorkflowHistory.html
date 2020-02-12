@@ -1,0 +1,108 @@
+﻿<script>
+    $(function () {
+
+        var worflowCode = getUrlParam("WorkflowCode");
+        var IsControlUsable = false;//是否可以操作
+
+        //获取是否可以编辑
+        $.ajax({
+            url: _PORTALROOT_GLOBAL + $.Controller.WorkflowHistory.GetIsControlUsable,
+            type: "get",
+            async: false,
+            data: {BizObjectSchemaCode:worflowCode},
+            success: function (result) {
+                if (result == 1) { IsControlUsable = true;}
+            }
+        });
+
+        $("#H3ToolBar").AspLinkToolBar();
+        CreateLigerGrid(
+            $("#div_HistoryGrid"),
+            CreateCloums(),
+            _PORTALROOT_GLOBAL + $.Controller.WorkflowHistory.GetData,
+            true, null, null, null
+            , function () { setControlUsable(IsControlUsable, $("a")); }
+            , { worflowCode: worflowCode }
+            );
+
+        setControlUsable(IsControlUsable, $("a"));
+    });
+
+    function CreateCloums() {
+
+        var WorkflowCode =$.Lang("WorkflowHistory.EditOrgUnit_WorkflowCode");
+        var WorkflowVersion =$.Lang("WorkflowHistory.WorkflowVersion");
+        var Publisher =$.Lang("WorkflowHistory.WorkflowHistory_Publisher");
+        var PublishTime =$.Lang("WorkflowHistory.WorkflowHistory_PublishTime");
+        var View =$.Lang("GlobalButton.View");
+        return [
+                { display: WorkflowCode, name: "WorkflowCode", width: "20%" },
+                { display: WorkflowVersion, name: "WorkflowVersion", width: "15%" },
+                { display: Publisher, name: "Publisher", width: "20%" },
+                { display: PublishTime, name: "PublishTime", type: "date", width: "20%" },
+                {
+                    display: View,
+                    name: "View",
+                    width: "15%",
+                    render: function (rowdata, index, value) {
+                        return "<a href='javascript:void(0);' WorkflowCode ='"+rowdata.WorkflowCode+"' Version='" + rowdata.WorkflowVersion + "'  onclick='ViewWorkflow(this)'>" + View + "</a>";
+                    }
+                }];
+    }
+
+    function ViewWorkflow(obj) {
+        var version = $(obj).attr("Version");
+        var workflowCode = $(obj).attr("WorkflowCode")
+        var _TabId = new Date().getTime();
+        var url = "Designer/Designer.html";
+        url += "&WorkflowCode=" + workflowCode;
+        url += "&Version=" + version;
+        url += "&TabID=" + _TabId;
+        url = url.replace('//', '/');
+        top.f_addTab(
+                {
+                    tabid: _TabId,
+                    text: workflowCode + "_" + version,//"<%=OThinker.H3.Portal.ConstantString.Param_WorkflowCode%>=<%=this.WorkflowCode%>_" + version,
+                    url: url
+                });
+    }
+
+    function RemoveVersion(obj) {
+
+        var rows = H3GridManager.getSelecteds();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SelectItem") });
+        return;
+        }
+        debugger;
+        var workflowCode = getUrlParam("WorkflowCode");
+    if (ConfirmDel(obj)) {
+        var Versions = "";
+        for (var i = 0; i < rows.length; i++) {
+            Versions = Versions + rows[i]["WorkflowVersion"] + ";";
+        }
+
+        var ajaxUrl = _PORTALROOT_GLOBAL + $.Controller.WorkflowHistory.DeleteVersion;
+
+        $.ajax({
+            url: ajaxUrl,
+            data:{ worflowCode:workflowCode,  versionString:Versions },
+            success: function (data) {
+                if (data.Success) {
+                    $.H3Dialog.Success({ content: $.Lang(data.Message) });
+                    top.workTab.reload(top.workTab.getSelectedTabItemID());
+                } else {
+                    $.H3Dialog.Warn({ content: data.Message });
+                }
+                
+            }
+        });
+    }
+    }
+</script>
+
+<div id="H3ToolBar">
+    <a href="javascript:void(0)" data-icon="fa fa-minus" onclick="RemoveVersion(this)" data-lang="WorkflowHistory.WorkflowSetting_RemoveVersion"></a>
+</div>
+<div id="div_HistoryGrid">
+</div>

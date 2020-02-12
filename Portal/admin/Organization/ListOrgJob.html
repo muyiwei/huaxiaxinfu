@@ -1,0 +1,149 @@
+﻿
+<script>
+    $(function () {
+           $("#H3ToolBar").AspLinkToolBar();
+           $(".H3Panel").BuildPanel({ excludeIDs: ["OrgJobList"] });
+
+          //初始化页面执行查询
+           QueryFun();
+       });
+
+
+
+    //组织角色列
+    function GetRoleViewColumns() {
+        var primaryKey=$.Lang("ListOrgJob.PrimaryKey");
+        var code=$.Lang("ListOrgJob.Code");
+        var displayName = $.Lang("ListOrgJob.DisplayName");
+        //var userCount = $.Lang("ListOrgJob.UserCount");
+        var description = $.Lang("ListOrgJob.Description");
+        var roleLevel = $.Lang("ListOrgJob.RoleLevel");
+        var sortKey = $.Lang("EditOrgUnit.SortKey");
+        var parentPostName = $.Lang("ListOrgJob.ParentPostName");
+
+        var operation = $.Lang("ListOrgJob.Operation");
+        var edit = $.Lang("GlobalButton.Edit");
+        var userManager = $.Lang("ListOrgJob.UserManagerAction");
+        var setAcl = $.Lang("GlobalButton.SetAcl");
+        var del = $.Lang("GlobalButton.Delete");
+
+        return [
+            { display: primaryKey, name: "ObjectID", hide: true },
+            { display: code, name: "Code",width:"10%",isSort:false },
+            { display: displayName, name: "DisplayName", width: "10%", isSort: false },
+            { display: parentPostName, name: "ParentPostName", width: "10%", isSort: false },
+            //{ display: userCount, name: "UserCount", width: "6%", isSort: false },
+            { display: description, name: "Description", isSort: false },
+            { display: roleLevel, name: "RoleLevel", width: "6%", isSort: false },
+            { display: sortKey, name: "Sortkey", width: "6%", isSort: false },
+            {
+                display: operation,name:'',render: function (row) {
+                    return  "<div style='float:left;'><a href='#' onclick='EditRole(\"" + row.ObjectID + "\")'>"+edit+"</div>"
+                        + "<div style='padding-left:5px;float:left;'><a href='#' onclick='UserManager(\"" + row.ObjectID + "\")'>"+userManager+"</div>" 
+                        + "<div style='padding-left:5px;float:left;'><a href='#' onclick='SetAcl(\"" + row.ObjectID + "\")'>" + setAcl + "</a></div>"
+                        + "<div style='padding-left:5px;float:left;'><a href='#' onclick='deleteOrgJob(\"" + row.ObjectID + "\")'>" + del + "</a></div>"
+                    }
+            }];
+    }
+
+    function QueryFun() {
+        var roleCode = $("input[id=roleCode]").val();
+        var roleName = $("input[id=roleName]").val();
+        //debugger;
+        CreateLigerGrid(
+         $("#OrgJobList"),
+         GetRoleViewColumns(),
+         $.Controller.ListOrgJob.GetRoleList,
+         false, "98%",
+         null, null, null,
+         {
+             roleCode: roleCode,
+             roleName: roleName
+         });
+    }
+
+    //编辑角色
+    function EditRole(objId) {
+        //debugger;
+        var editOrgJob = $.Lang("ListOrgJob.EditRole");
+        
+        ShowDialog(editOrgJob, _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=Organization/EditOrgPost.html&ID=" + objId);
+    }
+
+    //用户管理页面
+    function UserManager(objId)
+    {
+        var code = getUrlParam("Code");
+        var editOrgJob = $.Lang("ListOrgJob.RoleUserManager");
+
+        //弹出新标签页
+        var tabUrl = "Organization/RoleUserList.html&id=" + objId + "&code=" + code;
+        top.f_addTab(
+            {
+                tabid: objId,
+                text: editOrgJob,
+                url: tabUrl
+            });
+    }
+
+    //设置权限
+    function SetAcl(objId) {
+        var setAclName = $.Lang("msgGlobalString.UpdateAcl");
+        ShowDialog(setAclName, _PORTALROOT_GLOBAL+"/admin/TabMaster.html?url=Organization/FunctionAclByRole.html&unitid=" + objId);
+    }
+
+    //添加角色
+    function addOrgJob() {
+        var addOrgJob = $.Lang("ListOrgJob.AddRole");
+        ShowDialog(addOrgJob, _PORTALROOT_GLOBAL+"/admin/TabMaster.html?url=Organization/EditOrgPost.html");
+    }
+    //删除
+    function deleteOrgJob(id) {
+        var ajaxUrl = $.Controller.ListOrgJob.DelRole;//Delete Action URL
+        var deleteConfirm = $.Lang("msgGlobalString.AppMenuList_Msg0");
+        $.ligerDialog.confirm(deleteConfirm, function (result) {
+            if (result) {
+                $.ajax({
+                    url: ajaxUrl,
+                    data: { id: id },
+                    success: function (result) {
+                        //top.workTab.reload(top.workTab.getSelectedTabItemID());
+                        var manager = $("#OrgJobList").ligerGetGridManager();
+                        manager.reload();
+                    }
+                });
+            }
+        });
+    }
+
+    function searchOrgJob()
+    {
+        QueryFun();
+    }
+  </script>
+<div id="H3ToolBar">
+    <a data-icon="fa fa-plus" href="javascript:addOrgJob();" onclick="" data-lang="GlobalButton.Add"></a>
+    <a data-icon="fa fa-search" href="javascript:searchOrgJob();" onclick="" data-lang="GlobalButton.Search"></a>
+</div>
+<div class="H3Panel">
+    <table class="tableList">
+        <tr>
+            <td  data-lang="ListOrgJob.Code">
+                角色编码
+            </td>
+            <td>
+                <input name="roleCode" type="text" id="roleCode" >
+            </td>
+            <td   data-lang="ListOrgJob.DisplayName">
+                角色名称
+            </td>
+            <td>
+                <input name="roleName" type="text" id="roleName" >
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="H3Panel">
+    <span data-lang="ListOrgJob.RoleList"></span>
+    <div id="OrgJobList"></div>
+</div>

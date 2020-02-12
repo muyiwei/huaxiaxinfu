@@ -1,0 +1,188 @@
+﻿<script type="text/javascript" src="../WFRes/_Scripts/MvcSheet/Controls/SheetWorkflow.js"></script>
+<script>
+    $(function () {
+        var pageData = {
+            Agent: {},
+            LanData: $.Languages
+        };
+
+        //初始化页面数据
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                },
+                AddWorkflow: function (event) { },
+                DelWorkflow: function (event) { },
+                ClearWorkflow: function (event) { }
+            }
+        });
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+        if (!pageData.Agent.ObjectID) {
+            $("#divUser").SheetUser({ Editable: true, Visiable: true, Originate: true, DefaultValue: pageData.Agent.UserID });
+        } else {
+            $("#divUser").SheetUser({ Editable: false, Visiable: true, Originate: true, DefaultValue: pageData.Agent.UserID });
+        }
+        $("#divOriginator").SheetUser({ Editable: true, Visiable: true, OrgUnitVisible: true, UserVisible: false, Originate: true, DefaultValue: pageData.Agent.Originator });
+        $("#divAgent").SheetUser({ Editable: true, Visiable: true, Originate: true, DefaultValue: pageData.Agent.Agent });
+        if (pageData.Agent.WorkflowCode)
+            $("#divWorkflow").SheetWorkflow({
+                Editable: false, Visiable: true, IsMultiple: true, IsSearch: true, IsFrequentFlow: false, Mode: "WorkflowTemplate", Originate: true, DefaultValue: pageData.Agent.WorkflowCode
+            });
+        else
+            $("#divWorkflow").SheetWorkflow({
+                Editable: true, Visiable: true, IsMultiple: true, IsSearch: true, IsFrequentFlow: false, Mode: "WorkflowTemplate"
+            });
+
+        //初始化页面数据
+        function initPageData() {
+            var agentID = getUrlParam("AgentID");
+            $.ajax({
+                url: $.Controller.Agent.GetAgent,
+                type: 'get',
+                dataType: "json",
+                data: { agentID: agentID },
+                async: false,//同步执行
+                success: function (result) {
+                    if (result.Success) {
+                        pageData.Agent = result.Extend;
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        };
+        //保存全局变量
+        function saveData() {
+            if (pageData.Agent.StartTime.trim() >= pageData.Agent.EndTime.trim()) {
+                $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.Portal_TimeMsg") });
+                return false;
+            }
+            var UserID = $("#divUser").SheetUIManager().GetValue();
+            pageData.Agent.UserID = UserID;
+            var Originator = $("#divOriginator").SheetUIManager().GetValue();
+            pageData.Agent.Originator = Originator;
+            var Agent = $("#divAgent").SheetUIManager().GetValue();
+            pageData.Agent.Agent = Agent;
+            var WorkflowCode = $("#divWorkflow").SheetUIManager().GetValue();
+            var codes = "";
+            $.each(WorkflowCode, function (i, n) {
+                codes += n + ",";
+            });
+            pageData.Agent.WorkflowCode = codes;
+            $.ajax({
+                url: $.Controller.Agent.SaveAgent,
+                type: "post",
+                dataType: "json",
+                traditional: true,
+                data: pageData.Agent,
+                success: function (result) {
+                    if (result.Success) {
+                        parent.ReloadGrid();
+                        parent.$.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                        parent.H3DialogManger.Cancel();
+                    } else {
+                        var workflowCodes = null;
+                        var content = "";
+                        if (result.Extend) workflowCodes = result.Extend.WorkflowErrorflowCodes;
+                        if (workflowCodes && workflowCodes.length != 0) {
+                            for (var i = 0; i < workflowCodes.length; i++) {
+                                content += $.format($.Lang(result.Message), workflowCodes[i]);
+                            }
+                            $.H3Dialog.Warn({ content: content });
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a v-on:click="saveData" data-icon="fa fa-save" href="javascript:void(0)" data-lang="GlobalButton.Save">保存</a>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.Agent.Info}}</span>
+        <input v-model="Agent.ObjectID" hidden="hidden" />
+        <table class="tableList">
+            <tr>
+                <td>
+                    {{LanData.Agent.UserName}}
+                </td>
+                <td style="padding-left: 0px;">
+                    <div id="divUser" style="width: 250px;"></div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.Agent.Delegantee}}
+                </td>
+                <td style="padding-left: 0px;">
+                    <div id="divAgent" style="width: 250px;"></div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="H3Panel">
+        <span>{{LanData.Agent.WorkflowCode}}</span>
+        <table class="tableList">
+            <tbody>
+                <tr v-show="!Agent.ObjectID||!Agent.WorkflowCode">
+                    <td>
+                        {{LanData.Agent.AllWorkflow}}
+                    </td>
+                    <td>
+                        <input type="checkbox" v-model="Agent.Default" onclick="javascript:void(0)" v-bind:disabled="Agent.ObjectID" />
+                        {{LanData.Agent.AllWorkflow}}
+                    </td>
+                </tr>
+                <tr id="trWorkflowSelector" v-show="!Agent.Default">
+                    <td><div style="padding-top: 6px;">{{LanData.Agent.WorkflowCode}}</div></td>
+                    <td>
+                        <div id="divWorkflow" style="width: 250px; "></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.Agent.InfoDetail}}</span>
+        <table class="tableList">
+            <tr>
+                <td>
+                    {{LanData.Agent.Originator}}
+                </td>
+                <td style="padding-left: 0px;">
+                    <div id="divOriginator" style="width: 250px;"></div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.Agent.AgentTime}}
+                </td>
+                <td>
+                    从
+                    <input type="text" v-model="Agent.StartTime" onclick="InitWdatePicker(this)" data-datetime="start" style="width:100px;" detect-change="on" detect-blur="off" initial="off" v-validate:starttime="{required:true}">
+                    到
+                    <input type="text" v-model="Agent.EndTime" onclick="InitWdatePicker(this)" data-datetime="end" style="width:100px;" detect-change="on" detect-blur="off" initial="off" v-validate:endtime="{required:true}">
+                    <span style="color:Red;" v-if="$formValidator.starttime.invalid" data-lang="msgGlobalString.StartTimeNotNull"></span>
+                    <span style="color:Red;" v-if="$formValidator.endtime.invalid" data-lang="msgGlobalString.EndTimeNotNull"></span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+</validator>

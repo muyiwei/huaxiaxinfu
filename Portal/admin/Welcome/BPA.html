@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>H3 BPM</title>
+    <link rel="stylesheet" href="welcome.css" />
+    <script src="../../WFRes/_Scripts/jquery/jquery.js"></script>
+    <script src="../../WFRes/_Scripts/jquery/jquery.lang.js" type="text/javascript"></script>
+    <script src="../../WFRes/_Scripts/vue/vue.min.js" type="text/javascript"></script>
+    <script src="Welcome.js"></script>
+    <script type="text/javascript">
+        var pageInfo = {
+            controls: {
+                divBody: ".body",
+                divReportSource: "#divReportSource",
+                divReportTemplate: "#divReportTemplate"
+            }
+        }
+
+        $(function () {
+            $.each(pageInfo.controls, function (k, v) {
+                pageInfo.controls[k] = $(v);
+            });
+            $(".activityFoot").hide();
+            // 注册退格事件，回到主页
+            $("body").keydown(function (e) {
+                if (e.keyCode == 8) {
+                    window.location.href = "Home.html";
+                    e.preventDefault();
+                }
+            });
+            var a, b, c;
+
+            // 线条连接业务服务到适配器
+            a = getSidePoint(pageInfo.controls.divReportSource, "right");
+            c = getSidePoint(pageInfo.controls.divReportTemplate, "left");
+            $("<div></div>")
+               .addClass("poly-line")
+               .addClass("pointLine-right")
+               .css("width", c.x - a.x)
+               .css("height", 1)
+               .css("left", a.x)
+               .css("top", a.y)
+               .appendTo(pageInfo.controls.divBody);
+        });
+
+        var getSidePoint = function (obj, side) {
+            if (side == "top") {
+                return {
+                    x: obj.position().left + obj.width() / 2,
+                    y: obj.position().top
+                };
+            }
+            else if (side == "left") {
+                return {
+                    x: obj.position().left,
+                    y: obj.position().top + obj.height() / 2
+                };
+            }
+            else if (side == "right") {
+                return {
+                    x: obj.position().left + obj.width(),
+                    y: obj.position().top + obj.height() / 2
+                };
+            }
+            else {
+                return {
+                    x: obj.position().left + obj.width() / 2,
+                    y: obj.position().top + obj.height()
+                };
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="head">
+        <div>
+            <div class="title">
+                流程分析
+            </div>
+            <hr class="line" />
+            <div class="description">
+                &nbsp;&nbsp;&nbsp;&nbsp;H3 BPM流程分析通过报表数据源定义、报表模版两步的快速定义，实现流程、业务的统计分析。同时，H3 BPM流程分析提供了丰富的内置报表，开箱即用。
+            </div>
+        </div>
+    </div>
+    <div class="body">
+        <div id="divReportSource" class="activity" style="top: 150px; left: 150px">
+            <div class="activityHead">
+                <div>
+                    报表数据源
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    定义报表数据源，可以来自H3 BPM或者其他业务系统
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    点击进入>>
+                </div>
+            </div>
+        </div>
+        <div id="divReportTemplate" class="activity" style="top: 150px; left: 520px;">
+            <div class="activityHead">
+                <div>
+                    报表实例
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    基于报表数据源建立的表格或图像化交叉分析报表
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    点击进入>>
+                </div>
+            </div>
+        </div>
+        <!--        <div class="poly-line down-right" style="width: 200px; height: 200px; top: 20px; left: 400px"></div>
+        <div class="poly-line top-right" style="width: 200px; height: 200px; top: 20px; left: 700px"></div>-->
+    </div>
+</body>
+</html>

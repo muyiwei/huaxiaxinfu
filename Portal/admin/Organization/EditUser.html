@@ -1,0 +1,742 @@
+﻿
+<script src="../WFRes/_Scripts/jquery/ajaxfileupload.js"></script>
+<script src="../WFRes/_Scripts/jquery/plugin/imagepreview/jquery.imagepreview.js"></script>
+<script>
+
+    var pageData = {
+        EditUser: {
+            SortKey: 0, Edit: true, View: true, OrgPost: {}, State: 1, ServiceState: 0, Privacy: 0, Gender: 1,
+            EmployeeRank: 0, EntryDate: '1980-01-01', DepartureDate: '1980-01-01', Birthday: '1980-01-01',
+            EmailNotify: 1, AppNotify: 1, WechatNotify: 1, MessageNotify: 1, DingTalkNotify: 1
+        },
+        RoleList: {},//选择角色时使用
+        LanData: $.Languages
+    };
+    $(function () {
+        //初始化页面数据
+        InitPageData();
+
+        //页面控件可编辑、功能按钮是否能使用
+        //pageData.EditUser.Edit = false; pageData.EditUser.View = true;//测试
+        SetPageControlDisabled(pageData.EditUser.Edit);
+
+        if (!pageData.EditUser.ObjectID) {
+            setControlUsable("0", $("a.ShowAfterSave"))
+        }
+
+        //绑定Vue
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.ValidateFailed") });
+                    } else {
+                        SaveData();
+                    }
+                },
+                deleteData: function (event) {
+                    DeleteData();
+                },
+                transfer: function (event) {
+
+                    var tabName = $.Lang("Orgnization.Transfer");
+                    var objId = pageData.EditUser.ObjectID;
+                    ShowDialog(tabName, _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=Organization/TransferUser.html&id=" + objId);
+                },
+                signature: function (event) {
+                    var tabName = $.Lang("Orgnization.Signature");
+                    var objId = pageData.EditUser.ObjectID;
+                    top.f_addTab(
+                    {
+                        tabid: new Date().getTime(),
+                        text: tabName,
+                        url: "Organization/EditSignature.html&id=" + objId
+                    });
+                },
+                updatePassword: function (event) {
+                    var tabName = $.Lang("Orgnization.UpdatePassword");
+                    var objId = pageData.EditUser.ObjectID;
+                    ShowDialog(tabName, _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=Organization/SetPassword.html&id=" + objId);
+                },
+                setAcl: function (event) {
+                    var tabName = $.Lang("msgGlobalString.UpdateAcl");
+                    var objId = pageData.EditUser.ObjectID;
+                    ShowDialog(tabName, _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=Organization/FunctionAclByUnit.html&unitid=" + objId);
+                }
+            }
+        });
+
+
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+
+        InitSelectUserContol(pageData.EditUser.Edit);
+        //图片预览初始化
+        $("#fileUserFace").uploadPreview({ Img: "userFace" });
+
+        //根据传递的参数获取对应的数据，Vue绑定数据使用
+        function InitPageData() {
+            //debugger;
+            var id = getUrlParam("ID");
+            if (id && id != "") {
+                $.ajax({
+                    url: $.Controller.OrgUser.GetUserInfo,
+                    type: 'get',
+                    dataType: "json",
+                    data: { unitID: id },
+                    async: false,//同步执行
+                    success: function (result) {
+                        if (result.Success) {
+                            pageData.EditUser = result.Extend;
+                            if (pageData.EditUser.UserFace && pageData.EditUser.UserFace.length > 0) {
+                                $("#userFace").attr("src", pageData.EditUser.UserFace);
+                            }
+                        } else {
+                            pageData.EditUser.Edit = false;
+                            pageData.EditUser.View = false;
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        }
+                    }
+                });
+            }
+            InitRoleList(id);
+        };
+
+        //选人控件初始化，需要放置到Vue之后
+        function InitSelectUserContol(edit) {
+            //选人控件初始化
+            $("#dvManager").SheetUser({ Editable: edit, Visiable: true });
+            $("#dvParent").SheetUser({ Editable: edit, Visiable: true, UserVisible: false, OrgUnitVisible: true, IsMultiple: false });
+            $("#dvSecretary").SheetUser({ Editable: edit, Visiable: true });
+            $("#RelationUser").SheetUser({ Editable: edit, Visiable: true });//关联用户
+            var parent = getUrlParam("Parent");
+            if (parent && !pageData.EditUser.ParentID) { pageData.EditUser.ParentID = parent; }
+
+            $("#dvManager").SheetUIManager().SetValue(pageData.EditUser.Manager);
+            $("#dvParent").SheetUIManager().SetValue(pageData.EditUser.ParentID);
+            $("#dvSecretary").SheetUIManager().SetValue(pageData.EditUser.Secretary);
+            $("#RelationUser").SheetUIManager().SetValue(pageData.EditUser.RelationUser);
+        }
+
+        function SaveData() {
+            //读取选人控件的值
+            var parent = $("#dvParent").SheetUIManager().GetValue();
+            var manager = $("#dvManager").SheetUIManager().GetValue();
+            var secretary = $("#dvSecretary").SheetUIManager().GetValue();
+            var relationUser = $("#RelationUser").SheetUIManager().GetValue();
+
+            if (parent == "") {
+                $.H3Dialog.Warn({ content: $.Lang("EditOrgUnit.ParentNotNull") });
+                return;
+            }
+            //如果是虚拟用户需要选择关联用户
+            if (pageData.EditUser.VirtualUser && relationUser == "") {
+                var message = $.Lang("EditUser.RelationUserRequired");
+                $.H3Dialog.Warn({ content: message });
+                return;
+            }
+
+            //离职或者禁用状态需要判断是否还有待办任务
+            if (pageData.EditUser.ServiceState == 2 || pageData.EditUser.State == 0)
+            {
+                if (!CheckUserWorkitem())
+                {
+                    return;
+                }
+            }
+            var oldParent = pageData.EditUser.ParentID;
+            pageData.EditUser.ParentID = parent;
+            pageData.EditUser.Manager = manager;
+            pageData.EditUser.Secretary = secretary;
+            pageData.EditUser.RelationUser = relationUser;
+            if (parent) {
+                $.ajaxFileUpload({
+                    url: $.Controller.OrgUser.SaveUserInfo,
+                    fileElementId: "fileUserFace",
+                    secureuri: false,
+                    type: "post",
+                    dataType: "json",
+                    data: pageData.EditUser,
+                    success: function (result) {
+                        if (result.Success) {
+                            $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                            top.ReloadNode(parent); //刷新组织树
+                            if (oldParent != pageData.EditUser.ParentID) { top.ReloadNode(oldParent); }
+
+                            var unitid = result.Extend.UserID;
+                            ChangeCurrentTabId(unitid);
+                            //设置标签显示名称
+                            top.workTab.setHeader(top.workTab.getSelectedTabItemID(), pageData.EditUser.UserName);
+                            var newUrl = _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=Organization/EditUser.html&Mode=View&ID=" + unitid + "&Parent=" + parent + "&code=" + pageData.EditUser.LoginName;
+                            ChangeCurrentTabIframe(unitid, newUrl);
+
+                        } else {
+                            var extend = "";
+                            if (result.Extend) { extend = result.Extend; }
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) + extend });
+                        }
+                        //图片预览初始化
+                        $("#fileUserFace").uploadPreview({ Img: "userFace" });
+
+                    }
+                });
+            }
+        }
+
+        //修改TabID
+        function ChangeCurrentTabId(newTabId) {
+            top.$("div[tabid='" + top.workTab.getSelectedTabItemID() + "']").attr("tabid", newTabId);
+            top.$("iframe[id='" + top.workTab.getSelectedTabItemID() + "']").attr("id", newTabId);
+            top.$("iframe[name='" + top.workTab.getSelectedTabItemID() + "']").attr("name", newTabId);
+            top.$("li[tabid='" + top.workTab.getSelectedTabItemID() + "']").attr("tabid", newTabId);
+        }
+
+        //修改页面地址
+        function ChangeCurrentTabIframe(tabID, newUrl) {
+            top.$("iframe[id='" + tabID + "']").attr("src", newUrl);
+        }
+
+        function CheckUserWorkitem()
+        {
+            var id = getUrlParam("ID");
+            var isOk = false;
+            if (id && id != "") {
+                $.ajax({
+                    url: $.Controller.OrgUser.CanDeleteUser,
+                    type: "post",
+                    dataType: "json",
+                    data: { id: id },
+                    async:false,
+                    success: function (result) {
+                        if (result.Success) {
+                            //存在待办任务不让删除
+                            if ((result.Extend.UnfinishedWorkItemCount) > 0) {
+                                $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.ExistUnfinishWorkItem2") });
+                                return false;
+                            }
+                            isOk = true;
+                        }
+                    }
+                });
+            }
+            return isOk;
+        }
+
+        function DeleteData() {
+            var id = getUrlParam("ID");
+            var parent = getUrlParam("Parent");
+            var deleteConfirm = $.Lang("msgGlobalString.DeleteConfrim");
+            if (id && id != "") {
+                $.ajax({
+                    url: $.Controller.OrgUser.CanDeleteUser,
+                    type: "post",
+                    dataType: "json",
+                    data: { id: id },
+                    success: function (result) {
+                        console.log(result)
+                        if (result.Success) {
+                            //+ result.Extend.UnreadWorkItemCount
+                            //存在待办任务不让删除
+                            if ((result.Extend.UnfinishedWorkItemCount ) > 0) {
+                                $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.ExistUnfinishWorkItem") });
+                                return false;
+                            }
+                            $.ligerDialog.confirm(deleteConfirm, function (result) {
+                                if (result) {
+                                    $.ajax({
+                                        url: $.Controller.OrgUser.DeleteUserInfo,
+                                        type: "post",
+                                        dataType: "json",
+                                        data: { id: id },
+                                        success: function (result) {
+                                            if (result.Success) {
+                                                $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                                                top.ReloadNode(parent); //刷新组织树
+                                                top.workTab.removeTabItem(id, true); //关闭当前标签页
+                                            } else {
+                                                $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        }
+
+    });
+
+    function InitRoleList(id) {
+        //用户所属角色
+        $.ajax({
+            url: $.Controller.OrgUser.GetUserRoleList,
+            type: 'get',
+            dataType: "json",
+            data: { userID: id },
+            async: false,//同步执行
+            success: function (result) {
+                pageData.RoleList = result;
+            }
+        });
+    }
+
+    //添加标签页
+    function AddOrgUnit(text, pageName) {
+        var editID = getUrlParam("ID");
+        top.f_addTab(
+            {
+                tabid: new Date().getTime(),
+                text: text,
+                url: "Organization/" + pageName + "&Mode=Add&Parent=" + editID
+            });
+        return false;
+    }
+
+    //跳转到用户角色添加页面
+    function AddUserRole() {
+        //debugger;
+        var userName = pageData.EditUser.UserName;
+        var id = getUrlParam("ID");
+        var roleList = "";
+        if (pageData.RoleList.Rows) {
+            $.each(pageData.RoleList.Rows, function () {
+                roleList += this.RoleID + ";";
+            })
+        }
+        var url = _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=Organization/EditUserRoleList.html&ID=" + id + "&Name=" + encodeURI(userName) + "&OrgPost=" + encodeURI(roleList);
+        ShowDialog("添加用户角色", url);
+    }
+</script>
+<style type="text/css">
+    .select2-container-multi .select2-choices .select2-search-field input {
+        outline: none;
+        outline-color: white;
+        background: none !important;
+        border-style: solid;
+        border-color: #ff0000;
+    }
+
+    input:focus {
+        border-style: solid;
+        border-color: #ff0000;
+    }
+</style>
+
+<validator name="formValidator">
+    <div id="H3ToolBar">
+        <a id="SaveBtn" v-on:click="saveData" data-icon="fa fa-save" data-lang="GlobalButton.Save"></a>
+        <a id="DeleteBtn" v-on:click="deleteData" class="ShowAfterSave" data-icon="fa fa-minus" data-lang="GlobalButton.Delete"></a>
+        <a id="PasswordBtn" v-on:click="updatePassword" class="ShowAfterSave" data-icon="fa fa-key" data-lang="Orgnization.UpdatePassword"></a>
+        <a id="SignatureBtn" v-on:click="signature" class="ShowAfterSave" data-icon="fa fa-edit" data-lang="Orgnization.Signature"></a>
+        <a id="TransferBtn" v-on:click="transfer" class="ShowAfterSave" data-icon="fa fa-exchange" data-lang="Orgnization.Transfer"></a>
+        <a id="UnitAclBtn" v-on:click="setAcl" class="ShowAfterSave" data-icon="fa icon-quanxianshezhi" data-lang="Orgnization.UnitAcl"></a>
+    </div>
+    <!--基本信息-->
+    <div class="H3Panel">
+        <span>{{LanData.msgGlobalString.Msg_BasciInfor}}</span>
+        <table class="tableList">
+            <!--登陆名-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.LoginName}}
+                </td>
+                <td>
+                    <input type="text" id="txtName" v-model="EditUser.LoginName" v-bind:disabled="EditUser.ObjectID" detect-change="on" detect-blur="on" initial="off" v-validate:item-code="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.itemCode.required">{{LanData.msgGlobalString.EnumValueRequired}}</span>
+                    <span v-if="!EditUser.ObjectID">{{LanData.msgGlobalString.InputFormat}}</span>
+                    <input type="hidden" v-model="EditUser.ObjectID" />
+                </td>
+            </tr>
+            <!--显示名称-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.UserName}}
+                </td>
+                <td style="padding-left: 0px">
+                    <input type="text" v-model="EditUser.UserName" detect-change="on" detect-blur="on" initial="off" v-validate:item-name="{required:true}" maxlength="64" />
+                    <span style="color:Red;" v-if="$formValidator.itemName.required">{{LanData.msgGlobalString.EnumValueRequired}}</span>
+                </td>
+            </tr>
+            <!--显示头像-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.UserFace}}
+                </td>
+                <td style="padding-left: 0px">
+                    <table>
+                        <tr>
+                            <td width="120px">
+                                <label class="col-md-10 control-label alignLeft">
+                                    <input type="file" id="fileUserFace" name="fileUserFace" style="display:none" />
+                                    <div>
+                                        <img id="userFace" style="cursor:pointer" width="100" height="120" src="../WFRes/images/person.gif" alt="点击图片上传" title="点击图片上传" />
+                                    </div>
+                                </label>
+                            </td>
+                            <td class="tableDesCol">
+
+                                (图片大小100*120px)
+                            </td>
+                        </tr>
+                    </table>
+
+                </td>
+
+            </tr>
+            <!--上级主管-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.Manager}}
+                </td>
+                <td style="padding-left: 0px">
+                    <div id="dvManager" style="width: 250px;">
+                    </div>
+                </td>
+            </tr>
+            <!--所属部门-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.ParentID}}
+                </td>
+                <td style="padding-left: 0px">
+                    <div id="dvParent" style="width: 250px;">
+                    </div>
+                </td>
+            </tr>
+            <!--离职状态-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.ServiceState}}
+                </td>
+                <td>
+                    <input type="radio" id="zaizhi" value="0" v-model="EditUser.ServiceState" />
+                    <label for="zaizhi">{{LanData.EditUser.ServiceState_0}}</label>
+                    <input type="radio" id="lizhi" value="2" v-model="EditUser.ServiceState" />
+                    <label for="lizhi">{{LanData.EditUser.ServiceState_1}}</label>
+
+                </td>
+            </tr>
+            <!--启用状态-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.State}}
+                </td>
+                <td>
+                    <input type="radio" id="Active" value="1" v-model="EditUser.State" />
+                    <label for="Active"> {{LanData.EditUser.State_Active}}</label>
+                    <input type="radio" id="InActive" value="0" v-model="EditUser.State" />
+                    <label for="InActive"> {{LanData.EditUser.State_InActive}}</label>
+
+                </td>
+            </tr>
+            <!--排序值 -->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.SortKey}}
+                </td>
+                <td>
+                    <input v-model="EditUser.SortKey" detect-change="on" detect-blur="on" initial="off" v-validate:sort-key="['number']" type="text" />
+                    <span style="color:Red;" v-if="$formValidator.sortKey.number">{{LanData.msgGlobalString.NumberValidate}}</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!--所属角色-->
+    <div class="H3Panel">
+        <span>{{LanData.Orgnization.OrgPostInfo}}</span>
+        <table class="tableList">
+            <!--所属角色-->
+            <tr>
+                <td>
+                    <div>
+                        <a v-show="EditUser.ObjectID" href="javascript:AddUserRole(this)" onclick="">
+                            <div class="l-toolbar-item l-panel-btn l-toolbar-item-hasicon" style="width: 60px;">
+                                <span data-lang="ListOrgJob.EditRole"></span>
+                                <div class="l-panel-btn-l"></div>
+                                <div class="l-panel-btn-r"></div>
+                                <i class="l-icon fa fa-plus"></i>
+                            </div>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <div v-if="RoleList.Total==0">暂未维护角色</div>
+                    <p v-for="option in RoleList.Rows">
+                        {{option.RoleName}}
+                    </p>
+                </td>
+            </tr>
+        </table>
+
+    </div>
+
+    <!--组织信息-->
+    <div class="H3Panel">
+        <span>{{LanData.Orgnization.OrgInfo}}</span>
+        <table>
+            <!--员工编码-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.EmployeeNumber}}
+                </td>
+                <td>
+                    <input type="text" v-model="EditUser.EmployeeNumber" />
+                </td>
+            </tr>
+            <!--员工职级-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.EmployeeRank}}
+                </td>
+                <td>
+                    <input v-model="EditUser.EmployeeRank" detect-change="on" detect-blur="on" initial="off" v-validate:employee-rank="['number']" type="text" />
+                    <span style="color:Red;" v-if="$formValidator.employeeRank.number">{{LanData.msgGlobalString.NumberValidate}}</span>
+                </td>
+            </tr>
+            <!--称谓-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.Appellation}}
+                </td>
+                <td>
+                    <input type="text" v-model="EditUser.Appellation" />
+                </td>
+            </tr>
+            <!--秘书-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.Secretary}}
+                </td>
+                <td>
+                    <div id="dvSecretary" style="width: 250px;">
+                    </div>
+                </td>
+            </tr>
+
+            <!--入职日期-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.EntryDate}}
+                </td>
+                <td>
+                    <input type="text" id="EntryDate" onclick="InitWdatePicker(this)" v-model="EditUser.EntryDate" />
+                </td>
+            </tr>
+            <!--离职日期-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.DepartureDate}}
+                </td>
+                <td>
+                    <input type="text" id="DepartureDate" onclick="InitWdatePicker(this)" v-model="EditUser.DepartureDate" />
+                </td>
+            </tr>
+        </table>
+    </div>
+    <!--个人信息-->
+    <div class="H3Panel">
+        <span>{{LanData.Orgnization.UserInfo}}</span>
+        <table>
+            <!--隐私保护级别-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.Privacy}}
+                </td>
+                <td>
+                    <span>
+                        <input type="radio" id="normal" value="0" v-model="EditUser.Privacy" />
+                        <label for="normal">{{LanData.EditUser.Privacy_OpenToAll}}</label>
+                        <input type="radio" id="onlyAdmin" value="2" v-model="EditUser.Privacy" />
+                        <label for="onlyAdmin">{{LanData.EditUser.Privacy_OpenToLocal}}</label>
+                        <input type="radio" id="Private" value="3" v-model="EditUser.Privacy" />
+                        <label for="Private">{{LanData.EditUser.Privacy_Private}}</label>
+                    </span>
+                </td>
+            </tr>
+
+            <!--身份证号-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.IDNumber}}
+                </td>
+                <td>
+                    <input type="text" v-model="EditUser.IDNumber" />
+                </td>
+            </tr>
+            <!--性别-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.Gender}}
+                </td>
+                <td>
+                    <input type="radio" id="male" value="1" v-model="EditUser.Gender" />
+                    <label for="male">{{LanData.EditUser.UserGender_1}}</label>
+                    <input type="radio" id="female" value="2" v-model="EditUser.Gender" />
+                    <label for="female">{{LanData.EditUser.UserGender_2}}</label>
+                    <img id="imgSex" />
+                </td>
+            </tr>
+            <!--出生日期-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.Birthday}}
+                </td>
+                <td>
+                    <input type="text" id="Birthday" onclick="InitWdatePicker(this)" v-model="EditUser.Birthday" />
+                </td>
+            </tr>
+        </table>
+    </div>
+    <!--联系方式-->
+    <div class="H3Panel">
+        <span>{{LanData.Orgnization.ContactInfo}}</span>
+        <table>
+            <!--邮箱-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.Email}}
+                </td>
+                <td>
+                    <input type="text" v-model="EditUser.Email" detect-change="on" detect-blur="on" initial="off" v-validate:item-email="['email']" />
+                    <span style="color:Red;" v-if="$formValidator.itemEmail.email">{{LanData.msgGlobalString.InputFormat}}</span>
+                </td>
+            </tr>
+            <!--办公电话-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.OfficePhone}}
+                </td>
+                <td>
+                    <input v-model="EditUser.OfficePhone" type="text" detect-change="on" detect-blur="on" initial="off" v-validate:item-officephone="['nullornumber']" />
+                    <span style="color:Red;" v-if="$formValidator.itemOfficephone.nullornumber">{{LanData.msgGlobalString.MobileError}}</span>
+                </td>
+            </tr>
+            <!--手机-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.Mobile}}
+                </td>
+                <td>
+                    <input type="text" v-model="EditUser.Mobile" detect-change="on" detect-blur="on" initial="off" v-validate:item-mobile="['mobile']" />
+                    <span style="color:Red;" v-if="$formValidator.itemMobile.mobile">{{LanData.msgGlobalString.MobileError}}</span>
+                </td>
+            </tr>
+            <!--传真号-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.Fax}}
+                </td>
+                <td>
+                    <input type="text" v-model="EditUser.Fax" />
+                </td>
+            </tr>
+            <!-- 钉钉UiserID -->
+            <tr>
+                <td class="tableLeft">
+                    DingTalkAccount
+                </td>
+                <td>
+                    <input type="text" v-model="EditUser.DingTalkAccount" />
+                </td>
+            </tr>
+            <!--SID-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.SID}}
+                </td>
+                <td>
+                    <input type="text" id="SID" disabled="disabled" v-model="EditUser.SID" />
+                </td>
+            </tr>
+        </table>
+    </div>
+    <!--系统消息-->
+    <div class="H3Panel">
+        <span>{{LanData.Orgnization.SystemInfo}}</span>
+        <table>
+            <!--系统管理员-->
+            <!--<tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.SystemAdmin}}
+                </td>
+                <td>
+                    <input type="radio" id="SystemAdmin_1" value="1" v-model="EditUser.SystemAdmin" />
+                    <label for="SystemAdmin_1">{{LanData.EditUser.State_1}}</label>
+                    <input type="radio" id="SystemAdmin_0" value="0" v-model="EditUser.SystemAdmin" checked />
+                    <label for="SystemAdmin_0">{{LanData.EditUser.State_0}}</label>
+                </td>
+            </tr>-->
+            <!--允许登陆后台-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.PortalAdmin}}
+                </td>
+                <td>
+                    <input type="checkbox" id="PortalAdmin" v-model="EditUser.PortalAdmin" /><label for="PortalAdmin"></label>
+
+                </td>
+            </tr>
+            <!--系统内置用户-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.SystemUser}}
+                </td>
+                <td>
+                    <input type="checkbox" id="SystemUser" v-model="EditUser.SystemUser" /><label for="SystemUser"></label>
+
+                </td>
+            </tr>
+            <!--虚拟用户-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.VirtualUser}}
+                </td>
+                <td>
+                    <table>
+                        <tr>
+                            <td>
+
+                                <input type="checkbox" id="VirtualUser" v-model="EditUser.VirtualUser" /><label for="SystemUser"></label>
+                            </td>
+                            <td>
+                                <p v-show="EditUser.VirtualUser">{{LanData.EditUser.RelationUser}}</p>
+                            </td>
+                            <td>
+                                <div v-show="EditUser.VirtualUser" id="RelationUser"></div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <!--接收消息类型-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditUser.Notification}}
+                </td>
+                <td>
+                    <!--这里是四个数据项，接收邮件，APP ，微信，短信-->
+                    <span>
+                        <input type="checkbox" id="EmailNotify" v-model="EditUser.EmailNotify" />
+                        <label for="EmailNotify">{{LanData.EditUser.EmailNotify}}</label>
+                        <input type="checkbox" id="AppNotify" v-model="EditUser.AppNotify" />
+                        <label for="AppNotify">{{LanData.EditUser.AppNotify}}</label>
+                        <input type="checkbox" id="WechatNotify" v-model="EditUser.WechatNotify" />
+                        <label for="WechatNotify">{{LanData.EditUser.WechatNotify}}</label>
+                        <input type="checkbox" id="MessageNotify" v-model="EditUser.MessageNotify" />
+                        <label for="MessageNotify">{{LanData.EditUser.MessageNotify}}</label>
+                        <input type="checkbox" id="DingTalkNotify" v-model="EditUser.DingTalkNotify" />
+                        <label for="MessageNotify">{{LanData.EditUser.DingTalkNotify}}</label>
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

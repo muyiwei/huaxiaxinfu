@@ -1,0 +1,182 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="renderer" content="webkit" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title> 
+    <link href="../WFRes/_Content/themes/ligerUI/Aqua/css/ligerui-all.css" rel="stylesheet" type="text/css" />
+    <link href="../WFRes/_Content/themes/ligerUI/ligerui-icons.css" rel="stylesheet" type="text/css" />
+    <link href="../WFRes/_Content/themes/H3Default/H3-All.css" rel="stylesheet" type="text/css" />
+    <link href="../WFRes/assets/stylesheets/pixel-admin.min.css" rel="stylesheet" type="text/css" />
+  
+    <link rel="shortcut icon" type="image/x-icon" href="../WFRes/images/favicon.png" media="screen" />
+    <link rel="icon" type="image/x-icon" href="../WFRes/images/favicon.png" media="screen" />
+    
+
+    <script src="../WFRes/_Scripts/jquery/jquery.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        var showLogin = function () {
+            //var docHeight = ($('body').outerHeight(true) == 0 ? $('body')[0].clientHeight : $('body').outerHeight(true));
+            //if (docHeight == 0) docHeight = window.screen.height;
+            var loginWin = $.ligerui.get('LoginWinID');
+            if (loginWin) {
+                loginWin.show();
+            }
+            else {
+                loginWin = $.ligerDialog.open({
+                    id: 'LoginWinID',
+                    url: _PORTALROOT_GLOBAL + '/index.html#/platform/login',
+                    isHidden: false,
+                    width: $('body').outerWidth(true),
+                    bottom: 0,
+                    height: window.screen.height - 105,//docHeight + 20,
+                    onClosed: function () {
+                        location.reload();
+                    }
+                });
+            }
+            $("#LoginWinID").css("bottom", 0);
+            loginWin.hideTitle();
+            $('body').attr('onresize', '$("body").css("overflow","hidden");$.ligerui.get("LoginWinID").set({width:$("body").outerWidth(true),height:$("body").outerHeight()+14,bottom:0});$("body").css("overflow","auto")')
+            .addClass("noscroll");
+        }
+
+        $.ajaxSetup({
+            complete: function (XMLHttpRequest, textStatus) {
+                //注册统一500错误事件
+                if (textStatus == "error" && XMLHttpRequest.status == "500") {
+                    try {
+                        var errorHtml = $.parseHTML(XMLHttpRequest.responseText);
+                        var errorTitle = errorHtml[1].innerHTML;
+                        $.H3Dialog.Error({ content: errorTitle + " " + $.Lang("msgGlobalString.SystemError") });
+                    } catch (e) {
+                        $.H3Dialog.Error({ content: $.Lang("msgGlobalString.SystemError") });
+                    }
+                }
+                //FormAuthentication过期
+                if (XMLHttpRequest.status == 401) {
+                    showLogin();
+                }
+                // 注册统一监听事件
+                if (XMLHttpRequest.responseText) {
+                    try {
+                        var result = JSON.parse(XMLHttpRequest.responseText);
+                        if (result && !result.Success && result.ExceptionCode == 1) {
+                            // 超时异常
+                            showLogin();
+                        }
+                        else {
+                            // 移除队列中的所有调用
+                            ajaxActions.length = 0;
+                        }
+                    } catch (e) { }
+                }
+            }
+        });
+    </script>
+    <script src="../WFRes/_Scripts/jquery/jquery.lang.js" type="text/javascript"></script>
+    <script src="../WFRes/_Scripts/jquery/plugin/dynamicLoading/dynamicLoading.js"></script>
+    <script src="../WFRes/_Scripts/vue/vue.min.js" type="text/javascript"></script>
+    <script src="../WFRes/_Scripts/vue/vue-validator.js" type="text/javascript"></script>
+    <script type="text/javascript" src="../WFRes/_Scripts/vue/Validator.js"></script>
+    <script src="../WFRes/_Scripts/Calendar/WdatePicker.js" type="text/javascript"></script>
+    <script src="../WFRes/_Scripts/ligerUI/ligerui.all.js" type="text/javascript"></script>
+    <script src="../WFRes/_Scripts/H3AdminPlugins.js" type="text/javascript"></script>
+    <script type="text/javascript" src="../WFRes/_Scripts/MvcSheet/SheetControls.js"></script>
+    <script type="text/javascript" src="../WFRes/_Scripts/MvcSheet/MvcSheetUI.js"></script>
+    <script type="text/javascript" src="../WFRes/_Scripts/MvcSheet/Controls/SheetUser.js"></script>
+    <script type="text/javascript" src="../WFRes/_Scripts/MvcSheet/Controls/SheetWorkflow.js"></script>  
+
+    <script type="text/javascript">
+        var _PORTALROOT_GLOBAL = top.window._PORTALROOT_GLOBAL || "";
+        var url = getUrlParam("url");
+        var code = getUrlParam("code");
+        var SchemaCode = getUrlParam("SchemaCode");
+        if (code) document.title = $.Lang(code);
+        var urlLowerCase = url.toLowerCase();
+        var ajaxActions = [];
+
+        // URL兼容
+        if (urlLowerCase.indexOf("http") != 0 && urlLowerCase.indexOf(_PORTALROOT_GLOBAL.toLowerCase()) != 0) {
+            if (url.indexOf("/") == 0 || url.indexOf("\\") == 0) {
+                url = url.substring(1);
+            }
+            if (url.toLowerCase().indexOf("admin") != 0) {
+                url = "admin/" + url;
+            }
+            url = _PORTALROOT_GLOBAL + "/" + url;
+        }
+
+        //流程包不是本人锁定时，禁用页面客户端控件
+        var setControlUsable = function (isUsable, controls) {
+            if (isUsable == "0") {
+                controls.removeAttr("href").removeAttr("onclick").removeAttr("v-on:click").attr("disabled", "disabled").unbind("click")
+                    .children("div").addClass("l-toolbar-item-disable");
+            }
+        }
+        //页面不可编辑
+        var SetPageControlDisabled = function (edit) {
+            if (!edit) {
+                //功能按钮不能使用
+                setControlUsable("0", $("a"));
+                //表单控件不可编辑
+                $("input").attr("disabled", "disabled");
+                $("textarea").attr("disabled", "disabled");
+                $("select").attr("disabled", "disabled");
+            }
+        }
+
+        //js获取URL参数
+        function getUrlParam(name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+            var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+            if (r != null) return decodeURI(r[2]); return null; //返回参数值
+        };
+
+        //获取服务器时间
+        function initDefaultDate() {
+            $.ajax({
+                url: $.Controller.AdminIndex.GetSystemDate,
+                type: "GET",
+                cache: false,
+                dataType: "JSON",
+                async: false,//同步执行
+                success: function (data) {
+                    if (data.Success) {
+                        $("*[data-datetime]").each(function (n, k) {
+                            var key = $.Lang($(this).attr("data-datetime"));
+                            if (key == "start") {
+                                $(this).val(data.Extend.StartTime);
+                            } else {
+                                $(this).val(data.Extend.EndTime);
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        //加载HTML页面
+        $(function () {
+            $.ajax({
+                url: url,
+                type: 'get',
+                async: false,//同步执行
+                success: function (html) {
+                     //console.log("Load template start,url=" + url);
+                    $("#content").html(html);
+                     //console.log("Load template end...");
+                    $.initLanguage();
+                    if (SchemaCode) {
+                        //TODO 判断是否被锁定,执行相应动作.
+                        setControlUsable("1", $("a"));
+                    }
+                }
+            });
+        });
+    </script>
+</head>
+<body style="overflow-x:hidden">
+    <div id="content" style="width:100%;"></div>
+</body>
+</html>

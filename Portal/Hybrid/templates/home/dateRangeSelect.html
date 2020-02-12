@@ -1,0 +1,24 @@
+﻿<!-- 未使用 -->
+
+<ion-modal-view  hide-nav-var="false" view-title="按日期查找" ng-controller="dateRangeSelectCtl">
+    <ion-header-bar class="bar bar-header bar-positive">
+        <button class="button button-icon button-clear ion-ios-arrow-back" ng-click="back();">返回</button>
+        <h1 class="title">按日期查找</h1>
+    </ion-header-bar>
+   
+    <ion-content class="has-header" >
+        <div class="list">
+            <label class="item item-input item-stacked-label">
+                <span class="input-label">开始日期</span>
+                <input type="date" placeholder="" ng-model="search.startDate">
+            </label>
+            <label class="item item-input item-stacked-label">
+                <span class="input-label">结束日期</span>
+                <input type="date" placeholder="" ng-model="search.endDate">
+            </label>
+        </div>
+        <div class="padding">
+            <button class="button button-block button-positive" ng-click="doSearchDate();">确定</button>
+        </div>
+    </ion-content>
+</ion-modal-view>

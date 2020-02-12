@@ -1,0 +1,25 @@
+﻿<ion-view hide-nav-bar="true" class="{{reportCode}}" view-title="{{languages.tabs.report}}">
+    <div class="menu-tittle" style="border-bottom:1px solid #e0e0e0;" ng-show="{{!$root.dingMobile.isDingMobile}}">
+        <div class="menu-tittle-left pr25" ng-click="goback()">
+            <i class="ion-chevron-left f17 blue"></i>
+        </div>
+        <div class="menu-tittle-middle f17">{{languages.tabs.report}}</div>
+        <div class="menu-tittle-right f15">
+            <i class="icon-shaixuan f14 blue "></i>
+            <span ng-click="openPopover()" class="">{{languages.filter}}</span>
+        </div>
+    </div>
+    <ion-content overflow-scroll="true" ng-class="{{$root.dingMobile.dingHeaderClass}}" style="top:{{topStyle}}">
+        <div ui-jq="LoadReportPage" ui-options="options()" id="ReportPage" class="report-content"></div>
+    </ion-content>
+    <style>
+        /* 移动端屏蔽全屏按钮 */
+        .scroll .icon.iconReport-expand {
+            display: none;
+        }
+
+        .scrollingAuto {
+            -webkit-overflow-scrolling: auto !important;
+        }
+    </style>
+</ion-view>

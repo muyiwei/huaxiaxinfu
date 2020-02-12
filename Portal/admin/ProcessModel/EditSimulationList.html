@@ -1,0 +1,143 @@
+﻿<script>
+    var SimulationListID = getUrlParam("SimulationListID");
+    var WorkflowCode = getUrlParam("WorkflowCode");
+    var Simulations = [];
+    var simulation = "";
+
+    $(function () {
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+        //debugger;
+        LoadData();
+
+        if (typeof (Simulations) != "undefined"){
+            var manager = $("#divGrid").ligerGrid({
+                columns: GetSimulationColums(),
+                width: '100%',
+                data: Simulations,
+                rownumbers: true,
+                usePager: false,
+                checkbox: true,
+                tree: { columnId: 'ObjectID' },
+                allowAdjustColWidth: true,
+                isChecked: InitCheck
+            });
+        }
+    });
+
+    function LoadData()
+    {
+        var loadUrl = _PORTALROOT_GLOBAL + $.Controller.Simulation.LoadSimulationList;
+        $.ajax({
+            url: loadUrl,
+            type: "post",
+            dataType: "json",
+            async: false,
+            data: { SimulationListID: SimulationListID, WorkflowCode: WorkflowCode },
+            success: function (result) {
+                //debugger;
+                if (result.Success) {
+                    simulation = result.Extend.SimulationIDS;
+                    Simulations = result.Extend.Simulations;
+                    var WorkflowName = result.Extend.WorkflowName;
+                    var SimulationListCode = result.Extend.SimulationListCode;
+
+                    $("#ltlWorkflowName").val(WorkflowName);
+                    $("#txtSimulationCode").val(SimulationListCode);
+
+                } else {
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                }
+            }
+        });
+            
+    }
+
+    function InitCheck(rowdata) {
+        if (typeof (simulation) != "undefined" && simulation.indexOf(rowdata.ObjectID) > -1)
+            return true;
+        return false;
+    }
+
+    function GetSimulationColums() {
+        return [
+            { display: $.Lang("Simulation.Simulation_InstanceName"), name: "InstanceName" }
+    ];
+    }
+
+    //执行保存
+    var DoSave = function () {
+        var manager = $("#divGrid").ligerGetGridManager();
+        if (manager == null) {
+                $.H3Dialog.Warn({ content: $.Lang("Simulation.SimulationDetail_Mssg6") });
+            return;
+        }
+        var rows = manager.getSelectedRows();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SelectItem") });
+        return;
+        }
+        var ids = "";
+        for (var i = 0; i < rows.length; i++) {
+            ids = ids + rows[i].ObjectID + ";";
+        }
+
+        $.ajax({
+            type: "post",
+            url: _PORTALROOT_GLOBAL + $.Controller.Simulation.SaveSimulationList,
+            cache: false,
+            async: false,
+            dataType: "json",
+            data: {
+                SimulationListID: SimulationListID,
+                WorkflowCode: WorkflowCode,
+                SimulationListCode: $("input[id*='txtSimulationCode']").val(),
+                SimulationIDS: ids
+            },
+            success: function (result) {
+                if (result.Success) {
+                    //SimulationID = result.Message;
+                    $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                    localStorage.setItem("OpenList", "true");
+                    parent.location.reload();
+                }
+                else {
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                }
+            },
+            error: function (msg) {
+            }
+        });
+    }
+
+</script>
+<div id="H3ToolBar">
+    <a href="javascript:DoSave()" data-icon="fa fa-save" data-lang="GlobalButton.Save"></a>
+</div>
+<div class="H3Panel">
+    <span data-lang="Simulation.Simulation_FlowSimulation"></span>
+    <table>
+        <tr>
+            <td data-lang="Simulation.Simulation_WorkflowName"></td>
+            <td>
+                
+                <input type="text" disabled="disabled" id="ltlWorkflowName" />
+            </td>
+        </tr>
+        <tr>
+            <td data-lang="Simulation.Simulation_SimulationCode"></td>
+            <td>
+               
+                <input type="text" id="txtSimulationCode" />
+               <span style="color:red">*</span>
+            </td>
+        </tr>
+        <tr>
+            <td data-lang="Simulation.Simulation_Simulations"></td>
+            <td>
+                <div id="divGrid">
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>

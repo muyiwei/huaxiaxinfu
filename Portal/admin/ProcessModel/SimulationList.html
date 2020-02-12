@@ -1,0 +1,325 @@
+﻿<script>
+    var IsControlUsable = false;
+    var WorkflowCode;
+    $(function () {
+        WorkflowCode = getUrlParam("WorkflowCode");
+        $("#H3ToolBar").AspLinkToolBar();
+
+        //debugger;
+        //获取是否可以编辑
+        $.ajax({
+            url: _PORTALROOT_GLOBAL + $.Controller.WorkflowHistory.GetIsControlUsable,
+            type: "get",
+            async: false,
+            data: { BizObjectSchemaCode: WorkflowCode },
+            success: function (result) {
+                if (result == 1) { IsControlUsable = true; }
+            }
+        });
+
+        SimulationClick();
+
+        if (localStorage["OpenList"]) {
+            localStorage.removeItem("OpenList");
+            SimulationListClick();
+        }
+    });
+
+    function SimulationClick() {
+        BuildLigerUITab(0, true);
+        //debugger;
+        //TODO
+        CreatLigerUIGird($("#gvList"),
+            CreateColums(),
+            _PORTALROOT_GLOBAL + $.Controller.Simulation.GetDataList + "?workflowCode=" + WorkflowCode);
+    }
+
+    function CreatLigerUIGird(grid, createColums, url) {
+        $(grid).ligerGrid({
+            columns: createColums,
+            enabledSort: true,
+            width: '100%',
+            pageSizeOptions: [5, 10, 15, 20, 50, 100],
+            height: '99%',
+            tree: null,
+            headerRowHeight: "30",
+            pageSize:15,
+            url: url,
+            dataAction: 'server', //服务器排序
+            usePager: true,       //服务器分页
+            checkbox: true,
+            rownumbers: true,
+            columnWidth: "auto",
+            onLoading: function (gridobj) {
+                //处理全选按钮逻辑问题 加载数据去掉全选框选中状态
+                var hrow = $(grid).find(".l-grid-hd-row");
+                hrow.removeClass("l-checked");
+                return gridobj;
+            },
+            onAfterShowData: function () { setControlUsable(IsControlUsable, $("a")); }
+        });
+
+        setControlUsable(IsControlUsable, $("a"));
+    }
+
+    function SimulationListClick() {
+        $("#ToolBar").AspLinkToolBar();
+        BuildLigerUITab(1, true);
+        CreatLigerUIGird($("#gvSimuList"),
+            CreateListColums(),
+            _PORTALROOT_GLOBAL + $.Controller.Simulation.GetSimulationList + "?workflowCode=" + WorkflowCode);
+    }
+
+    function CreateColums() {
+        var InstanceName = $.Lang("Simulation.Simulation_InstanceName");
+        var Originator = $.Lang("Simulation.Simulation_Originator");
+        var State = $.Lang("Simulation.SysDeployment_State");
+        var Running = $.Lang("Simulation.SimulationList_Running");
+        var Setting_Running = $.Lang("msgGlobalString.Running");
+        var View = $.Lang("GlobalButton.View");
+        var Time = $.Lang("Simulation.SimulationList_Time");
+        var Edit = $.Lang("GlobalButton.Edit");
+        return [
+            { display: InstanceName, name: "InstanceName" },
+            { display: Originator, name: "Originator" },
+            {
+                display: State, name: "IsRunning", render: function (row) {
+                    //未执行过
+                    if (row.NextBatchNo <= 1) {
+                        return Running;
+                    }
+                        //进行中
+                    else if (row.IsRunning.toLowerCase() == "true") {
+                        return "<div style='width:30%;float:left;'><a href='#' name='" + row.InstanceName + "' onclick='ViewSimulationInstances(\"" + row.ObjectID + "\",\"" + row.InstanceName + "\")'>" + Setting_Running + "</a></div>";
+                    }
+                        //已完成
+                    else {
+                        return "<div style='width:30%;float:left;'><a href='#' name='" + row.InstanceName + "' onclick='ViewSimulationInstances(\"" + row.ObjectID + "\",\"" + row.InstanceName + "\")'>" + View + "</a></div>"
+                    }
+                }
+            },
+            {
+                display: Time, name: "LastRunTime", render: function (row) {
+                    //未执行过
+                    if (row.NextBatchNo > 1) {
+                        //时间格式
+                        if (row.LastRunTime && typeof (row.LastRunTime) == "string" && row.LastRunTime.match(/^\/Date\(\-*[0-9]+\)\/$/)) {
+                            var d = new Date();
+                            var dateValue = parseFloat(row.LastRunTime.match(/\-*[0-9]+/)[0]);
+                            if (parseInt(dateValue) > 0) {
+                                d.setTime(dateValue);
+                                var month = d.getMonth() + 1;
+                                return d.getFullYear() + "/" + month + "/" + d.getDate() + " " + d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+                            }
+                        }
+                    }
+                }
+            },
+    {
+        display: Edit, name: "",
+        render: function (row) {
+            var _html = "<div style='width:30%;float:left;'><a href='#' onclick='ShowDetail(\"" + row.ObjectID + "\",\"" + row.InstanceName + "\")'>" + Edit + "</a></div>";
+            return _html;
+        }
+    }];
+    }
+
+    function ShowDetail(_ObjectID, _Name) {
+        ShowDialog($.Lang("GlobalButton.Edit") + ":" + _Name, _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/EditSimulation.html&SimulationID=" + _ObjectID + "&WorkflowCode=" + WorkflowCode,null,null,50);
+    }
+
+    function ShowReport(_ObjectID, _Name) {
+        ShowDialog($.Lang("Simulation.SimulationList_SimulationReport") + ":" + _Name, _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/SimulationListReport.html&SimulationListID=" + _ObjectID,null,null,50);
+    }
+
+    function ViewSimulationInstances(_ObjectID, _Name) {
+        ShowDialog($.Lang("Simulation.SimulationList_Operation") + ":" + _Name, _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/SimulationInstanceList.html&SimulationID=" + _ObjectID + "&SchemaCode=" + WorkflowCode,null,null,50);
+    }
+
+    var AddSimulation = function () {
+        var WorkflowCode = getUrlParam("WorkflowCode");
+        ShowDialog($.Lang("Simulation.SimulationList_Create"), _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/EditSimulation.html&WorkflowCode=" + WorkflowCode, null, null, 50);
+    }
+
+    var ImportSimulation = function () {
+        var WorkflowCode = getUrlParam("WorkflowCode");
+        ShowDialog($.Lang("Simulation.SimulationList_Create"), _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/EditSimulation.html&isImport=true&WorkflowCode=" + WorkflowCode,null,null,50);
+    }
+
+    var AddSimulationList = function () {
+        var WorkflowCode = getUrlParam("WorkflowCode");
+        ShowDialog($.Lang("Simulation.SimulationList_CreateList"), _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/EditSimulationList.html&WorkflowCode=" + WorkflowCode,null,null,50);
+    }
+
+    var EidtSimulationList = function (_ObjectID) {
+        var WorkflowCode = getUrlParam("WorkflowCode");
+        ShowDialog($.Lang("Simulation.SimulationList_CreateList"), _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/EditSimulationList.html&WorkflowCode=" + WorkflowCode + "&SimulationListID=" + _ObjectID,null,null,50);
+    }
+
+    function RunSimulation(obj) {
+        var manager = $("#gvList").ligerGetGridManager();
+        var rows = manager.getSelectedRows();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SelectItem") });
+            return;
+        }
+        //debugger;
+        var ids = "";
+        for (var i = 0; i < rows.length; i++) {
+            ids = ids + rows[i].ObjectID + ";";
+        }
+        var url = _PORTALROOT_GLOBAL + $.Controller.Simulation.RunSimulation;
+        $.ajax({
+            url: url,
+            data: { ObjectIDString: ids },
+            success: function (data) {
+                manager.reload();
+            }
+        });
+    }
+
+    function RunSimulationList(obj) {
+        var manager = $("#gvSimuList").ligerGetGridManager();
+        var rows = manager.getSelectedRows();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SelectItem") });
+            return;
+        }
+        //debugger;
+        var ids = "";
+        for (var i = 0; i < rows.length; i++) {
+            ids = ids + rows[i].ObjectID + ";";
+        }
+        var url = _PORTALROOT_GLOBAL + $.Controller.Simulation.RunSimulationList;
+        $.ajax({
+            url: url,
+            data: { ObjectIDString: ids },
+            success: function (data) {
+                manager.reload();
+            }
+        });
+    }
+
+    function CreateListColums() {
+        var SimulationCode = $.Lang("Simulation.Simulation_SimulationCode");
+        var Simulations = $.Lang("Simulation.Simulation_Simulations");
+        var Time = $.Lang("Simulation.SimulationList_Time");
+        var Edit = $.Lang("GlobalButton.Edit");
+        var Report = $.Lang("Simulation.Simulate_ViewReport");
+        return [
+            { display: SimulationCode, width: "10%", name: "SimulationCode" },
+            { display: Simulations, width: "50%", name: "Simulations" },
+            {
+                display: Time, width: "20%", name: "LastRunTime", render: function (row) {
+                    //时间格式
+                    if (row.LastRunTime && typeof (row.LastRunTime) == "string" && row.LastRunTime.match(/^\/Date\(\-*[0-9]+\)\/$/)) {
+                        var d = new Date();
+                        var dateValue = parseFloat(row.LastRunTime.match(/\-*[0-9]+/)[0]);
+                        if (parseInt(dateValue) > 0) {
+                            d.setTime(dateValue);
+                            var month = d.getMonth() + 1;
+                            return d.getFullYear() + "/" + month + "/" + d.getDate() + " " + d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+                        }
+                    }
+                }
+            },
+            {
+                display: Edit, width: "10%", name: "",
+                render: function (row) {
+                    var _html = "<div style='float:left;'><a href='#' onclick='EidtSimulationList(\"" + row.ObjectID + "\")'>" + Edit + "</a></div>";
+                    return _html;
+                }
+            },
+    {
+        display: Report, width: "10%", name: "",
+        render: function (row) {
+            var _html = "<div style='float:left;'><a href='#' onclick='ShowReport(\"" + row.ObjectID + "\",\"" + row.SimulationCode + "\")'>" + Report + "</a></div>";
+            return _html;
+        }
+    }];
+    }
+
+    function DelSimulation() {
+        var manager = $("#gvList").ligerGetGridManager();
+        var rows = manager.getSelectedRows();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SelectItem") });
+            return;
+        }
+        $.ligerDialog.confirm($.Lang("Simulation.EditComment_DeleteConfirm"), function (OK) {
+            if(OK)
+                {
+                    var ids = "";
+                    for (var i = 0; i < rows.length; i++) {
+                        ids = ids + rows[i].ObjectID + ";";
+                    }
+
+                    var url = _PORTALROOT_GLOBAL + $.Controller.Simulation.DeleteSimulation;
+                    $.ajax({
+                        url: url,
+                        data: { ObjectIDString: ids },
+                        success: function (data) {
+                            manager.reload();
+                        }
+                    });
+                }
+        }) 
+    }
+
+    function DelSimulationList() {
+        var manager = $("#gvSimuList").ligerGetGridManager();
+        var rows = manager.getSelectedRows();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SelectItem") });
+            return;
+        }
+        $.ligerDialog.confirm($.Lang("Simulation.EditComment_DeleteConfirm"), function (OK) {
+            if(OK)
+                {
+                    var ids = "";
+                    for (var i = 0; i < rows.length; i++) {
+                        ids = ids + rows[i].ObjectID + ";";
+                    }
+
+                    var url = _PORTALROOT_GLOBAL + $.Controller.Simulation.DeleteSimulationList;
+                    $.ajax({
+                        url: url,
+                        data: { ObjectIDString: ids },
+                        success: function (data) {
+                            manager.reload();
+                        }
+                    });
+                }
+        }) 
+    }
+
+    //执行刷新
+    var DoRefresh = function () {
+        location.reload();
+    }
+</script>
+
+<div class="l-tab-links">
+    <a id="lnk_0" onclick="SimulationClick()" href="javascript:void(0)" data-lang="Simulation.SimulationList_Simulation"></a>
+    <a id="lnk_1" onclick="SimulationListClick()" href="javascript:void(0)" data-lang="Simulation.SimulationList_SimulationList"></a>
+</div>
+<div class="H3Pannel" id="tabPnl0">
+    <div id="H3ToolBar">
+        <a href="javascript:AddSimulation(this)" data-icon="fa fa-plus" data-lang="Simulation.Simulate_AddNewSimulation"></a>
+        <a href="javascript:void(0)" onclick="RunSimulation()" data-icon="icon-yunxing" data-lang="GlobalButton.Run"></a>
+        <a href="javascript:void(0)" onclick="DelSimulation()" data-icon="fa fa-minus" data-lang="GlobalButton.Delete"></a>
+        <a href="javascript:ImportSimulation(this)" data-icon="fa fa-upload" data-lang="GlobalButton.Import"></a>
+        <a href="javascript:DoRefresh()" data-icon="icon-shuaxin" data-lang="GlobalButton.Refresh"></a>
+    </div>
+    <div id="gvList">
+    </div>
+</div>
+<div class="H3Pannel" id="tabPnl1">
+    <div id="ToolBar">
+        <a href="javascript:AddSimulationList(this)" data-icon="fa fa-plus" data-lang="Simulation.Simulate_AddNewSimulationList"></a>
+        <a href="javascript:void(0)" onclick="RunSimulationList()" data-icon="icon-yunxing" data-lang="GlobalButton.Run"></a>
+        <a href="javascript:void(0)" onclick="DelSimulationList()" data-icon="fa fa-minus" data-lang="GlobalButton.Delete"></a>
+    </div>
+    <div id="gvSimuList">
+    </div>
+</div>

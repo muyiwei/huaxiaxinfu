@@ -1,0 +1,1043 @@
+﻿<!-- 在线代码编辑Start -->
+<link rel="stylesheet" href="MvcDesigner/Lib/docs.css" />
+<link rel="stylesheet" href="MvcDesigner/Lib/aspx.css" />
+<div id="divCssSharp"></div>
+<link rel="stylesheet" href="MvcDesigner/Lib/show-hint.css" />
+<script src="MvcDesigner/Lib/codemirror.js"></script>
+<script src="MvcDesigner/Lib/matchbrackets.js"></script>
+<script src="MvcDesigner/Lib/xml.js"></script>
+<script src="MvcDesigner/Lib/javascript.js"></script>
+<script src="MvcDesigner/Lib/css.js"></script>
+<script src="MvcDesigner/Lib/htmlmixed.js"></script>
+<script src="MvcDesigner/Lib/htmlembedded.js"></script>
+<script src="MvcDesigner/Lib/fullscreen.js"></script>
+<script src="MvcDesigner/Lib/clike.js"></script>
+<!-- 在线代码编辑End -->
+<link href="../WFRes/css/MvcSheet.css" rel="stylesheet" type="text/css" />
+<link href="../WFRes/css/MvcDesigner.css" rel="stylesheet" />
+
+<script src="../WFRes/_Scripts/jquery/jquery.contextmenu.r2.js" type="text/javascript"></script>
+
+<!--
+<script src="../WFRes/_Scripts/ligerUI/ligerui.min.js"></script>-->
+<script src="../WFRes/_Scripts/ligerUI/plugins/ligerDrag.js"></script>
+<script src="../WFRes/_Scripts/jquery/jquery.select.js"></script>
+<script>
+    var PortalRoot = window.localStorage.getItem("H3.PortalRoot");
+</script>
+<!-- 表单设计器脚本 Start -->
+<script src="../WFRes/_Scripts/MvcSheet/SheetControls.js"></script>
+<script src="../WFRes/_Scripts/MVCDesigner/SheetDesigner.PropertyGuide.js"></script>
+<script src="../WFRes/_Scripts/MVCDesigner/SheetDesigner.ConstProperty.js"></script>
+<script src="../WFRes/_Scripts/MVCDesigner/SheetDesigner.js"></script>
+<script src="../WFRes/_Scripts/MVCDesigner/SheetDesigner.ClipBoard.js"></script>
+<script src="../WFRes/_Scripts/MVCDesigner/SheetDesigner.PropertyPanel.js"></script>
+<script src="../WFRes/_Scripts/MVCDesigner/SheetDesigner.DropContainer.js"></script>
+<script src="../WFRes/_Scripts/MVCDesigner/SheetDesigner.Layout.js"></script>
+<!-- 表单设计器脚本 End -->
+<script src="../WFRes/_Scripts/ligerUI/plugins/ligerDialog.js"></script>
+<!--流程选择器-->
+<!--<script type="text/javascript" src="../WFRes/_Scripts/MvcSheet/MvcSheetUI.js"></script>-->
+<!--<script src="../WFRes/_Scripts/MVCSheet/Controls/SheetWorkflow.js"></script>-->
+<script src="../WFRes/Scripts/WorkflowSelector.js"></script>
+<style>
+
+
+</style>
+
+<script type="text/javascript">
+
+    var toolbar, layout;
+    var EngineCode = "";//TODO 需要从后台获取
+    var SheetCode = getUrlParam("SheetCode");
+    var ParentID = getUrlParam("ParentID");
+    var IsControlUsable = 1;
+
+    //流程包不是本人锁定时，禁用页面客户端控件
+    var setControlUsable = function (isUsable, controls) {
+        if (isUsable == "0") {
+            controls.removeAttr("href").removeAttr("onclick").removeAttr("v-on:click").attr("disabled", "disabled").unbind("click")
+                .children("div").addClass("l-toolbar-item-disable");
+        }
+    }
+
+    //获取引擎编码
+    $.ajax({
+        url: _PORTALROOT_GLOBAL + "/MvcDesigner/GetEngineCode",
+        type: 'get',
+        dataType: "json",
+        data: {},
+        async: false,//同步执行
+        success: function (data) {
+            EngineCode = data;
+        }
+    });
+
+    var bizObjectFields = {};//自定义数据项
+    var processDatas = {};//数据项树
+    //ComputationRuleDataItem //计算规则时选择数据项
+    var pageData = {
+        SheetContent: {},
+        LanData: $.Languages //语言包
+    };
+    //初始化pageData  /MvcDesigner/LoadPageContent
+    $.ajax({
+        url: _PORTALROOT_GLOBAL + "/MvcDesigner/LoadPageContent",
+        type: 'get',
+        dataType: "json",
+        data: { SheetCode: SheetCode, ParentID: ParentID },
+        cache: false,
+        async: false,//同步执行
+        success: function (data) {
+            if (data) {
+                //debugger;
+                pageData.SheetContent = data;
+                processDatas = data.DataItemTreeData;
+                bizObjectFields = data.BizObjectFields;
+                IsControlUsable = data.IsControlUsable
+                $("#hfPropertyNames").val(data.PropertyNames);
+                $("#hidSchemaCode").val(data.SchemaCode);
+                //CSharpCode
+                $("#txtCSharpCode").val(data.CSharpCode);
+                if (data.IsHtmlFromDB) {
+                    $("#divContent").html(data.DesignModeContent);//先解码，再赋值
+                } else {
+                    $("#divSheet").html(data.DesignModeContent);
+                }
+            }
+        }
+    });
+
+    //定义全局设计器对象 Designer
+    var Designer = new SheetDesigner(EngineCode, SheetCode);
+
+    $(function () {
+        $("#hidSheetCode").val(SheetCode);//存储表单Code;
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                getText: function (key) { try { return $.Lang(key); } catch (e) { return ""; } }
+            }
+        });
+
+        layout = $("#layout1").ligerLayout({
+            leftWidth: 210,
+            rightWidth: 320
+        });
+
+        //流程选择控件
+        $("#workflowSelector").WorkflowSelector({  ContainDraft: false, IsBizObjectMode: true, IsDispalyCode: true })
+        $("#workflowSelector1").WorkflowSelector({ ContainDraft: false, IsBizObjectMode: true, IsDispalyCode: true, IsSearch: true })
+
+        // 初始化工具栏
+        $("#toptoolbar").AspLinkToolBar({ IsFixed: false });
+
+        // 初始化数据项
+        var tree = $("#treeData").ligerTree({
+            data: processDatas,
+            idFieldName: "Code",
+            textFieldName: "Name",
+            parentIDFieldName: "ParentCode",
+            checkbox: false,
+            nodeDraggable: false,
+            delay: function (e) {
+                var node = e.data;
+                if (node.Name == $.Lang(node.Name)) {
+                    node.Name = node.Name
+                } else {
+                    node.Name = $.Lang(node.Name);
+                }
+                return false;
+            }
+        });
+
+        // 设计器初始化
+        Designer.Initial(layout);
+
+        // 根据屏幕像素初始化布局
+        InitialLayout();
+
+        // 切换设计和源代码
+        ToggleDesignOrSource();
+        //debugger;
+        // 检查是否有权限进行表单设计
+        if (IsControlUsable == 0) {
+            $("#btnSave").addClass("l-toolbar-item-disable")
+            setControlUsable("0", $("#btnSave"));
+            setControlUsable("0", $("#btnCancel"));
+            setControlUsable("0", $("input,select,textarea"));
+        }
+
+        $("#treeData").css("width", "100%");
+        $(".barCSharpCode").hide();
+        var span = $(".barCSharpCode").find("span");
+        if (pageData.SheetContent.EnabledCode&&pageData.SheetContent.EnabledCode.toString().toLowerCase() == "true") {
+            span.html("<input type='checkbox' checked=\"checked\" class=\"EnabledCode\">" + $.Lang("SheetDesigner.MvcDesigner_EnableCode"));
+        } else {
+            span.html("<input type='checkbox' class=\"EnabledCode\">" + $.Lang("SheetDesigner.MvcDesigner_EnableCode"));
+        }
+        // 展开自定义数据项
+        $(".l-last").find(".l-expandable-close").click();
+
+        if (!$("#lblTitle").html()) $("#lblTitle").html(pageData.SheetContent.SheetName);
+    });
+
+    function btnInsert_Click(obj) {
+        Designer.TabLogic.LoadFunction(Designer.TabLogic.Controls.f_tab_ID, 1);
+    }
+    function btnSave_Click(obj) {
+        Designer.Save();
+        top.ReloadNode("");
+    }
+    function btnView_Click(obj) {
+        Designer.Preview();
+    }
+    function btnCancel_Click(obj) {
+        if (confirm($.Lang("SheetDesigner.SheetDesigner_Msg0"))) {
+            //__doPostBack("btnRestore");
+            Designer.Restore();
+        }
+    }
+    function btnDownload_Click(obj) {
+        Designer.ShowExport();
+    }
+
+    //设置内容区高度
+    function InitialLayout() {
+        //初始化表单设计器高度
+        var h = $(window).height() - 15;
+        $(".content").css("height", h + "px");
+
+        var emHeight = 25;  //em高度
+        $(".DesignerContent,.content_m1aspx,.content_m1source").css("height", h - emHeight - 45);
+        $(".content-r-item").css("height", h - 80);
+        $(".l-layout-content").eq(0).css({ "overflow-y": "auto", "height": h - 20 });
+    }
+
+    // 切换设计和源代码
+    function ToggleDesignOrSource() {
+        $(".content_m2 ul li").click(function () {
+            var index = $(this).parent().children().index($(this));
+            $(this).parent().find(".dom").remove();
+            //设计
+            if (index == 0) {
+                $(".DesignerContent").show();
+                $(".content_m1source").hide();
+                $(".content_m1aspx").hide();
+                $(".barCSharpCode").hide();
+                Designer.LoadSaveDialog(true, $.Lang("SheetDesigner.MvcDesugner_Interface") + "....");
+                if (Designer.getAspxChanged()) {
+                    var aspxValue = Designer.getAspxValue();
+                    aspxValue = Designer.getDesignerFromAspx(aspxValue);
+                    $(".DesignerContent").html(aspxValue);
+                    Designer.refresh();
+                }
+                Designer.Mode = DesignerMode.Designer;
+                layout.setRightCollapse(false);
+                Designer.LoadSaveDialog(false);
+            }
+            else if (index == 1) {
+                $(".DesignerContent").hide();
+                $(".content_m1aspx").show();
+                $(".content_m1source").hide();
+                $(".barCSharpCode").hide();
+                $("#txtRuntimeContent").val("");
+                Designer.LoadSaveDialog(true, $.Lang("SheetDesigner.MvcDesugner_ASPX") + "....");
+                var html = Designer.getDesignerContent();
+                html = Designer.getRuntimeContent(html, true);
+                Designer.setAspxValue(html);
+                Designer.Mode = DesignerMode.ASPX;
+                layout.setRightCollapse(true);
+                document.getElementById("divCssSharp").innerHTML = "";
+                Designer.LoadSaveDialog(false);
+            }
+            else if (index == 2) {
+                document.getElementById("divCssSharp").innerHTML = "<link rel=\"stylesheet\" href=\"MvcDesigner/Lib/csharp.css\" />";
+                $(".DesignerContent").hide();
+                $(".content_m1aspx").hide();
+                $(".content_m1source").show();
+                $(".barCSharpCode").show();
+                layout.setRightCollapse(true);
+                // 如果未启用C#代码，则遮罩层
+                if (!$(".EnabledCode").is(":checked")) {
+                    if ($(".lockscreen").length == 0) {
+                        $("<div class=\"lockscreen\" style=\"background-color:#cccccc\"></div>").css({
+                            width: "100%",
+                            height: "91%",
+                            position: "absolute",
+                            left: 0,
+                            opacity: 0.5,
+                            "z-index": 99999,
+                            filter: "alpha(opacity=50)"
+                        }).appendTo($(".CSharpCode").parent());
+                    }
+                    else {
+                        $(".lockscreen").show();
+                    }
+                }
+                $(".EnabledCode").unbind("change").bind("change").click(function () {
+                    if (this.checked) $(".lockscreen").hide();
+                    else $(".lockscreen").show();
+                });
+                Designer.CSharpRefresh();
+            }
+            if (index <= 2) {
+                $(this).addClass("curr");
+                $(this).siblings().removeClass("curr");
+            }
+        });
+    }
+</script>
+
+<div id="layout1">
+    <div position="left" title="{{LanData.SheetDesigner.Designer_DataItem}}">
+        <ul id="treeData"></ul>
+    </div>
+    <div position="center" title="{{SheetContent.SheetName}}">
+        <div id="toptoolbar">
+            <a href="javascript:void(0);" id="btnSave" data-icon="fa fa-save" onclick="btnSave_Click(this)" data-lang="GlobalButton.Save"></a>
+            <a href="javascript:void(0);" id="btnView" data-icon="fa fa-search" onclick="btnView_Click(this)" data-lang="GlobalButton.Preview"></a>
+            <a href="javascript:void(0);" id="btnCancel" data-icon="fa fa-mail-reply" onclick="btnCancel_Click(this)" data-lang="GlobalButton.Reduction"></a>
+
+            <a href="#" style="width: 60px;" class="barCSharpCode" data-lang="GlobalButton.EnableCCode"></a>
+
+        </div>
+        <!---- 表单设计器内容 Start ---->
+        <div class="DesignerContent" id="divContent">
+            <div style="text-align: center;" class="DragContainer">
+                <label id="lblTitle" class="panel-title"></label>
+            </div>
+            <div class="panel-body sheetContainer">
+                <div class="nav-icon fa fa-chevron-right bannerTitle">
+                    <label id="divBasicInfo" data-en_us="Basic information">基本信息</label>
+                </div>
+                <div class="divContent">
+                    <div class="row">
+                        <div id="divFullNameTitle" class="col-md-2">
+                            <label id="lblFullNameTitle" data-type="SheetLabel" data-datafield="Originator.UserName" data-en_us="Originator" data-bindtype="OnlyVisiable">发起人</label>
+                        </div>
+                        <div id="divFullName" class="col-md-4">
+                            <label id="lblFullName" data-type="SheetLabel" data-datafield="Originator.UserName" data-bindtype="OnlyData">
+                                <span class="OnlyDesigner">Originator.UserName</span>
+                            </label>
+                        </div>
+                        <div id="divOriginateDateTitle" class="col-md-2">
+                            <label id="lblOriginateDateTitle" data-type="SheetLabel" data-datafield="OriginateTime" data-en_us="Originate Date" data-bindtype="OnlyVisiable">发起时间</label>
+                        </div>
+                        <div id="divOriginateDate" class="col-md-4">
+                            <label id="lblOriginateDate" data-type="SheetLabel" data-datafield="OriginateTime" data-bindtype="OnlyData">
+                                <span class="OnlyDesigner">OriginateDate</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div id="divOriginateOUNameTitle" class="col-md-2">
+                            <label id="lblOriginateOUNameTitle" data-type="SheetLabel" data-datafield="Originator.OUName" data-en_us="Originate OUName" data-bindtype="OnlyVisiable">所属组织</label>
+                        </div>
+                        <div id="divOriginateOUName" class="col-md-4">
+                            <!--<label id="lblOriginateOUName" data-type="SheetLabel" data-datafield="Originator.OUName" data-bindtype="OnlyData">
+                                <span class="OnlyDesigner">Originator.OUName</span>
+                            </label>-->
+                            <select data-datafield="Originator.OUName" data-type="SheetOriginatorUnit" id="ctlOriginaotrOUName" class=""></select>
+                        </div>
+                        <div id="divSequenceNoTitle" class="col-md-2">
+                            <label id="lblSequenceNoTitle" data-type="SheetLabel" data-datafield="SequenceNo" data-en_us="SequenceNo" data-bindtype="OnlyVisiable">流水号</label>
+                        </div>
+                        <div id="divSequenceNo" class="col-md-4">
+                            <label id="lblSequenceNo" data-type="SheetLabel" data-datafield="SequenceNo" data-bindtype="OnlyData">
+                                <span class="OnlyDesigner">SequenceNo</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-icon fa  fa-chevron-right bannerTitle">
+                    <label id="divSheetInfo" data-en_us="Sheet information">表单信息</label>
+                </div>
+                <div class="divContent" id="divSheet">
+                </div>
+            </div>
+        </div>
+        <div class="content_m1aspx" style="display: none;">
+            <textarea id="txtRuntimeContent" class="RuntimeContent" style="display: none;"></textarea>
+        </div>
+        <!---- 表单设计器内容 End ---->
+        <div class="content_m1source" style="display: none;">
+            <!--<asp:TextBox ID="txtCSharpCode" CssClass="CSharpCode" TextMode="MultiLine" >
+            </asp:TextBox>-->
+            <!--C# 后台代码-->
+            <textarea id="txtCSharpCode" class="CSharpCode"></textarea>
+
+        </div>
+        <div class="content_m2">
+            <ul>
+                <li class="curr">{{LanData.SheetDesigner.SheetDesigner_Design}}</li>
+                <li>ASPX</li>
+                <li>{{LanData.SheetDesigner.SheetDesigner_Code}}</li>
+                <!--<li class="Dom">|&nbsp;&nbsp;<span>body</span>><span>div</span></li>-->
+            </ul>
+        </div>
+    </div>
+    <div style="display: none">
+        <input type="hidden" id="hidSheetCode" value="" />
+        <input type="hidden" id="hidSchemaCode" value="" />
+        <input type="hidden" id="hidCurrentUser" value="" />
+    </div>
+    <div id="divPropertyContainer" position="right" title="{{LanData.SheetDesigner.SheetDesigner_Property}}">
+        <div class="content-r-item">
+            <table class="PropertyTable">
+                <!--表单属性 Start-->
+                <tr data-group="Sheet" class="propertyTitle">
+                    <td group="WorkflowBasic" class="Expanded"></td>
+                    <td colspan="3">
+                        {{LanData.SheetDesigner.SheetDesigner_BasicProperty}}
+                    </td>
+                </tr>
+                <tr group="Sheet" property="SheetCode">
+                    <td></td>
+                    <td desc=" mvcdesigner_getsheetcode">{{LanData.SheetDesigner.SheetDesigner_SheetCode}}</td>
+                    <td colspan="2" style="width: 70%">
+                        <span id="lblSheetCode">{{SheetContent.SheetCode}}</span>
+                       
+                    </td>
+                </tr>
+                <tr group="Sheet" property="DisplayName">
+                    <td></td>
+                    <td desc="{{LanData.SheetDesigner.SheetDesigner_GetOrSetSheetName}}">{{LanData.SheetDesigner.SheetDesigner_SheetName}}</td>
+                    <td colspan="2">
+                        <input type="text" placeholder='DisplayName' id="txtSheetName" style="width: 95%;" v-model="SheetContent.Sheet.DisplayName" />
+                    </td>
+                </tr>
+                <tr group="Sheet" property="Javascript">
+                    <td></td>
+                    <td desc="{{LanData.SheetDesigner.SheetDesigner_GetOrSetJavascript}}">javascript</td>
+                    <td colspan="2">
+                        <textarea id="txtJavascript" style="width: 95%; height: 80px;">{{SheetContent.Sheet.Javascript}}</textarea>
+                    </td>
+                </tr>
+                <tr group="Sheet" property="PrintModel">
+                    <td></td>
+                    <td desc="{{LanData.SheetDesigner.SheetDesigner_GetOrSetHtmlTemplate}}">{{LanData.SheetDesigner.SheetDesigner_PrintTemplate}}</td>
+                    <td colspan="2">
+                        <textarea id="txtPrint" style="width: 95%; height: 80px;" placeholder="{{LanData.SheetDesigner.SheetDesigner_PrintTemplateHtml}}">{{SheetContent.Sheet.PrintModel}}</textarea>
+                    </td>
+                </tr>
+                <!--Html元素属性 Start-->
+                <tr data-group="Html" class="propertyTitle" style="display: none;">
+                    <td group="Html" class="Expanded"></td>
+                    <td colspan="3">
+                        {{LanData.SheetDesigner.SheetDesigner_BasicProperty}}
+                    </td>
+                </tr>
+                <tr group="Html" property="ID" style="display: none;">
+                    <td></td>
+                    <td desc=" {{LanData.SheetDesigner.MvcDesigner_ControlName}}">{{LanData.SheetDesigner.SheetDesigner_ControlId}}</td>
+                    <td colspan="2">
+                        <input type="text" id="txtId" style="width: 95%;" > 
+                    </td>
+                </tr>
+                <tr group="Html" property="Visiable" style="display: none;">
+                    <td></td>
+                    <td desc="{{LanData.SheetDesigner.MvcDesigner_ControlType}}">{{LanData.SheetDesigner.SheetDesigner_ControlType}}</td>
+                    <td colspan="2">
+                        <label id="lblControlType"></label>
+                    </td>
+                </tr>
+                <tr group="Html" property="CssClass" style="display: none;">
+                    <td></td>
+                    <td desc="{{LanData.SheetDesigner.MvcDesigner_StyleName}}">{{LanData.SheetDesigner.SheetDesigner_Style}}</td>
+                    <td colspan="2">
+                        <input type="text" id="txtCssClass" style="width: 95%;" />
+                    </td>
+                </tr>
+                <tr group="Html" property="Height" style="display: none;">
+                    <td></td>
+                    <td desc="{{LanData.SheetDesigner.MvcDesigner_Height}}">{{LanData.SheetDesigner.SheetDesigner_Height}}</td>
+                    <td colspan="2">
+                        <input type="text" id="txtHeight" style="width: 60%;" maxlength="4" />
+                        <select id="selHeight" style="width: 40px">
+                            <option value="%" selected="selected">%</option>
+                            <option value="px">px</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr group="Html" property="Width" style="display: none;">
+                    <td></td>
+                    <td desc="{{LanData.SheetDesigner.MvcDesigner_Width}} ">{{LanData.SheetDesigner.SheetDesigner_Width}}</td>
+                    <td colspan="2">
+                        <input type="text" id="txtWidth" style="width: 60%;" />
+                        <select id="selWidth" style="width: 40px">
+                            <option value="%" selected="selected">%</option>
+                            <option value="px">px</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr group="Html" property="Visiable" style="display: none;">
+                    <td></td>
+                    <td desc="{{LanData.SheetDesigner.MvcDesigner_SetDisplayText}}">{{LanData.SheetDesigner.MvcDesigner_DisplayText}}</td>
+                    <td colspan="2">
+                        <!--<input type="text" id="txtDisplayName" style="width: 95%;" />-->
+                        <textarea id="txtDisplayName" style="width: 95%; height: 50px;"></textarea>
+                    </td>
+                </tr>
+                <tr group="Html" property="Visiable" style="display: none;">
+                    <td></td>
+                    <td desc="{{LanData.SheetDesigner.MvcDesigner_SetEnglishText}}">{{LanData.SheetDesigner.MvcDesigner_EnglishText}}</td>
+                    <td colspan="2">
+                        <textarea id="txtEnglishText" style="width: 95%; height: 50px;"></textarea>
+                    </td>
+                </tr>
+                <tr group="Html" property="Visiable" style="display: none;">
+                    <td></td>
+                    <td desc="{{LanData.SheetDesigner.MvcDesigner_Visable}}">{{LanData.SheetDesigner.SheetDesigner_Visable}}</td>
+                    <td colspan="2">
+                        <input type="checkbox" id="chkVisiable" />
+                    </td>
+                </tr> 
+                <tr group="Html" property="Visiable" style="display: none;">
+                    <td></td>
+                    <td desc="获取或设置单元格或行的显示规则">{{LanData.SheetDesigner.SheetDesigner_CellDisplayRule}}</td>
+                    <td colspan="2">
+                        <input type="text" id="DIV_DisplayRule" style="width: 95%;"> 
+                        <!--<input type="text" data-defaultvalue="" data-property="DisplayRule" id="DIV_DisplayRule" style="width:95%" value="">-->
+                    </td>
+                </tr> 
+                <tr data-group="Control" class="propertyTitle controlProperty" style="display: none;">
+                    <td group="Control" class="Expanded"></td>
+                    <td colspan="3">
+                        {{LanData.SheetDesigner.MvcDesigner_ControlPorperty}}
+                    </td>
+                </tr>
+                <tr data-group="Event" class="propertyTitle controlEvent" style="display: none;">
+                    <td group="Event" class="Expanded"></td>
+                    <td colspan="3">
+                        {{LanData.SheetDesigner.MvcDesigner_ControlEvent}}
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="proertyPanel_Desc">
+            <span id="desc_title" style="color: black; font-size: 13px; font-weight: bold;">{{LanData.SheetDesigner.SheetDesigner_Description}} </span><br />
+            <span id="desc_content" style="color: black;"></span>
+        </div>
+    </div>
+</div>
+
+<div class="contextMenu" id="controlContainerMenu">
+    <ul>
+        <li id="Change">
+            <img src="MvcDesigner/images/Change.png" />{{LanData.SheetDesigner.MvcDesigner_Change}}
+        </li>
+        <li id="Copy">
+            <img src="MvcDesigner/images/Copy.png" />{{LanData.SheetDesigner.SheetDesigner_Copy}}
+        </li>
+        <li id="Cut">
+            <img src="MvcDesigner/images/Cut.png" />{{LanData.SheetDesigner.SheetDesigner_Cut}}
+        </li>
+        <li id="Remove">
+            <img src="MvcDesigner/images/remove.png" />{{LanData.SheetDesigner.SheetDesigner_Delete}}
+        </li>
+    </ul>
+</div>
+
+<div class="contextMenu" id="colContainerMenu">
+    <ul>
+        <li id="InsertBeforeRow">
+            <img src="MvcDesigner/images/InsertRow.png" />{{LanData.SheetDesigner.SheetDesigner_InsertRowAbove}}
+        </li>
+        <li id="InsertAfterRow">
+            <img src="MvcDesigner/images/InsertRow.png" />{{LanData.SheetDesigner.SheetDesigner_InsertRowBellow}}
+        </li>
+        <li id="Paste">
+            <img src="MvcDesigner/images/Paste.png" />{{LanData.SheetDesigner.SheetDesigner_Paste}}
+        </li>
+        <li id="MergeCol">
+            <img src="MvcDesigner/images/MergeCell.png" />{{LanData.SheetDesigner.SheetDesigner_MergeCell}}
+        </li>
+        <li id="SplitCell">
+            <img src="MvcDesigner/images/Change.png" />{{LanData.SheetDesigner.MvcDesigner_SplitCell}}
+        </li>
+        <li id="MergeRow">
+            <img src="MvcDesigner/images/MergeCell.png" />{{LanData.SheetDesigner.SheetDesigner_MergeRow}}
+        </li>
+        <li id="DeleteCol">
+            <img src="MvcDesigner/images/RemoveCell.png" />{{LanData.SheetDesigner.MvcDesigner_DeleteCell}}
+        </li>
+        <li id="DeleteRow">
+            <img src="MvcDesigner/images/RemoveRow.png" />{{LanData.SheetDesigner.MvcDesigner_DeleteRow}}
+        </li>
+    </ul>
+</div>
+
+<div class="contextMenu" id="tableContainerMenu">
+    <ul>
+        <li id="DeleteTable">
+            <img src="MvcDesigner/images/remove.png" />{{LanData.SheetDesigner.SheetDesigner_RemoveTable}}
+        </li>
+    </ul>
+</div>
+
+<div class="contextMenu" id="sheetContainerMenu">
+    <ul>
+        <li id="InsertTable">
+            <img src="MvcDesigner/images/InsertTable.png" />{{LanData.SheetDesigner.SheetDesigner_InsertTable}}
+        </li>
+    </ul>
+</div>
+
+<div class="dialog" id="divInsertTable" style="display: none; width: 98%">
+    <div class="panel-body" style="width: 100%">
+        <table style="width: 100%; height: 100%; border: 0px solid #cccccc;">
+            <tr>
+                <td style="width: 20%; height: 50px; font-weight: bold;">{{LanData.SheetDesigner.SheetDesigner_Rows}}</td>
+                <td>
+                    <input type="text" id="tableRowCount" style="width: 350px;" value="1" />
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 20%; height: 50px; font-weight: bold;">{{LanData.SheetDesigner.SheetDesigner_Cols}}"</td>
+                <td>
+                    <select id="selTableColCount" style="width: 350px;">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4" selected="selected">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 20%; height: 50px; font-weight: bold;">{{LanData.SheetDesigner.MvcDesigner_Occupying}}</td>
+                <td id="divTableColWidth">
+                    <input type="text" class="NewColumn" value="2" maxlength="2" style="width: 20px;" />
+                    <input type="text" class="NewColumn" value="4" maxlength="2" style="width: 20px;" />
+                    <input type="text" class="NewColumn" value="2" maxlength="2" style="width: 20px;" />
+                    <input type="text" class="NewColumn" value="4" maxlength="2" style="width: 20px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 20%; height: 50px;"></td>
+                <td>{{LanData.SheetDesigner.MvcDesigner_TotalWidth}}</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="dialog" id="divInsertRow" style="display: none; width: 98%">
+    <div class="panel-body" style="width: 100%">
+        <table style="width: 100%; height: 100%; border: 0px solid #cccccc;">
+            <tr>
+                <td style="width: 20%; height: 50px; font-weight: bold;">{{LanData.SheetDesigner.MvcDesigner_CellNumbers}}</td>
+                <td>
+                    <select id="selColumns" style="width: 120px">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4" selected="selected">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2"></td>
+            </tr>
+            <tr>
+                <td style="width: 20%; height: 50px; font-weight: bold;">{{LanData.SheetDesigner.MvcDesigner_Occupying}}</td>
+                <td id="divColumns">
+                    <input type="text" id="Text1" class="NewColumn" value="2" maxlength="2" style="width: 20px;" />
+                    <input type="text" id="Text3" class="NewColumn" value="4" maxlength="2" style="width: 20px;" />
+                    <input type="text" id="Text4" class="NewColumn" value="2" maxlength="2" style="width: 20px;" />
+                    <input type="text" id="Text5" class="NewColumn" value="4" maxlength="2" style="width: 20px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 20%; height: 50px;"></td>
+                <td>{{LanData.SheetDesigner.MvcDesigner_TotalWidth}}</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="dialog" id="divPropertyControl" style="display: none; width: 98%">
+    <div class="panel-body">
+        <table style="width: 100%; height: 100%; border: 0px solid #cccccc;">
+            <tr>
+                <td style="width: 20%; height: 50px; font-weight: bold;">{{LanData.SheetDesigner.SheetDesigner_ControlId}}</td>
+                <td>
+                    <input type="text" id="txtControlId" value="" style="width: 100%; height: 28px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 20%; height: 50px; font-weight: bold;">{{LanData.SheetDesigner.SheetDesigner_DataItemName}}</td>
+                <td>
+                    <label id="txtItemName"></label>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 20%; height: 50px; font-weight: bold;">{{LanData.SheetDesigner.SheetDesigner_DataItemType}}</td>
+                <td>
+                    <label id="txtItemType"></label>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 20%; height: 50px; font-weight: bold;">{{LanData.SheetDesigner.SheetDesigner_ControlType}}</td>
+                <td>
+                    <select id="selControlType" style="width: 100%; height: 28px;"></select>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="dialog" id="divExportAspx" style="display: none; height: 520px; width: 680px">
+    <div style="height: 10px">
+    </div>
+    <div>
+        <div class="dialogTitle">
+            {{LanData.SheetDesigner.SheetDesigner_AspxPageCode}}
+        </div>
+        <div>
+            <textarea id="txtAspx" style="height: 196px; width: 670px" readonly="readonly"></textarea>
+        </div>
+    </div>
+    <div>
+        <div class="dialogTitle">
+            {{LanData.SheetDesigner.SheetDesigner_CSPageCode}}
+        </div>
+        <div>
+            <textarea id="txtCsharp" style="height: 196px; width: 670px" readonly="readonly"></textarea>
+        </div>
+    </div>
+    <div style="text-align: right; width: 660px">
+        <input type="button" id="btnExportClose" class="close" value=" button_close" />
+    </div>
+</div>
+
+<div class="dialog" id="divSplitCell" style="display: none; width: 98%">
+    <div class="panel-body" style="width: 100%">
+        <table style="width: 100%; height: 100%; border: 0px solid #cccccc;">
+            <tr>
+                <td style="width: 20%; height: 50px; font-weight: bold;"> {{LanData.SheetDesigner.MvcDesigner_CellNumbers}}</td>
+                <td>
+                    <select id="selSplitColumns" style="width: 120px"></select>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2"></td>
+            </tr>
+            <tr>
+                <td style="width: 20%; height: 50px; font-weight: bold;">{{LanData.SheetDesigner.MvcDesigner_Occupying}}</td>
+                <td id="divSplitColumns">
+                    <input type="text" class="NewColumn" maxlength="2" style="width: 20px;" />
+                    <input type="text" class="NewColumn" maxlength="2" style="width: 20px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 20%; height: 50px;"></td>
+                <td id="splitCellInfo"></td>
+            </tr>
+        </table>
+    </div>
+</div>
+<!--富文本框控件 Start-->
+<div id="divRichText" style="display: none">
+    <div style="height: 30px; padding-top: 10px;">
+        <div class="richTextTitle"></div>
+        <div class="richExample"></div>
+    </div>
+    <textarea style="width: 98%; height: 270px;"></textarea>
+</div>
+<!--富文本框控件 End-->
+<!-- 下拉框绑定数据模型向导 -->
+<div id="divDropDownListSetting" class="DropDownListSetting" style="display: none;" title="{{LanData.SheetDesigner.MvcDesigner_Dropdown}}">
+    <div class="panel-body">
+        <table style="width: 100%; height: 100%; border: 0px;">
+            <tr>
+                <td style="width: 20%; height: 50px; font-weight: bold;">{{LanData.SheetDesigner.MvcDesigner_BindDataModel}}</td>
+                <td>
+                    <!--<sheetcontrols:WorkflowSelector ID="workflowSelector" IsBizObjectMode="true"
+                                                    property="SchemaCode"  Width="386px"
+                                                    OnClientChange="PropertyGuide.DropDownListSchemaChange"
+                                                    IsDisplayCode="true"></sheetcontrols:WorkflowSelector>-->
+                    <!--<div id="workflowSelector" property="SchemaCode" IsBizObjectMode="true" IsDisplayCode="true" onchange="PropertyGuide.DropDownListSchemaChange" />-->
+                    <input type="text" id="workflowSelector" data-property="SchemaCode" style="width:386px" onchange="PropertyGuide.DropDownListSchemaChange">
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 20%; height: 50px; font-weight: bold;">{{LanData.SheetDesigner.MvcDesigner_BizQuery}}</td>
+                <td>
+                    <select id="selDropDownListQuery" data-property="QueryCode" style="width: 100%" class="BizQuery"></select>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 20%; height: 50px; font-weight: bold;">{{LanData.SheetDesigner.MvcDesigner_Conditions}}</td>
+                <td>
+                    <table style="width: 100%" id="tbQueryItem">
+                        <tr id="trQueryItemHeader">
+                            <td style="width: 40%;">{{LanData.SheetDesigner.MvcDesigner_PorpertyName}}</td>
+                            <td style="width: 59%;">{{LanData.SheetDesigner.Designer_DataItem}}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 20%; height: 50px; font-weight: bold;">{{LanData.SheetDesigner.MvcDesigner_ValuePorperty}}</td>
+                <td>
+                    <select id="selDropDownListValueProperty" data-property="DataTextField" style="width: 100%; height: 28px;" class="BizProperty"></select>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 20%; height: 50px; font-weight: bold;">{{LanData.SheetDesigner.MvcDesigner_Display}}</td>
+                <td>
+                    <select id="selDropDownListDisplayProperty" data-property="DataValueField" style="width: 100%; height: 28px;" class="BizProperty"></select>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<!-- 下拉框绑定数据模型向导 -->
+<!--选人控件数据项和属性映射关系配置向导 Start-->
+<div id="divSheetUserSetting" class="SheetUserSetting" style="display: none;">
+    <div class="panel-body">
+        <table id="tbSheetUserSetting">
+            <tr>
+                <td style="width: 45%; font-weight: bold;">
+                    {{LanData.SheetDesigner.Designer_DataItem}}
+                </td>
+                <td style="width: 45%; font-weight: bold;">
+                    {{LanData.SheetDesigner.SheetDesigner_Property}}
+                    <!--<asp:HiddenField ID="hfPropertyNames"  ClientIDMode="Static" />-->
+                    <input type="hidden" id="hfPropertyNames" />
+                </td>
+                <td style="width: 9%;"><a href="javascript:;" id="linkAddMapping" data-lang="GlobalButton.Add"></a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+<!--选人控件数据项和属性映射关系配置向导 End-->
+<!--文本框开窗查询配置向导 Start-->
+<div id="divSheetTextBoxSetting" class="SheetTextBoxSetting" style="display: none;" title=" {{LanData.SheetDesigner.MvcDesigner_WindowQuery}}">
+    <div class="panel-body">
+        <table id="tbSheetTextBoxSetting">
+            <tr id="trWorkflowSelector">
+                <td style="width: 22%; height: 50px; font-weight: bold;"> {{LanData.SheetDesigner.MvcDesigner_DataModelBind}}</td>
+                <td>
+                    <!--<sheetcontrols:WorkflowSelector ID="workflowSelector1" IsBizObjectMode="true"
+                                                    property="SchemaCode"  Width="386px"
+                                                    OnClientChange="PropertyGuide.SheetTextBoxSchemaChange"
+                                                    IsDisplayCode="true"></sheetcontrols:WorkflowSelector>-->
+
+                    <input type="text" id="workflowSelector1" data-property="SchemaCode" style="width:386px" onchange="PropertyGuide.SheetTextBoxSchemaChange">
+
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 22%; height: 50px; font-weight: bold;">{{LanData.SheetDesigner.MvcDesigner_BizQuery}}</td>
+                <td>
+                    <select id="selSheetTextBoxQuery" data-property="QueryCode" style="width: 100%" class="BizQuery"></select>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 22%; height: 50px; font-weight: bold;">{{LanData.SheetDesigner.MvcDesigner_ConditionsMapping}}</td>
+                <td>
+                    <table id="tbInputMappings">
+                        <tr>
+                            <td style="width: 45%;">{{LanData.SheetDesigner.MvcDesigner_PorpertyName}}</td>
+                            <td style="width: 54%;">{{LanData.SheetDesigner.Designer_DataItem}}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 22%; height: 50px; font-weight: bold;">{{LanData.SheetDesigner.MvcDesigner_DataMapping}}</td>
+                <td>
+                    <table style="margin-top: 5px;" id="tbOutputMappings">
+                        <tr>
+                            <td style="width: 45%;">{{LanData.SheetDesigner.MvcDesigner_PorpertyName}}</td>
+                            <td style="width: 45%;">{{LanData.SheetDesigner.Designer_DataItem}}</td>
+                            <td style="width: 9%"><a href="javascript:;" data-lang="GlobalButton.Add"></a></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<!--文本框开窗查询配置向导 End-->
+<!--文本框正则表达式配置向导 Start-->
+<div id="divSheetTextBoxRegular" class="SheetTextBoxRegular" style="display: none;">
+    <div class="panel-body">
+        <table id="tbSheetTextBoxRegular">
+            <tr>
+                <td style="width: 22%; height: 50px; font-weight: bold;">{{LanData.SheetDesigner.MvcDesigner_RegularExpression}}</td>
+                <td>
+                    <input type="text" id="regularExpression" style="width: 100%; height: 28px;" />
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 22%; height: 50px; font-weight: bold;">{{LanData.SheetDesigner.MvcDesigner_Failure}}</td>
+                <td>
+                    <input type="text" id="regularInvalidText" style="width: 100%; height:28px;" placeholder="{{LanData.msgGlobalString.OnlyTwentyCharactersEntered}}" /> </td>
+            </tr>
+            <tr>
+                <td style="width: 22%; height: 50px; font-weight: bold;">{{LanData.SheetDesigner.MvcDesigner_ChooseTemplate}}</td>
+                <td>
+                    <select id="selSheetTextBoxRegular" data-property="RegularExpression" style="width: 100%" class="BizProperty"></select>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<!--文本框正则表达式配置向导 End-->
+<!--计算规则ComputationRule配置向导 Start-->
+<div id="divComputationRule" class="ComputationRule" style="display: none;">
+    <div class="panel-body">
+        <div>
+            <textarea id="txtComputationRule" style="width: 98%; height: 120px;"></textarea>
+        </div>
+        <div style="margin-top: 10px;">
+            <table>
+                <tr>
+                    <td style="width: 50px; font-weight: bold;">{{LanData.SheetDesigner.Designer_DataItem}}:</td>
+                    <td style="width: 280px;">
+                        <!--<asp:DropDownList ID="ddlDataItem" ></asp:DropDownList>-->
+                        <select id="ddlDataItem">
+                            <option v-for="option in SheetContent.ComputationRuleDataItem" v-bind:value="option.Key">
+                                {{option.Value}}
+                            </option>
+                        </select>
+                    </td>
+                    <td style="text-align: left; padding-left: 5px;">
+                        <input type="button" id="btnInsertDataItem" value="{{LanData.SheetDesigner.MvcDesigner_Insert}} " style="height: 28px; padding-left: 8px; padding-right: 8px;" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div style="margin-top: 10px;">
+            <input type="button" id="btnPlus" value="+" class="rulebutton"
+                   style="height: 28px; padding-left: 8px; padding-right: 8px;" />
+            <input type="button" id="btnMinus" value="-"
+                   style="height: 28px; padding-left: 8px; padding-right: 8px;" />
+            <input type="button" id="btnMultiply" value="*"
+                   style="height: 28px; padding-left: 8px; padding-right: 8px;" />
+            <input type="button" id="btnDivision" value="/"
+                   style="height: 28px; padding-left: 8px; padding-right: 8px;" />
+            <input type="button" id="btnLeftParenthesis" value="("
+                   style="height: 28px; padding-left: 8px; padding-right: 8px;" />
+            <input type="button" id="btnRightParenthesis" value=")"
+                   style="height: 28px; padding-left: 8px; padding-right: 8px;" />
+        </div>
+        <div style="margin-top: 10px;">
+            <input type="button" id="btnSum" value="SUM"
+                   style="height: 28px; padding-left: 8px; padding-right: 8px;" />
+            <input type="button" id="btnAvg" value="AVG"
+                   style="height: 28px; padding-left: 8px; padding-right: 8px;" />
+            <input type="button" id="btnMax" value="MAX"
+                   style="height: 28px; padding-left: 8px; padding-right: 8px;" />
+            <input type="button" id="btnMin" value="MIN"
+                   style="height: 28px; padding-left: 8px; padding-right: 8px;" />
+            <input type="button" id="btnCount" value="COUNT"
+                   style="height: 28px; padding-left: 8px; padding-right: 8px;" />
+        </div>
+        <div style="margin-top: 10px; height: 30px; line-height: 30px; font-weight: bold;">
+            {{LanData.SheetDesigner.MvcDesigner_Results}}
+            <select id="selectDecimalPlace" style="width: 50px;">
+                <option value="">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+            </select>{{LanData.SheetDesigner.MvcDesigner_Decimal}}
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(function () {
+        //计算规则ComputationRule
+        $("#btnInsertDataItem").click(function () {
+            var input = $("#txtComputationRule")[0];
+            var text = "{" + $("#ddlDataItem").val() + "}";
+            insertAtCaret(input, text);
+        });
+
+        $("#btnPlus,#btnMinus,#btnMultiply,#btnDivision,#btnLeftParenthesis,#btnRightParenthesis")
+            .click(function () {
+                insertAtCaret($("#txtComputationRule")[0], $(this).val());
+            });
+
+        $("#btnSum,#btnAvg,#btnCount,#btnMax,#btnMin").click(function () {
+            var input = $("#txtComputationRule")[0];
+            var text = $(this).val() + "()";
+            var pos = getCaretPos(input);
+            insertAtCaret(input, text);
+            setCaretToPos(input, pos + text.length - 1);
+        });
+    });
+
+    function setSelectionRange(input, selectionStart, selectionEnd) {
+        if (input.setSelectionRange) {
+            input.focus();
+            input.setSelectionRange(selectionStart, selectionEnd);
+        }
+        else if (input.createTextRange) { //ie
+            var range = input.createTextRange();
+            range.collapse(true);
+            range.moveEnd("character", selectionEnd);
+            range.moveStart("character", selectionStart);
+            range.select();
+        }
+    }
+    //设置光标的位置
+    function setCaretToPos(input, pos) {
+        setSelectionRange(input, pos, pos);
+    }
+    //获取光标位置
+    function getCaretPos(input) {
+        var pos = 0;
+        if (input.setSelectionRange) {
+            pos = input.selectionStart;
+        }
+        else if (input.createTextRange) {//ie
+            var range = input.createTextRange();
+            range.moveStart("character", -input.value.length);
+            pos = range.text.length;
+        }
+        return pos;
+    }
+    //在光标处插入文本，并将光标定位到插入文本的末尾
+    function insertAtCaret(input, text) {
+        var strPos = getCaretPos(input);
+        var front = input.value.substring(0, strPos);
+        var back = input.value.substring(strPos, input.value.length);
+        input.value = front + text + back;
+        strPos = strPos + text.length;
+        setCaretToPos(input, strPos);
+    }
+</script>
+<!--计算规则ComputationRule配置向导 End-->
+<!--保存对话框 Start-->
+<div id="screen"></div>
+<div class="dialog" id="save" style="display: none; text-align: center; width: 350px; height: 30px; line-height: 30px; font-weight: bold;">
+    <span class="message">{{LanData.SheetDesigner.SheetDesigner_Saving}}</span>&nbsp;&nbsp;<img src="MvcDesigner/images/loadingAnimation.gif" />
+</div>
+<div id="divSaving" style="display: none"></div>
+<!--保存对话框 End-->

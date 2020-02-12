@@ -1,0 +1,174 @@
+﻿
+<script src="../WFRes/_Scripts/jquery/ajaxfileupload.js"></script>
+<script>
+    var BizRuleImport = {};
+    DocumentReady = function () {
+        //debugger;
+        var ParentID = getUrlParam("ParentID");
+        var ParentCode = getUrlParam("ParentCode");
+        BizRuleImport.ParentID = ParentID;
+        BizRuleImport.ParentCode = ParentCode;
+
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+
+        setControlUsable(0, $(".abar"));
+    };
+
+    $(function () {
+        DocumentReady();
+    });
+
+    //控件启用
+    function SetControlEnabled() {
+        //设置按钮可用
+        $("#btnImport").removeAttr("disabled");
+        $("#btnImport").click(function () { Import(); });
+        $("#btnImport").children().removeClass("l-toolbar-item-disable");
+
+        $("#btnReset").removeAttr("disabled");
+        $("#btnReset").click(function () { Reset(); });
+        $("#btnReset").children(":first").removeClass("l-toolbar-item-disable");
+    }
+
+    CheckFile = function () {
+        var fileVal = $("#btnFileUpload").val();
+        if (fileVal == "") {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SelectFile") });
+            return false;
+        }
+        if (fileVal.toLowerCase().indexOf(".xml") < 0) {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FileMustIsXML") });
+            return false;
+        }
+        return true
+    }
+
+    //上传文件
+    btnupload_click = function () {
+        if (CheckFile()) {
+            var uploadUrl = $.Controller.BizRuleHandler.Upload;
+            $.ajaxFileUpload({
+                url: uploadUrl,
+                fileElementId: "btnFileUpload",
+                typ: "post",
+                dataType: 'json',
+                success: function (data) {
+                    if (data.Success) {
+                        BizRuleImport = data.Extend;
+                        BizRuleImport.XMLString = encodeURIComponent(BizRuleImport.XMLString);
+
+                        var ParentID = getUrlParam("ParentID");
+                        var ParentCode = getUrlParam("ParentCode");
+                        BizRuleImport.ParentID = ParentID;
+                        BizRuleImport.ParentCode = ParentCode;
+
+                        //显示服务编码标签,上传标签隐藏
+                        $("#panelBizRuleCode").show();
+                        $("#panelUpload").hide();
+
+                        //给服务编码中的控件赋值
+                        $("input[id=txtRuleCode]").val(BizRuleImport.Code);
+                        $("input[id=txtRuleName").val(BizRuleImport.DisplayName);
+
+                        SetControlEnabled();
+
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(data.Message) });
+                    }
+                }
+            });
+        }
+    }
+
+    BeforeImort = function () {
+        BizRuleImport.Code = $("#txtRuleCode").val();
+        BizRuleImport.DisplayName = $("#txtRuleName").val();
+        BizRuleImport.IsCover = $("span[txtType='ckIsCover']").find("input[type='checkbox']")[0].checked;
+
+        if (BizRuleImport.Code == "") {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.CodeOrNameNotNull") });
+            return false;
+        }
+        if (BizRuleImport.DisplayName == "") {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.CodeOrNameNotNull") });
+            return false;
+        }
+
+        return true;
+    }
+
+    Import = function () {
+        if (!BeforeImort()) { return; }
+        var importUrl = $.Controller.BizRuleHandler.Import;//导入
+        $.ajax({
+            url: importUrl,
+            type: 'post',
+            dataType: "json",
+            data: BizRuleImport,
+            async: false,//同步执行
+            success: function (result) {
+                if (result.Success) {
+                    $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                    //更新节点 top.ReloadNode('ParentID')
+                    top.ReloadNode(BizRuleImport.ParentID);
+                    parent.H3DialogManger.Close(); //关闭当前对话框
+                } else {
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                }
+            }
+        });
+    }
+
+    Reset = function () {
+        window.location.href = window.location.href;
+    }
+</script>
+
+<div id="H3ToolBar">
+    <a id="btnImport" class="abar" href="javascript:Import()" data-icon="fa fa-upload" data-lang="GlobalButton.Import"></a>
+    <a id="btnReset" class="abar" href="javascript:Reset()" data-icon="fa fa-minus" data-lang="BizRule.Reload"></a>
+</div>
+<input type="hidden" id="CodeInfo" />
+<input type="hidden" id="fileName" />
+<input type="hidden" id="ckIsCover" />
+<div class="H3Panel" id="panelUpload">
+    <table>
+        <tr>
+            <td>
+                <input type="file" id="btnFileUpload" name="btnFileUpload" />
+                <a id="btnUpLoad" href="javascript:btnupload_click();" data-lang="BizServiceHandler.Upload"></a>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div class="H3Panel" id="panelBizRuleCode" style="display:none">
+    <span data-lang="BizRule.BizRuleInformation"></span>
+    <table id="CodeTable">
+        <tr>
+            <td data-lang="msgGlobalString.IsCover"></td>
+            <td>
+                <span txttype="ckIsCover">
+                    <input id="IsCover" type="checkbox" />
+                    <label for="IsCover" data-lang="msgGlobalString.IsCover"></label>
+                </span>
+            </td>
+            <td data-lang="msgGlobalString.CoverMsg"></td>
+        </tr>
+        <tr>
+            <td id="codeDisplay" data-lang="BizRule.BizRuleCode"></td>
+            <td style="width:300px">
+                <input type="text" id="txtRuleCode" />
+            </td>
+            <td style="color:Red">*</td>
+        </tr>
+        <tr>
+            <td id="codeDisplay" data-lang="BizRule.BizRuleName"></td>
+            <td style="width:300px">
+                <input id="txtRuleName" type="text" />
+            </td>
+            <td style="color:Red">*</td>
+        </tr>
+    </table>
+</div>

@@ -1,0 +1,188 @@
+﻿<!--
+    查询列表
+     -->
+
+<div class="hbox hbox-auto-xs hbox-auto-sm" ng-init="
+     app.settings.asideFolded=false;
+     app.settings.asideDock=false;">
+    <!-- main -->
+    <div class="col">
+        <!-- main header -->
+        <div class="bg-light lter b-b wrapper-md">
+            <div class="row" style=" padding-right: 15px; ">
+                <div class="col-sm-6 col-xs-12">
+                    <span class="h3" title-name function-view-models="user.FunctionViewModels"></span>
+                </div>
+            </div>
+        </div>
+
+        <!--表格部分Start-->
+        <div class="wrapper-md paddingbottomNone">
+            <div class="panel panel-default">
+                <div class="table-responsive">
+                    <div class="dataTables_wrapper form-inline dt-bootstrap no-footer">
+                        <div class="row" style="margin:10px 5px;">
+                            <div class="form-group col-md-12">
+                                <div class="btn-group btn-default searchBtn" style="margin-right:-7px">
+                                    <a href="javascript:void(0);" class="btn btn-default fa fa-search" >
+                                        {{LanJson.searchBtnName}}
+                                    </a>
+                                </div>
+                                <div ng-repeat="QueryAction in BizQueryActions" ng-if="QueryAction.Visible==1"
+                                     class="btn-group btn-default" style="margin-left:5px;">
+                                    <!-- 执行动作 -->
+                                    <a href="javascript:void(0);" class="btn btn-default fa {{QueryAction.Icon}}"
+                                       ng-if="QueryAction.ActionType==0" ng-show="QueryAction.Visible==1"
+                                       ng-click="{{QueryAction.url}}">
+                                        {{QueryAction.DisplayName}}
+                                    </a>
+                                    <!-- 打开表单 -->
+                                    <a href="javascript:void(0);" class="btn btn-default fa {{QueryAction.Icon}}"
+                                       ng-if="QueryAction.ActionType==1" ng-show="QueryAction.Visible==1"
+                                       ng-click="{{QueryAction.url}}">
+                                        {{QueryAction.DisplayName}}
+                                    </a>
+                                    <!-- 打开链接 -->
+                                    <a href="javascript:void(0);" class="btn btn-default fa {{QueryAction.Icon}}"
+                                       ng-if="QueryAction.ActionType==2" ng-show="QueryAction.Visible==1"
+                                       ng-click="{{QueryAction.url}}">
+                                        {{QueryAction.DisplayName}}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row" style="margin:5px 5px;">
+                            <div ng-repeat="Filter in FilterData"
+                                 class="col-md-6" style="margin-top:10px;"
+                                 ui-finshed-render="FinishedFunc">
+                                <div class="input-group" style="width: 100%;">
+                                    <span class="input-group-addon" style="width:20%">
+                                        {{Filter.PropertyName}}
+                                    </span>
+                                    <!-- 文本框 -->
+                                    <input class="form-control" id="{{Filter.PropertyCode}}"
+                                           ng-if="Filter.DisplayType==0&& Filter.FilterType!=2
+                                           &&(Filter.LogicType=='ShortString'||Filter.LogicType=='String'||Filter.LogicType=='Int'||Filter.LogicType=='Long'||Filter.LogicType=='Double')" />
+                                    <!-- 文本框 范围查询 -->
+                                    <div class="input-group" ng-if="Filter.DisplayType==0&& Filter.FilterType==2
+                                           &&(Filter.LogicType=='ShortString'||Filter.LogicType=='String'||Filter.LogicType=='Double')"
+                                         style="width:100%;">
+                                        <input class="form-control" id="{{Filter.PropertyCode}}" onkeyup="value=value.replace(/^\./g, '').replace(/[^\d\.]/g,'').replace('.', '$#$').replace(/\./g, '').replace('$#$', '.')" />
+                                        <label class="input-group-addon" style="border-left:0px;border-right:0px;">
+                                            —
+                                        </label>
+                                        <input class="form-control" id="{{Filter.PropertyCode+1}}" onkeyup="value=value.replace(/^\./g, '').replace(/[^\d\.]/g,'').replace('.', '$#$').replace(/\./g, '').replace('$#$', '.')" />
+                                    </div>
+                                    <!-- 整数型 范围查询 -->
+                                    <div class="input-group" ng-if="Filter.DisplayType==0&& Filter.FilterType==2
+                                           &&(Filter.LogicType=='Int'||Filter.LogicType=='Long')"
+                                         style="width:100%;">
+                                        <input class="form-control" id="{{Filter.PropertyCode}}" onkeyup="this.value=this.value.replace(/\D/g,'')" onblur="this.value=this.value.replace(/\D/g,'')" />
+                                        <label class="input-group-addon" style="border-left:0px;border-right:0px;">
+                                            —
+                                        </label>
+                                        <input class="form-control" id="{{Filter.PropertyCode+1}}" onkeyup="this.value=this.value.replace(/\D/g,'')" onblur="this.value=this.value.replace(/\D/g,'')" />
+                                    </div>
+
+                                    <!-- 时间控件 -->
+                                    <!--这里触发click是当同时存在sheetuser控件和日期控件的时候 解决选人控件的弹出层不会隐藏的问题-->
+                                    <input ui-jq="wdatePicker" onclick="javascript: $(document).trigger('click');" class="input-sm form-control"
+                                           id="{{Filter.PropertyCode}}"
+                                           ng-if="Filter.DisplayType==0 && Filter.LogicType=='DateTime'
+                                           && Filter.FilterType!=2" />
+                                    <!-- 时间控件 范围查询-->
+                                    <div class="input-group" ng-if="Filter.DisplayType==0 && Filter.LogicType=='DateTime'
+                                           && Filter.FilterType==2" style="width:100%;">
+                                        <input ui-jq="wdatePicker" onclick="javascript: $(document).trigger('click');"
+                                               id="{{Filter.PropertyCode}}" class="input-sm form-control" />
+                                        <span class="input-group-addon" style="border-left:0px;border-right:0px;">
+                                            —
+                                        </span>
+                                        <input ui-jq="wdatePicker" onclick="javascript: $(document).trigger('click');"
+                                               id="{{Filter.PropertyCode+1}}" class="input-sm form-control" />
+                                    </div>
+
+                                    <!-- 下拉框 -->
+                                    <select class="form-control" id="{{Filter.PropertyCode}}"
+                                            ng-if="Filter.DisplayType==1">
+                                        <option ng-repeat="option in Filter.SelectedValues"
+                                                value="{{option.Value}}">
+                                            {{option.Text}}
+                                        </option>
+                                    </select>
+
+                                    <!-- 单选按钮 -->
+                                    <div ng-if="Filter.DisplayType==2">
+                                        <!--<label>
+                                            <input type="radio" name="{{Filter.PropertyCode}}" value="" style="margin-top:10px;" />全部
+                                        </label>-->
+                                        <label ng-repeat="option in Filter.SelectedValues">
+                                            <input type="radio" name="{{Filter.PropertyCode}}"
+                                                   value="{{option.Value}}" />
+                                            {{option.Text}}
+                                        </label>
+                                    </div>
+                                    <!-- 复选按钮 -->
+                                    <div ng-if="Filter.DisplayType==3">
+                                        <label ng-repeat="option in Filter.SelectedValues" style="margin-top:10px;">
+                                            <input type="checkbox"
+                                                   name="{{Filter.PropertyCode}}" value="{{option.Value}}" />
+                                            {{option.Text}}
+                                        </label>
+                                    </div>
+                                    <!-- 选人控件 -->
+                                    <div ng-if="Filter.DisplayType==5&&(Filter.PropertyCode!='CreatedByParentId'&&Filter.PropertyCode!='OwnerParentId')" style="min-height:30.4px;">
+                                        <div ui-jq="SheetUser" ui-options="UserOptions"
+                                             id="{{Filter.PropertyCode}}" style="display:block;"></div>
+                                    </div>
+                                    <!-- 选部门控件 -->
+                                    <div ng-if="Filter.DisplayType==5&&(Filter.PropertyCode=='CreatedByParentId'||Filter.PropertyCode=='OwnerParentId')" style="min-height:30.4px;">
+                                        <div ui-jq="SheetUser" ui-options="DepartmentOptions"
+                                             id="{{Filter.PropertyCode}}" style="display:block;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="" style="min-height:350px;overflow-x:auto">
+                            <table ui-jq="dataTable" id="BizViewTable"
+                                   ui-options="BizViewOptions()" class="table table-striped m-b-none" style="width:99%;">
+                                <thead>
+                                    <tr>
+                                        <th ng-repeat="Column in GirdColumns">
+                                            <span ng-bind="Column.display"></span>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--表格部分End-->
+    </div>
+    <!-- / main -->
+</div>
+<style>
+    #BizViewTable thead span {
+        width: 90%;
+        display: inline-block;
+        white-space: normal;
+        word-wrap: break-word;
+    }
+    #BizViewTable_processing {
+        z-index:99;
+    }
+
+    div.table-responsive > div.dataTables_wrapper > div.row > div[class^="col-"]:first-child {
+        padding-left: 15px;
+    }
+
+    div.table-responsive > div.dataTables_wrapper > div.row > div[class^="col-"]:last-child {
+        padding-right: 15px;
+    }
+
+</style>

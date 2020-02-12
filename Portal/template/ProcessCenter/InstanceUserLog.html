@@ -1,0 +1,57 @@
+﻿<!--
+    用户操作日志
+     -->
+
+<div class="main-container container">
+    <div class="panel panel-default">
+        <div class="table-responsive">
+            <table class="table table-striped m-b-none" style="table-layout:fixed;width:100%;">
+                <thead>
+                    <tr>
+                        <th style="width:7%;"><span translate="InstanceUserLog.No">序号</span></th>
+                        <th style="width: 15%;"><span translate="InstanceUserLog.CreatedTime">时间</span></th>
+                        <th style="width: 15%;"><span translate="InstanceUserLog.LogType">类型</span></th>
+                        <th style="width: 10%;"><span translate="InstanceUserLog.UserID">用户</span></th>
+                        <th style="width: 10%;"><span translate="InstanceUserLog.TargetName">对象名称</span></th>
+                        <th style="width: 25%;"><span translate="InstanceUserLog.ClientPlatform">平台</span></th>
+                        <th style="width: 10%;"><span translate="InstanceUserLog.ClientAddress">IP地址</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="Log in UserLog">
+                        <td>
+                            <span ng-bind="Log.No"></span>
+                        </td>
+                        <td>
+                            <span ng-bind="Log.Time"></span>
+                        </td>
+                        <td>
+                            <span ng-bind="Log.Type"></span>
+                        </td>
+                        <td>
+                            <span ng-bind="Log.User"></span>
+                        </td>
+                        <td>
+                            <span ng-bind="Log.TargetName"></span>
+                        </td>
+                        <th style="font-weight:normal;">
+                            <span ng-bind="Log.ClientPlatform"></span>
+                        </th>
+                        <td>
+                            <span ng-bind="Log.ClientAddress"></span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<style>
+    body {
+        overflow-y: auto;
+    }
+
+    .app-header-fixed {
+        padding-top: 20px;
+    }
+</style>

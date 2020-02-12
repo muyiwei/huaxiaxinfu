@@ -1,0 +1,304 @@
+﻿<script src="../WFRes/_Scripts/jquery/ajaxfileupload.js"></script>
+<style>
+    .tableList .tableLeft {
+        width: 160px;
+        padding-left: 0px;
+    }
+</style>
+<script>
+    var pageData = {
+        WorkflowPackage: { WorkflowPackage: {}, BizSchema: {}, BizSheets: [],IsCover:false },//流程包
+        LanData: $.Languages
+    }
+
+    $(function(){
+        var ParentID = getUrlParam("ParentID");
+        var ParentCode = getUrlParam("ParentCode");
+        pageData.WorkflowPackage.ParentID = ParentID;
+        pageData.WorkflowPackage.ParentCode = ParentCode;
+
+        //获取目录名称
+        GetPrentFloderName(ParentID);
+
+        DocumentReady();
+
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                format: function (template, content) {
+                    return $.format(template, content);
+                }
+            }
+        });
+    });
+
+    GetPrentFloderName = function (ParentID) {
+        var actionUrl = $.Controller.WorkflowPackageHandler.GetParentFolderName;
+        $.ajax({
+            url: actionUrl,
+            type: "get",
+            data: {ParentID:ParentID},
+            success: function (result) {
+                $("#lblcatalog").text(result);
+            }
+        });
+    }
+
+    DocumentReady = function () {
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+        //数据模型的code与流程包的code相同
+        $("input[CodeInfo='BizWorkflowPackage']").change(function () {
+            $("input[CodeInfo='BizObject']").val($(this).val());
+        });
+    };
+
+
+    Upload = function () {
+        debugger
+        if (CheckFile()) {
+            var uploadUrl = $.Controller.WorkflowPackageHandler.UpLoad;
+            $.ajaxFileUpload({
+                url: uploadUrl,
+                fileElementId: "btnFileUpload",
+                type: "post",
+                dataType: 'json',
+                success: function (data) {
+                    if (data.Success) {
+                        pageData.WorkflowPackage = data.Extend;
+                        pageData.WorkflowPackage.XMLString = encodeURIComponent(pageData.WorkflowPackage.XMLString);
+
+                        var ParentID = getUrlParam("ParentID");
+                        var ParentCode = getUrlParam("ParentCode");
+                        pageData.WorkflowPackage.ParentID = ParentID;
+                        pageData.WorkflowPackage.ParentCode = ParentCode;
+                       
+                        //显示服务编码标签,上传标签隐藏
+                        $("#CodeInfoPanel").show();
+                        $("#UploadPanel").hide();
+
+                        //设置按钮可用
+                        $("#btnImport").removeAttr("disabled").attr("enabled","true");
+                        $("#btnImport").children().removeClass("l-toolbar-item-disable");
+
+                        $("#btnReset").removeAttr("disabled").attr("enabled", "true");
+                        $("#btnReset").children(":first").removeClass("l-toolbar-item-disable");
+
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(data.Message) });
+                    }
+                }
+            });
+        }
+    }
+
+    CheckFile = function () {
+        var fileVal = $("#btnFileUpload").val();
+        if (fileVal == "") {
+            $.H3Dialog.Warn({ content: $.Lang("WorkflowPackageImport.MasterData_Mssg10") });
+            return false;
+        }
+        if (fileVal.toLowerCase().indexOf(".xml") < 0) {
+            $.H3Dialog.Warn({ content: $.Lang("WorkflowPackageImport.MasterData_Mssg2") });
+            return false;
+        }
+        return true
+    }
+
+    BeforeImport = function () {
+        $("input[txtType='codeinfo']").each(function () {
+            //校验表单编码，不能以数字开始
+            if ($(this).attr("codeinfo") == "BizSheet") {
+                var startWithNum = /^[0-9]+[\s\S]*$/;
+                if (startWithNum.test($(this).val())) {
+                    $.H3Dialog.Warn({ content: "WorkflowPackageImport.PackageImportHandler_FormCode" });
+                    return false;
+                }
+            }
+        });
+
+        var Code = "";
+        var flag = false;
+         
+        //是否覆盖
+        pageData.WorkflowPackage.IsCover = $("span[txttype='ckIsCover']").find("input[type='checkbox']")[0].checked;
+
+        //保存编码
+        Code = pageData.WorkflowPackage.WorkflowPackage.Code = $("#txtPackageCode").val();
+        if (Code == "") { flag = true;}
+
+        Code = pageData.WorkflowPackage.BizSchema.Code = $("#txtShcemaCode").val();
+        if (Code == "") { flag = true; }
+
+        //表单
+        if (pageData.WorkflowPackage.BizSheets)
+        {
+            for (var i = 0; i < pageData.WorkflowPackage.BizSheets.length; i++)
+            {
+                var index = pageData.WorkflowPackage.BizSheets[i].Index;
+                Code = pageData.WorkflowPackage.BizSheets[i].Code = $("tr[group='sheet']").find("input[index=" + index + "]").val();
+                if (Code == "") { flag = true; }
+            }
+        }
+
+        //查询列表
+        if (pageData.WorkflowPackage.QueryList) {
+            for (var i = 0; i < pageData.WorkflowPackage.QueryList.length; i++) {
+                var index = pageData.WorkflowPackage.QueryList[i].Index;
+                Code=pageData.WorkflowPackage.QueryList[i].Code = $("tr[group='querylist']").find("input[index=" + index + "]").val();
+                if (Code == "") { flag = true; }
+            }
+        }
+
+        //流程模板
+        if (pageData.WorkflowPackage.WorkFlows) {
+            for (var i = 0; i < pageData.WorkflowPackage.WorkFlows.length; i++) {
+                var index = pageData.WorkflowPackage.WorkFlows[i].Index;
+                Code=pageData.WorkflowPackage.WorkFlows[i].Code = $("tr[group='workflow']").find("input[index=" + index + "]").val();
+                if (Code == "") { flag = true; }
+            }
+        }
+        if (flag) {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.CodeOrNameNotNull") });
+            return false;
+        }
+        return true;
+    }
+
+    Import = function () {
+        if (BeforeImport()) {
+            var importUrl = $.Controller.WorkflowPackageHandler.Import;//导入
+            var formData = JSON.stringify(pageData.WorkflowPackage);
+            $.ajax({
+                url: importUrl,
+                type: 'post',
+                dataType: "json",
+                data: {formData:formData},
+                async: false,//同步执行
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang(result.Message) });
+
+                        //更新节点 top.ReloadNode('ParentID')
+                        top.ReloadNode(pageData.WorkflowPackage.ParentID);
+                        parent.H3DialogManger.Close(); //关闭当前对话框
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        }
+    }
+
+    Reset = function ()
+    {
+        pageData.WorkflowPackage.WorkflowPackage = {};
+        pageData.WorkflowPackage.BizSchema = {};
+        pageData.WorkflowPackage.BizSheets = [];
+
+        $("#CodeInfoPanel").hide();
+        $("#UploadPanel").show();
+    }
+
+    Format = function (template, content) { $.format(template, content); }
+</script>
+<div id="H3ToolBar">
+    <a id="btnImport" href="javascropt:void(0)" onclick="Import()" data-icon="fa fa-upload" data-lang="GlobalButton.Import"></a>
+    <a id="btnReset" href="javascropt:void(0)" onclick="Reset();" data-icon="fa fa-upload" data-lang="WorkflowPackageImport.Reload"></a>
+</div>
+<input type="hidden" id="CodeInfo"  />
+<input type="hidden" id="fileName" />
+<input type="hidden" id="ckIsCover" />
+
+<div id="UploadPanel">
+    <div class="H3Panel">
+        <table>
+            <tr>
+                <td data-lang="WorkflowPackageImport.PackageImportHandler_Catalog"></td>
+                <td>
+                    <label id="lblcatalog" />
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <input type="file" id="btnFileUpload" name="btnFileUpload" />
+                    <a id="btnUpLoad" href="javascript:Upload();" data-lang="BizServiceHandler.Upload"></a>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+
+ <div id="CodeInfoPanel" style="display:none">
+    <div class="H3Panel">
+        <span data-lang="WorkflowPackageImport.MasterData_Mssg4"></span>
+        <table id="CodeTable">
+            <tr>
+                <td data-lang="msgGlobalString.IsCover"></td>
+                <td>
+                    <span txttype="ckIsCover">
+                        <input id="IsCover" type="checkbox" model="WorkflowPackage.IsCover" />
+                        <label for="IsCover" data-lang="msgGlobalString.IsCover"></label>
+                    </span>
+                </td>
+                <td data-lang="msgGlobalString.CoverMsg"></td>
+            </tr>
+            <!-- 流程包-->
+            <tr>
+                <td id="codeDisplay">{{format(LanData.WorkflowPackageImport.PackageImportHandler_Mssg2,WorkflowPackage.WorkflowPackage.Name)}}</td>
+                <td style="width:300px">
+                    <input type="text" id="txtPackageCode" codeinfo="{{WorkflowPackage.WorkflowPackage.CodeType}}" code="" value="{{WorkflowPackage.WorkflowPackage.Code}}" />
+                </td>
+                <td style="color:Red">*</td>
+            </tr>
+            <!-- 数据模型-->
+            <tr>
+                <td id="codeDisplay">{{format(LanData.WorkflowPackageImport.PackageImportHandler_Mssg3,WorkflowPackage.BizSchema.Name)}}</td>
+                <td style="width:300px">
+                    <input type="text" id="txtShcemaCode" disabled="disabled"  codeinfo="{{WorkflowPackage.BizSchema.CodeType}}" code="" value="{{WorkflowPackage.BizSchema.Code}}" />
+                </td>
+                <td style="color:Red">*</td>
+            </tr>
+
+            <!-- 表单-->
+            <template v-for=" detail in WorkflowPackage.BizSheets">
+                <tr group="sheet">
+                    <td spacetd="spacetd" style="width: 20px;"></td>
+                    <td> {{format(LanData.WorkflowPackageImport.PackageImportHandler_Mssg5,detail.Name)}}</td>
+                    <td style="width:300px">
+                        <input type="text" codeinfo="{{detail.CodeType}}" index="{{detail.Index}}" value="{{detail.Code}}" />
+                    </td>
+                    <td style="color:Red">*</td>
+                </tr>
+            </template>
+
+            <!-- 查询列表-->
+            <template v-for=" detail in WorkflowPackage.QueryList">
+                <tr group="querylist">
+                    <td spacetd="spacetd" style="width: 20px;"></td>
+                    <td>{{format(LanData.WorkflowPackageImport.PackageImportHandler_Mssg4,detail.Name)}}</td>
+                    <td style="width:300px">
+                        <input type="text" codeinfo="{{detail.CodeType}}" index="{{detail.Index}}" value="{{detail.Code}}" />
+                    </td>
+                    <td style="color:Red">*</td>
+                </tr>
+            </template>
+
+            <!-- 流程模板-->
+            <template v-for=" detail in WorkflowPackage.WorkFlows">
+                <tr group="workflow">
+                    <td spacetd="spacetd" style="width: 20px;"></td>
+                    <td>{{format(LanData.WorkflowPackageImport.PackageImportHandler_Mssg6,detail.Name)}}</td>
+                    <td style="width:300px">
+                        <input type="text" codeinfo="{{detail.CodeType}}" index="{{detail.Index}}" value="{{detail.Code}}" />
+                    </td>
+                    <td style="color:Red">*</td>
+                </tr>
+            </template>
+
+        </table>
+    </div>
+</div>

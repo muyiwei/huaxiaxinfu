@@ -1,0 +1,72 @@
+﻿<ion-view view-title="在办流程" hide-nav-bar="{{$root.dingMobile.hideHeader}}">
+    <ion-nav-bar class="bar-stable">
+        <ion-nav-buttons side="left">
+            <button class="button button-icon button-clear ion-navicon" menu-toggle="left"></button>
+        </ion-nav-buttons>
+        <ion-nav-buttons side="right">
+            <a class="button button-icon button-clear ion-search" ng-click="showSearch();"></a>
+        </ion-nav-buttons>
+    </ion-nav-bar>
+    <div class="bar bar-subheader" ng-show="displaySearchButton" style="height:41px;">
+        <div class="item item-input-inset" style="padding-top:0px;padding-bottom:0px;padding-left:2px;padding-right:2px;border-width:0px;">
+            <label class="item-input-wrapper" id="search-input">
+                <i class="icon ion-search placeholder-icon"></i>
+                <input type="text" placeholder="搜索" ng-model="searchKey" ng-change="doSearch()" focus-on="searchKey" style="height:32px;">
+            </label>
+        </div>
+    </div>
+    <div class="ng-hide animated fadeIn scrollTop" ng-show="displayTop" ng-click="scrollTop()">
+        <i class="icon ion-arrow-up-a"></i>
+    </div>
+    <ion-content ng-style="{top:!displaySearchButton?layout.noSearchTop:layout.hasSearchTop}" on-scroll="getScrollPosition();">
+        <ion-refresher on-refresh="refreshInstance()">
+        </ion-refresher>
+        <ion-list>
+            <ion-item ng-repeat="instance in myInstances"
+                      class="item-icon-right"
+                      style="cursor:pointer" ng-click="openInstance('{{instance.ObjectID}}')">
+                <!--item-avatar-->
+                <!--<img src="" />-->
+                <!-- ng -->
+                <div>
+                    <h2>{{instance.InstanceName}}</h2>
+                    <p>发起时间：{{instance.CreatedTime}}</p>
+                    <i class="icon ion-chevron-right icon-accessory"></i>
+                </div>
+            </ion-item>
+            <ion-item ng-if="myInstances.length > 0 && loadCompleted"
+                      style="cursor:pointer">
+                <div class="item-icon-left" style="padding-left:20px;">
+                    <i class="icon ion-android-happy"></i>
+                    <h2>全部加载完成</h2>
+                </div>
+            </ion-item>
+            <ion-item ng-if="myInstances.length == 0 && loadCompleted && searchKey=='' && !exception"
+                      style="cursor:pointer">
+                <div class="item-icon-left" style="padding-left:20px;">
+                    <i class="icon ion-checkmark"></i>
+                    <h2>您没有正在办理的流程</h2>
+                </div>
+            </ion-item>
+            <ion-item ng-if="myInstances.length == 0 && loadCompleted && searchKey!='' && !exception"
+                      style="cursor:pointer">
+                <div class="item-icon-left" style="padding-left:20px;">
+                    <i class="icon ion-information-circled"></i>
+                    <h2>未搜索到任务</h2>
+                </div>
+            </ion-item>
+            <ion-item ng-if="exception"
+                      style="cursor:pointer">
+                <div class="item-icon-left" style="padding-left:20px;">
+                    <i class="icon ion-information-circled"></i>
+                    <h2>系统数据加载失败，请稍候再试！</h2>
+                </div>
+            </ion-item>
+        </ion-list>
+        <ion-infinite-scroll ng-if="!loadCompleted"
+                             icon="ion-loading-c"
+                             distance="10%"
+                             on-infinite="loadMoreInstances()">
+        </ion-infinite-scroll>
+    </ion-content>
+</ion-view>

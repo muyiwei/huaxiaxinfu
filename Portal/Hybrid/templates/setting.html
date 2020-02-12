@@ -1,0 +1,46 @@
+﻿<ion-view view-title="系统设置">
+    <ion-nav-bar class="bar-stable">
+        <ion-nav-back-button class="button-clear">
+            <button class="button button-icon button-clear ion-ios-arrow-left"
+                    ng-click="goback()"></button>
+        </ion-nav-back-button>
+    </ion-nav-bar>
+    <ion-content>
+        <div class="list">
+            <div class="item item-divider" style="padding-top:5px;padding-bottom:3px;" ng-show="allowModifyService">
+                <!--item-icon-left-->
+                <i class="icon ion-ios-navigate dividerIcon"></i>服务地址
+                <span style="float:right;" ng-click="checkService();">检测</span>
+            </div>
+            <label class="item item-input" ng-show="allowModifyService">
+                <input type="text" ng-model="setting.httpUrl" maxlength="64" placeholder="请输入服务地址" />
+            </label>
+            <div class="item item-divider" style="padding-top:5px;padding-bottom:3px;">
+                <i class="icon ion-android-lock dividerIcon"></i>登录选项
+            </div>
+            <ion-toggle ng-model="setting.autoLogin" class="toggle-positive">
+                自动登录
+            </ion-toggle>
+            <div class="item item-divider" style="padding-top:5px;padding-bottom:3px;">
+                <i class="icon ion-android-list dividerIcon"></i>语言选项
+            </div>
+            <ion-radio ng-repeat="language in languages"
+                       ng-value="language.value"
+                       ng-model="setting.language">
+                {{ language.text }}
+            </ion-radio>
+            <div class="item item-divider" style="padding-top:5px;padding-bottom:3px;">
+                <i class="icon ion-gear-b dividerIcon"></i>系统信息
+            </div>
+            <span class="item" href="#">
+                当前版本
+                <span class="item-note">{{clientInfo.AppVersion}}</span>
+            </span>
+        </div>
+        <div class="padding">
+            <button class="button button-block button-positive" ng-click="save();">
+                保 存
+            </button>
+        </div>
+    </ion-content>
+</ion-view>

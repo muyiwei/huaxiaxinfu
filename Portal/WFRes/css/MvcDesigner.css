@@ -1,0 +1,720 @@
+* {
+    font-size: 12px;
+}
+
+html, body {
+    width: 100%;
+    margin: 0;
+    background: white;
+    overflow: hidden;
+}
+
+.content-r-item {
+    overflow-y: auto;
+}
+
+em {
+    font-weight: normal;
+    display: block;
+    padding-left: 7px;
+    height: 25px;
+    line-height: 25px;
+    background: #eee;
+    margin-top: 0;
+    font-style: normal;
+}
+
+ul {
+    list-style-type: none;
+    float: left;
+    margin: 0;
+    padding: 0;
+}
+
+li {
+    float: left;
+    margin: 0 5px;
+    cursor: pointer;
+}
+
+    li a {
+        color: #0060a5;
+    }
+
+.hidden {
+    display: block;
+    background: #ccc;
+}
+
+    .hidden::after {
+        content: "[hidden]";
+    }
+
+.left7 {
+    margin-left: 7px;
+}
+
+.border {
+    border: 1px solid #ccc;
+    background: #eee;
+}
+
+.ControlSelected {
+    border: 1px solid #0060a5 !important;
+}
+
+.ControlContainer {
+    border: 2px dashed #00F !important;
+}
+
+.DesignerContent {
+    overflow-y: auto;
+}
+
+.l-tree .l-body span {
+    display: initial;
+}
+
+.search {
+    height: 30px;
+}
+
+    .search p {
+        display: block;
+        height: 25px;
+        line-height: 25px;
+        margin: 5px 0;
+    }
+
+        .search p label {
+            text-align: right;
+            width: 85px;
+            display: inline-block;
+        }
+
+        .search p select {
+            min-width: 100px;
+            width: 100px;
+        }
+
+    .search .button {
+        width: 75px;
+        margin-left: 15px;
+    }
+
+.CodeMirror {
+    top: initial;
+    height: 91%;
+}
+
+.content {
+    clear: both;
+    margin-top: 7px;
+    padding: 0;
+    position: relative;
+}
+
+.content_l {
+    float: left;
+    width: 12%;
+    border: 1px solid #ccc;
+    margin-left: 2px;
+    overflow: auto;
+    height: 100%;
+}
+
+.content_l_item {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
+.content_m {
+    float: left;
+    width: 67%;
+    margin-left: 5px;
+    margin-right: 5px;
+    border: 1px solid #ccc;
+    height: 100%;
+}
+
+    .content_m em {
+        padding-left: 0;
+        margin-bottom: 0;
+    }
+
+    .content_m img {
+        width: 16px;
+        height: 16px;
+    }
+
+.dragable toolbar {
+    text-decoration: none;
+    color: #000;
+}
+
+.content_m1 {
+    width: 100%;
+    float: left;
+    margin-left: 0;
+    overflow-y: auto;
+    border: 1px dashed red;
+}
+
+.content_m1source {
+    width: 100%;
+    float: left;
+    margin-left: 0;
+    border: 1px dashed red;
+    display: none;
+}
+
+.content_m2 {
+    width: 100%;
+    float: left;
+    bottom: 0;
+    height: 27px;
+    background: #ccc;
+}
+
+    .content_m2 ul {
+        height: 100%;
+        margin-left: 0;
+        padding: 0;
+    }
+
+        .content_m2 ul li {
+            float: left;
+            margin-left: 0;
+            height: 25px;
+            line-height: 25px;
+            width: 39px;
+            padding-top: 2px;
+            text-align: center;
+        }
+
+            .content_m2 ul li.curr {
+                background: white;
+            }
+
+    .content_m2 .dom {
+        width: 60%;
+        padding-top: 2px;
+        text-align: left;
+    }
+
+.content_r {
+    float: right;
+    width: 17.5%;
+    height: 100%;
+    border: 1px solid #ccc;
+    margin-right: 2px;
+    overflow: hidden;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+    .content_r select {
+        width: 105px;
+    }
+
+.proertyPanel_Desc {
+    height: 50px;
+    width: 100%;
+    padding-left: 7px;
+    padding-top: 5px;
+    border-top: 1px solid #ccc;
+}
+
+.toolbar button {
+    margin: 2px 4px;
+}
+
+.title {
+    height: 28px;
+    text-align: left;
+    padding-right: 3px;
+    background: #f5f6f7;
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    width: 30%;
+    max-width: 80px;
+    overflow: hidden;
+}
+
+.titleChanged {
+    text-align: left;
+    background: #f5f6f7;
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    width: 30%;
+    overflow: hidden;
+    font-weight: bold;
+}
+
+.data {
+    text-align: left;
+    padding-left: 3px;
+    border-bottom: 1px solid #ccc;
+}
+
+.focus {
+    background-color: yellow;
+}
+
+.selected {
+    border: 1px solid #1aeec1 !important;
+}
+
+#screen {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: none;
+    z-index: 100;
+    background-color: #666;
+    opacity: .5;
+    filter: alpha(opacity=50);
+    -moz-opacity: .5;
+}
+
+.dataItem {
+    color: black;
+    font-family: Verdana;
+    font-size: 8pt;
+    text-decoration: underline;
+    padding-left: 5px;
+    cursor: pointer;
+}
+
+.propertyTitle {
+    border-top: 1px solid white;
+    background: #EFEFF2;
+    width: 100%;
+    height: 20px;
+    line-height: 20px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.tabMenu {
+    width: 300px;
+    border: 1px solid black;
+    margin-left: 5px;
+    background: #eee;
+    color: black;
+    height: 20px;
+    line-height: 20px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.container {
+    border-bottom: 1px dashed green;
+    height: 30px;
+    line-height: 30px;
+    margin-bottom: 25px;
+}
+
+.close {
+    background: url(button_submit.gif) repeat-x #e3f1fa;
+    border: 1px solid #aed0ea;
+    padding: 0 10px;
+    height: 24px;
+    line-height: 24px;
+    color: #3d80b3;
+    cursor: pointer;
+}
+
+.submit {
+    background: url(button_submit.gif) repeat-x #e3f1fa;
+    border: 1px solid #aed0ea;
+    padding: 0 10px;
+    height: 24px;
+    line-height: 24px;
+    color: #3d80b3;
+    cursor: pointer;
+}
+
+.button {
+    background: url(button_submit.gif) repeat-x #e3f1fa;
+    border: 1px solid #aed0ea;
+    padding: 0 10px;
+    height: 24px;
+    line-height: 24px;
+    color: #3d80b3;
+    cursor: pointer;
+}
+
+.bold {
+    font-weight: bold;
+    color: red;
+}
+
+.processTitle span {
+    text-align: center;
+    width: 100%;
+    font-size: 26px !important;
+    font-weight: bold;
+}
+
+.selectedTR {
+    background-color: yellow;
+}
+
+.subTableTH {
+    border: 1px solid black;
+    height: 25px;
+    background: #ccc;
+    font-weight: bold;
+    text-align: center;
+}
+
+.subTableRow {
+    border: 1px solid black;
+    height: 25px;
+    padding-left: 5px;
+}
+
+.itemUnSelected {
+    color: #B6ADAC;
+}
+
+.itemSelected {
+    color: #000;
+}
+
+.contextMenu ul li {
+    width: 90%;
+}
+
+.panel-title {
+    line-height: inherit;
+}
+
+    .panel-title span {
+        font-size: 28px;
+    }
+
+.l-bar-separator {
+    border-left: 1px solid #D6D6D6;
+    border-right: 1px solid white;
+    float: left;
+    height: 13px;
+    margin: 2px;
+    margin-top: 8px;
+}
+
+.toolbar {
+    position: inherit;
+    width: 100%;
+}
+
+.tdTitle {
+    height: 26px;
+}
+
+.tableStyle {
+    border-width: 1px;
+}
+
+    .tableStyle td {
+        border-top: 1px solid;
+        border-bottom: 1px solid;
+        border-left: 1px solid;
+        border-right: 1px solid;
+    }
+
+input, select {
+    height: 20px;
+}
+
+.dialogTable {
+    width: 460px;
+}
+
+.dialogTitle {
+    font-weight: bold;
+    font-size: 14px;
+    height: 39px;
+    padding-left: 6px;
+}
+
+.dialogButton {
+    height: 39px;
+    text-align: right;
+    padding-right: 6px;
+}
+
+.dialogContent {
+    text-align: center;
+}
+
+.dialogDemo {
+    padding-left: 6px;
+}
+
+.EnabledCode {
+    height: inherit;
+}
+
+    .EnabledCode input {
+        height: inherit;
+    }
+
+li {
+    width: 100%;
+}
+
+    li div {
+        width: 100%;
+    }
+
+ul {
+    width: 100%;
+}
+
+    ul div {
+        width: 100%;
+        white-space: nowrap;
+    }
+
+.PropertyTable {
+    width: 100%;
+    table-layout: fixed;
+    min-height: initial;
+    border: 1px solid #eae5e5;
+}
+
+    .PropertyTable td {
+        border: 1px solid #eae5e5;
+    }
+
+tr[group] > td:first-child:not([group]) {
+    background-color: #eae5e5;
+}
+
+.PropertyTable label {
+    padding-left: 3px;
+}
+
+.PropertyTable label {
+    padding-left: 3px;
+}
+
+.PropertyTable td {
+    height: 31px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.PropertyTable input[type=text], .PropertyTable input[type=number], .PropertyTable textarea, .PropertyTable select, .PropertyTable ul, .PropertyTable div.BizEvents, .PropertyTable .formula-display {
+    border: 1px solid transparent;
+}
+
+    .PropertyTable input[type=text]:hover, .PropertyTable input[type=number]:hover, .PropertyTable textarea:hover, .PropertyTable ul:hover, .PropertyTable div.BizEvents:hover, .PropertyTable .formula-display:hover {
+        border: 1px solid #CCC;
+    }
+
+.propertyTitle {
+    display: table-row;
+    cursor: pointer;
+    background-color: #EAE5E5;
+}
+
+td[group] {
+    width: 10px;
+    height: 22px;
+    overflow: hidden;
+    background: url('../../WFRes/_Content/themes/ligerUI/Aqua/images/tree/tree.gif');
+}
+
+    td[group].Expanded {
+        background-position: -5px -88px;
+        position: relative;
+    }
+
+    td[group].Fold {
+        background-position: -5px 0;
+        position: relative;
+    }
+
+    td[group] + td[colspan='3'] {
+        height: 24px;
+        width: 95%;
+        padding-left: 3px;
+    }
+
+.SheetGridView {
+    width: 100%;
+}
+
+.template {
+    display: initial;
+}
+
+.row {
+    margin-left: -11px;
+    margin-right: -11px;
+    padding-top: 0;
+}
+
+    .row div {
+        min-height: 33px;
+    }
+
+    .btn-group-vertical > .btn-group:after, .btn-group-vertical > .btn-group:before, .btn-toolbar:after, .btn-toolbar:before, .clearfix:after, .clearfix:before, .container-fluid:after, .container-fluid:before, .container:after, .container:before, .form-horizontal .form-group:after, .form-horizontal .form-group:before, .modal-footer:after, .modal-footer:before, .nav:after, .nav:before, .navbar-collapse:after, .navbar-collapse:before, .navbar-header:after, .navbar-header:before, .navbar:after, .navbar:before, .pager:after, .pager:before, .panel-body:after, .panel-body:before, .row:after, .row:before {
+        content: "";
+        display: table;
+    }
+
+    .btn-group-vertical > .btn-group:after, .btn-toolbar:after, .clearfix:after, .container-fluid:after, .container:after, .form-horizontal .form-group:after, .modal-footer:after, .nav:after, .navbar-collapse:after, .navbar-header:after, .navbar:after, .pager:after, .panel-body:after, .row:after {
+        clear: both;
+    }
+
+.col-md-1 {
+    float: left;
+    width: 8.33%;
+}
+
+.col-md-2 {
+    float: left;
+    width: 16.66%;
+}
+
+.col-md-3 {
+    float: left;
+    width: 25%;
+}
+
+.col-md-4 {
+    float: left;
+    width: 33.33%;
+}
+
+.col-md-5 {
+    float: left;
+    width: 41.66%;
+}
+
+.col-md-6 {
+    float: left;
+    width: 50%;
+}
+
+.col-md-7 {
+    float: left;
+    width: 58.33%;
+}
+
+.col-md-8 {
+    float: left;
+    width: 66.66%;
+}
+
+.col-md-9 {
+    float: left;
+    width: 75%;
+}
+
+.col-md-10 {
+    float: left;
+    width: 83.33%;
+}
+
+.col-md-11 {
+    float: left;
+    width: 91.66%;
+}
+
+.col-md-12 {
+    float: left;
+    width: 100%;
+}
+
+.form-group {
+    width: 50%;
+    float: left;
+}
+
+.row {
+    border: 1px dashed #B6ACAC;
+    vertical-align: middle;
+}
+
+    .row input, select, textarea {
+        border: 1px solid #B6ACAC;
+        vertical-align: middle;
+    }
+
+.col-lg-1, .col-lg-10, .col-lg-11, .col-lg-12, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-md-1, .col-md-10, .col-md-11, .col-md-12, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-sm-1, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-xs-1, .col-xs-10, .col-xs-11, .col-xs-12, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9 {
+    position: relative;
+    min-height: 1px;
+    padding-left: 11px;
+    padding-right: 11px;
+    border: 1px dashed #B6ACAC;
+    vertical-align: middle;
+}
+
+.divContent *, :after, :before {
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}
+
+input[type=text], select, table {
+    padding-left: 3px;
+    min-height: 28px;
+    width: 100%;
+}
+
+textarea {
+    width: 100%;
+    padding-left: 3px;
+    min-height: 39px;
+}
+
+.cke {
+    width: 100% !important;
+}
+
+.SheetAttachment {
+    width: 100%;
+}
+
+.SheetComment {
+    width: 100%;
+}
+
+.SheetComment textarea {
+    width: 100%;
+}
+
+/***解决WorkflowSelecter 控件样式错乱问题****/
+ li.select2-search-choice {
+    width: initial;
+}
+li.select2-search-field {
+    width:initial;
+}
+
+.select2-container-multi .select2-choices {
+    background: #fff;
+    border: 1px solid #d6d6d6 !important;
+    border-top-color: #c2c2c2;
+    border-radius: 2px;
+    cursor: text;
+    height: auto !important;
+    width: 100% !important;
+}
+
+/********END********/
+
+/*********修改控件类型对话框高度************/
+.l-dialog-table, l-dialog-body {
+    width: 100%;
+    height: auto;
+}

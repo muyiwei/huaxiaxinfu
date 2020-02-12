@@ -1,0 +1,143 @@
+﻿
+<script>
+    var pageData = {
+        RoleUserData: { Sortkey: 1 },
+        LanData: $.Languages
+    };
+    $(function () {
+        //初始化页面数据
+        initPageData();
+       
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                }
+            }
+        });
+
+        //选人控件初始化
+        var userEabled = true;
+        if (pageData.RoleUserData.UserID) {
+            userEabled = false; //编辑不能修改用户
+        }
+        //debugger;
+        $("#divUser").SheetUser({ Editable: userEabled, OrgUnitVisible: false, UserVisible: true, Visiable: true, IsMultiple: true });
+        $("#divScope").SheetUser({ Editable: true, Visiable: true,UserVisible:false, OrgUnitVisible: true,GroupVisible:true,IsMultiple:true });
+
+        if (pageData.RoleUserData.UserID) {
+            $("#divUser").SheetUIManager().SetValue(pageData.RoleUserData.UserID);
+        }
+        if (pageData.RoleUserData.ManagerScopeIds) {
+            $("#divScope").SheetUIManager().SetValue(pageData.RoleUserData.ManagerScopeIds.split(';'));
+        }
+       
+        function saveData() {
+             debugger;
+            // 获取选定的用户
+            var userIds = $("#divUser").SheetUIManager().GetValue();
+            var scopes = $("#divScope").SheetUIManager().GetValue();
+
+            //用户和管理范围必填
+            if (userIds == "") { $.H3Dialog.Warn({ content: "请选择用户" }); return; }
+            //if (scopes == "") { $.H3Dialog.Warn({ content: "请选择管理范围" }); return; }
+            if (userIds) {
+                pageData.RoleUserData.UserID = userIds.join(";");
+            } else {
+                pageData.RoleUserData.UserID = "";
+            }
+            //pageData.RoleUserData.UserID = userId;
+            if (scopes) {
+                pageData.RoleUserData.ManagerScopeIds = scopes.join(";");
+            } else {
+                pageData.RoleUserData.ManagerScopeIds = "";
+            }
+            $.ajax({
+                url: $.Controller.ListOrgJob.SaveRoleUsers,
+                type: "post",
+                dataType: "json",
+                async:false,
+                data: pageData.RoleUserData,
+                success: function (result) {
+                    if (result.Success) {
+                        parent.QueryFun();
+                        parent.H3DialogManger.close();
+                    } else {
+                        $.H3Dialog.Warn({ content: result.Message });
+                    }
+                }
+            });
+        };
+    });
+
+    //根据传递的参数获取对应的数据，Vue绑定数据使用
+    function initPageData() {
+        //debugger;
+        var id = getUrlParam("id");
+        var roleid = getUrlParam("roleid");
+
+        if (id && id != "") {
+            $.ajax({
+                url: $.Controller.ListOrgJob.GetRoleUserById,
+                type: 'get',
+                dataType: "json",
+                data: { roleUserId: id, roleId: roleid },
+                async: false,//同步执行
+                success: function (result) {
+                    pageData.RoleUserData = result;
+                }
+            });
+        } else {
+            pageData.RoleUserData.RoleID = roleid;
+        }
+    };
+
+</script>
+
+<validator name="formValidator">
+    <div id="H3ToolBar">
+        <a id="SaveBtn" v-on:click="saveData" data-icon="fa fa-save" data-lang="GlobalButton.Save"></a>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.msgGlobalString.Msg_BasciInfor}}</span>
+        <input v-model="RoleUserData.UserID" hidden="hidden" />
+        <input v-model="RoleUserData.RoleID" hidden="hidden" />
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft">{{LanData.ListOrgJob.SelectUser}}</td>
+                <td>
+                    <div id="divUser" style="width: 255px;"></div>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.ListOrgJob.ManagerScope}}</td>
+                <td>
+                    <div id="divScope" style="width: 255px;"></div>
+                </td>
+            </tr>
+            <!--<tr>
+                <td class="tableLeft">{{LanData.ListOrgJob.Sort}}</td>
+                <td>
+                    <input v-model="RoleUserData.Sortkey" detect-change="on" detect-blur="on" initial="off" v-validate:sort-key="['number']" type="text" />
+                    <span style="color:Red;" v-if="$formValidator.sortKey.number">{{LanData.msgGlobalString.NumberValidate}}</span>
+                </td>
+            </tr>-->
+            <tr>
+                <td class="tableLeft">{{LanData.ListOrgJob.Description}}</td>
+                <td>
+                    <textarea v-model="RoleUserData.Description"></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

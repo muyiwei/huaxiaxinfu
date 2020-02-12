@@ -1,0 +1,30 @@
+﻿<!-- 传阅、征询、转发界面 -->
+<ion-view title="{{Params.title}}">
+    <ion-nav-bar class="bar">
+        <ion-nav-buttons side="left">
+            <button class="button button-icon button-clear ion-ios-arrow-left"
+                    ng-click="$ionicGoBack()">
+                返回
+            </button>
+        </ion-nav-buttons>
+        <ion-nav-buttons side="right">
+            <button class="button button-icon button-clear"
+                    ng-click="doAction()">
+                确定
+            </button>
+        </ion-nav-buttons>
+    </ion-nav-bar>
+    <ion-content class="has-header has-footer">
+        <div class="item item-divider"></div>
+        <div class="divContent">
+            <div class="list">
+                <div class="item item-input fetchUserContainer">
+                    <span class="input-label">选择</span>
+                    <div class="detail">
+                        <div data-datafield="fetchUserSelect" data-type="SheetUser" id="fetchUserSelect"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ion-content>
+</ion-view>

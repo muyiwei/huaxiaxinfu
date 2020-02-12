@@ -1,0 +1,581 @@
+#ionicForm .panel-title {
+    display: none;
+}
+
+.bannerTitle {
+    text-align: left !important;
+    width: 100% !important;
+    padding-top: 20px !important;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #ccc;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    background-color: #eee;
+    min-height: 32px;
+}
+
+    .bannerTitle > label {
+        width: 100% !important;
+        float: none !important;
+        padding-left: 0 !important;
+    }
+
+#ionicForm.ios7 .header .button {
+    font-size: 110% !important;
+    min-width: 60px;
+}
+
+#ionicForm ion-header-bar {
+    color: #007aff !important;
+    background-color: white !important;
+}
+
+    #ionicForm ion-header-bar button {
+        color: #007aff !important;
+    }
+
+.sheet-comment {
+    width: 100%;
+}
+
+.panel {
+    background-color: white !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+div[id*="masterContent"] {
+    position: relative;
+    width: 100%;
+}
+
+.panel-body {
+    position: relative;
+    width: 100%;
+}
+
+    .panel-body > * {
+        position: relative;
+        width: 100%;
+    }
+
+.divContent {
+    width: 100% !important;
+    overflow: hidden;
+}
+
+.form-group {
+    width: 100%;
+    height: 40px;
+}
+
+.row {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.col-md-4 > *,
+.col-md-10 > * {
+    line-height: 36px;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+    .col-md-4 > *:only-child,
+    .col-md-10 > *:only-child {
+        width: 100% !important;
+        /*text-overflow: ellipsis;
+        white-space: nowrap;*/
+        word-break: break-all;
+        overflow: hidden;
+        display: block;
+    }
+
+.col-md-2 {
+    display: none;
+}
+
+.col-md-4,
+.col-md-10 {
+    width: 67%;
+    padding-right: 6px;
+    float: right;
+    border-top: 1px solid #eee;
+    right: 0;
+    left: 33%;
+    overflow: visible;
+}
+
+    .col-md-4:before,
+    .col-md-10:before {
+        content: attr(data-title);
+        width: 50%;
+        float: left;
+        margin-left: -50%;
+        padding-left: 10px;
+        margin-top: -1px;
+        margin-right: -10px;
+        line-height: 36px;
+        border-top: 1px solid #eee;
+        height: 100%;
+        font-weight: bold;
+    }
+
+    .col-md-4:after,
+    .col-md-10:after {
+        content: "";
+        width: 0;
+        height: 0;
+        clear: both;
+    }
+
+    .col-md-4 > *,
+    .col-md-10 > * {
+        line-height: 28px;
+        padding-right: 10px !important;
+        min-height: 28px;
+        text-align: right !important;
+        float: right;
+        -ms-text-overflow: ellipsis;
+        -o-text-overflow: ellipsis;
+    }
+
+.switchery {
+    width: 50px !important;
+    padding-right: 0 !important;
+}
+
+.col-md-4:empty,
+.col-md-10:empty {
+    display: none;
+}
+
+.input-mask:after {
+    z-index: 99;
+    font-size: 12px;
+    top: 9px;
+    right: 8px;
+    text-align: center;
+    font-family: 'chevron';
+    content: "\f054";
+    color: #c7c7cc;
+    padding-left: 6px;
+}
+
+.input-mask.error:after {
+    content: "!";
+    line-height: 22px;
+    font-size: 14px;
+    width: 12px;
+    height: 22px;
+    border: solid 1px #ccc;
+    color: red;
+    font-weight: bold;
+    border-radius: 15px;
+    float: right;
+    overflow: hidden;
+    padding-right: 6px;
+    font-family: cursive;
+    margin-top: 6px;
+    margin-left: 4px;
+}
+
+#ionicForm .InvalidText {
+    width: 100%;
+    line-height: initial;
+    float: right;
+    color: red;
+}
+
+.select2-container {
+    height: auto;
+    overflow: hidden;
+    padding: 0 10px 0 10px;
+    border: 1px solid #ccc;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+}
+
+.select2-choices {
+    position: relative;
+    width: 100%;
+}
+
+    .select2-choices li {
+        float: left;
+        list-style: none;
+    }
+
+.select2-search-choice {
+    background-color: #b0b0b0;
+    margin: 0 0 5px 5px;
+    padding: 0 20px 0 6px;
+    -moz-border-radius: 2px;
+    -webkit-border-radius: 2px;
+    border-radius: 2px;
+    color: #fff;
+    -webkit-text-shadow: 0 -1px 0 rgba(0, 0, 0, .2);
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, .2);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 20px;
+}
+
+.select2-search-field input {
+    border: none;
+}
+
+    .select2-search-field input:focus {
+        border: none;
+        outline: none;
+    }
+
+.select2-search-choice-close {
+    display: block;
+    color: #fff;
+}
+
+    .select2-search-choice-close:after {
+        color: #c7c7cc;
+    }
+
+.pull-right {
+    float: right !important;
+}
+
+.bg-info {
+    color: navy;
+    font-weight: bolder;
+    font-size: larger;
+}
+
+.table {
+    border-color: #e2e2e2;
+    width: 100%;
+}
+
+    .table tr {
+        display: table-row;
+        vertical-align: inherit;
+        border-color: inherit;
+        height: 36px;
+    }
+
+.table-striped td {
+    border: 0 !important;
+}
+
+.table-striped > tbody > tr:nth-child(odd) > td {
+    background-color: #f9f9f9;
+}
+
+.SheetComment .bordered {
+    border: 1px solid #e4e4e4;
+}
+
+.SheetComment .panel-body {
+    background: #fff;
+    margin: 0;
+    padding: 20px;
+}
+
+.SheetComment .comment {
+    margin: 0 -20px;
+    padding-left: 30px;
+    padding-right: 30px;
+    padding-top: 10px;
+    padding-bottom: 5px;
+}
+
+.SheetComment .comment-avatar {
+    display: block;
+    float: left;
+    height: 32px;
+    margin-top: 5px;
+    width: 32px;
+    -moz-border-radius: 99999px;
+    -webkit-border-radius: 99999px;
+    border-radius: 99999px;
+}
+
+.SheetComment .comment-line {
+    border-bottom: 1px solid #ccc;
+}
+
+.SheetComment .comment-by {
+    font-style: italic;
+    color: #aaa;
+    display: block;
+}
+
+.SheetComment .comment-text {
+    padding: 5px;
+}
+
+.SheetComment .comment-actions,
+.SheetComment .comment-actions a {
+    color: #aaa;
+    font-size: 12px;
+}
+
+ul[data-row] {
+    padding-top: 0;
+    padding-bottom: 20px;
+    margin-bottom: 0 !important;
+}
+
+li[data-field] {
+    border-bottom: none !important;
+}
+
+input[readonly],
+div.Readonly {
+    border: none;
+}
+
+.item-content {
+    width: 100% !important;
+    -ms-text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+#ionicForm input:disabled.toggle + label {
+    opacity: .5;
+}
+
+#ionicForm.ios7 #af_actionsheet a:active {
+    background-color: #ccc;
+}
+
+.LongWord {
+    -ms-text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    display: block;
+}
+
+.list li {
+    padding: 0 12px 0 12px !important;
+}
+
+.orglist li {
+    padding: 10px 20px 10px 10px !important;
+}
+
+.list .delete {
+    text-align: center;
+    color: red;
+    height: 36px;
+    line-height: 36px;
+    border-bottom: 0 !important;
+}
+
+    .list .delete div {
+        border-top: 1px solid #eee;
+    }
+
+.list .separator {
+    border-bottom: 0 !important;
+}
+
+    .list .separator div {
+        background-color: #eee;
+        height: 10px;
+    }
+
+.list .add {
+    border-top: 0 !important;
+    height: 36px;
+    line-height: 36px;
+    text-align: center;
+    color: rgba(82, 155, 234, 255);
+}
+
+.list li:first-child {
+    border-top: 0 !important;
+}
+
+.bizobjectarray {
+    width: 100%;
+    font-weight: normal;
+}
+
+.myexpanded {
+    color: #c7c7cc;
+    height: 35px;
+    right: 0;
+    position: relative;
+}
+
+.bizobjectarray > ul:after {
+    content: "";
+    width: 100%;
+    height: 3px;
+    background-color: #ccc;
+    position: absolute;
+    bottom: 3px;
+}
+
+.list[data-row] + .list {
+    border-top: 4px solid #eee !important;
+}
+
+.selectFromOrg:after {
+    color: rgba(217, 217, 217, 255);
+    position: absolute;
+    right: 8px;
+    font-family: chevron;
+    speak: none;
+    font-style: normal;
+    font-weight: 400;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    content: "\f054";
+}
+
+.list > li.user-item {
+    clear: both;
+    padding: 10px 20px 10px 10px !important;
+}
+
+#ionicForm textarea {
+    border: none;
+    width: 98%;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+#ionicForm select,
+#ionicForm input[type=text],
+#ionicForm input[type=search],
+#ionicForm input[type=password],
+#ionicForm input[type=datetime],
+#ionicForm input[type=datetime-local],
+#ionicForm input[type=date],
+#ionicForm input[type=month],
+#ionicForm input[type=time],
+#ionicForm input[type=week],
+#ionicForm input[type=number],
+#ionicForm input[type=email],
+#ionicForm input[type=url],
+#ionicForm input[type=tel],
+#ionicForm input[type=color],
+#ionicForm .input-group {
+    border: none;
+    height: 32px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.inputMouseOut {
+    border: none;
+}
+
+.inputMouseEnter {
+    border: none;
+    /*border: 1px solid #4d90fe !important;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(77, 144, 254, .6);
+    border-radius: 2px;*/
+}
+
+#ionicForm label {
+    width: initial;
+}
+
+.backButton {
+    visibility: visible !important;
+    display: block !important;
+    float: left !important;
+    text-align: left !important;
+}
+
+ul.list[data-row-id] {
+    border-top: 28px solid #efeef3 !important;
+}
+
+#ionicForm .panel > .list,
+#ionicForm .panel > .afScrollPanel > .list {
+    margin: 0 0px 0 0px;
+}
+
+.mobile-error {
+    border-left: 2px solid red;
+    border-right: 5px solid red;
+}
+
+
+/***********************************/
+
+A:visited {
+    color: #0060a5;
+    text-decoration: none;
+}
+
+A:link {
+    color: #0060a5;
+    text-decoration: none;
+}
+
+}
+
+a {
+    cursor: pointer;
+}
+
+    a,
+    a:hover {
+        text-decoration: none;
+    }
+
+a {
+    color: #4083a9;
+    text-decoration: none;
+}
+
+a {
+    background: 0;
+    background-image: initial;
+    background-position-x: 0px;
+    background-position-y: center;
+    background-size: initial;
+    background-repeat-x: initial;
+    background-repeat-y: initial;
+    background-attachment: initial;
+    background-origin: initial;
+    background-clip: initial;
+    background-color: initial;
+}
+
+.platform-android .action-sheet .button {
+    text-align: center !important;
+    border-color: #d1d3d6 !important;
+    color: #007aff !important;
+    font-size: 21px !important;
+}
+
+.platform-android .action-sheet-title {
+    padding: 16px !important;
+    color: #8f8f8f !important;
+    text-align: center !important;
+    font-size: 13px !important;
+}
+
+.viewHidden {
+    display: none;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.popup {
+    max-height: 50% !important;
+}

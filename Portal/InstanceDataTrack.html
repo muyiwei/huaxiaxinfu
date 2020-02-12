@@ -1,0 +1,118 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <link href="WFRes/_Content/themes/ligerUI/Aqua/css/ligerui-all.css" rel="stylesheet" type="text/css" />
+    <link href="WFRes/_Content/themes/H3Default/H3-All.css" rel="stylesheet" type="text/css" />
+    <link rel="shortcut icon" type="image/x-icon" href="WFRes/images/favicon.png" media="screen" />
+    <link rel="icon" type="image/x-icon" href="WFRes/images/favicon.png" media="screen" />
+    <script src="WFRes/_Scripts/jquery/jquery.js" type="text/javascript"></script>
+    <script src="WFRes/_Scripts/jquery/jquery.lang.js" type="text/javascript"></script>
+    <script src="WFRes/_Scripts/ligerUI/ligerui.all.js" type="text/javascript"></script>
+    <script src="WFRes/_Scripts/H3AdminPlugins.js" type="text/javascript"></script>
+
+    <script>
+        function CreateColumns() {
+            var ObjectID = "ObjectID";
+            var PropertyName = "数据项名称";
+            var ModifiedTime = "修改时间";
+            var ModifiedBy = "修改人";
+            var Value = "修改值";
+            return [
+                { display: ObjectID, name: 'ObjectID', hide: true, width: 139 },
+                { display: PropertyName, name: 'PropertyName', align: 'center', width: 130 },
+                { display: ModifiedTime, name: 'ModifiedTime', width: 130 },
+                { display: ModifiedBy, name: 'ModifiedBy', width: 130 },
+                { display: Value, name: 'Value', width: 139 }
+            ];
+        }
+        // 获取PortalRoot
+        var _PORTALROOT_GLOBAL = window.localStorage.getItem("H3.PortalRoot");
+
+        var GetQueryString = function (name) {
+            var result = location.search.match(new RegExp("[\?\&]" + name + "=([^\&]+)", "i"));
+            if (result == null || result.length < 1) { return "" }
+
+            return result[1];
+        }
+        var InstanceId = GetQueryString("InstanceId");
+        var ItemName = GetQueryString("ItemName");
+        var WorkItemId = GetQueryString("WorkItemId");
+        //string instanceId, string itemName, string workItemID
+        $(function () {
+            //创建表格
+            var actionUrl = _PORTALROOT_GLOBAL + "/InstanceDataTrack/GetTrackTable";
+            var onAfterShowData = function () {
+                debugger
+                $(".l-grid2 table").addClass("overtable");
+                $(".l-panel-bar").addClass("panelbar");
+                $(".l-grid-body2 .l-grid-row-cell-inner").each(function (i, el) {
+                    $(this).attr("title", $(this).text());
+                })
+                var frameId = window.frameElement && window.frameElement.id || '';
+                var parentDiv = $("#" + frameId, parent.document).closest("div .modal");
+                parentDiv.show(function () {
+                    $(".l-grid-body1 .l-grid-row-cell-inner").each(function (i, el) {
+                        var that = $(this);
+                        $(".l-grid-body2 .l-grid-row-cell-last").each(function (j, el2) {
+                            if (i == j) {
+                                that.height($(this)[0].clientHeight);
+                                that.css("line-height", $(this)[0].clientHeight + "px").css("text-align", "center");
+                            }
+                        })
+                    });
+                    var modalBody = $("#" + frameId, parent.document).closest("div .modal-body");
+                    modalBody.height(modalBody[0].clientHeight - 3);
+                }).hide(function () {
+                    $(".l-grid2").css("width", "auto");
+
+                });
+            };
+            //业务服务-adapterType:0,业务规则-adapterType:1
+            CreateLigerGrid(
+                $("#tractTable"),
+                CreateColumns(),
+                actionUrl,
+                false, "98%",
+                null, null, onAfterShowData,
+                {
+                    instanceId: InstanceId,
+                    itemName: ItemName,
+                    workItemID: WorkItemId
+                }, true
+               )
+        });
+
+    </script>
+</head>
+<body>
+    <div>
+        <table class="edit_group" style="margin-top: initial; margin-bottom: initial; width:100%;">
+            <tr>
+                <th colspan="2">
+                    <!--<%=this.PortalResource.GetString("InstanceDataTrack_DataItemName")%>-->
+                    <!--<asp:Label ID="lblItemName" runat="server" Font-Bold="false"></asp:Label>-->
+                </th>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <div id="divContent" style="overflow-y: auto;">
+                        <div id="tractTable"></div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <script type="text/javascript">
+        $(function () {
+            var href = this.location.href;
+            if (href.indexOf("&F=") > 0) {
+                var id = href.split("&F=")[1];
+                var h = window.parent.$("#" + id).height() + 1;//- 36;
+                $("#divContent").css("height", h);
+            }
+        });
+    </script>
+</body>
+</html>

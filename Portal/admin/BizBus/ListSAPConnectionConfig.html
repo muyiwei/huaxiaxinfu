@@ -1,0 +1,148 @@
+﻿<script>
+    $(function () {
+        $("#ToolBar").AspLinkToolBar();
+
+        //创建表格
+        CreateLigerGrid(
+            $("#ConfigList"),
+            GetConfigColumns(),
+            $.Controller.SAPConnectionConfig.GetSAPConnectionConfigList,
+            true, "98%",
+            null, null, null,
+            null
+           )
+
+        var h = $(".l-grid").height() - 30;
+        $(".l-grid").css("height", h);
+
+        if ("SAPAuthorized" == "False") {
+            $("#lnkAdd").hide();
+        }
+    });
+
+    function GetConfigColumns() {
+        var ObjectID ="ObjectID";
+        var ConnectionName =$.Lang("SAPConnectionConfig.Name");
+        var MaxPoolSize =$.Lang("SAPConnectionConfig.MaxPoolSize");
+        var LoginUser =$.Lang("SAPConnectionConfig.LoginUser");
+        var LoginPassword =$.Lang("SAPConnectionConfig.LoginPassword");
+        var Language =$.Lang("SAPConnectionConfig.Language");
+        var Client =$.Lang("SAPConnectionConfig.Client");
+        var AppServerHost =$.Lang("SAPConnectionConfig.AppServerHost");
+        var IsDefault = $.Lang("SAPConnectionConfig.IsDefault");
+        var SystemNumber = $.Lang("SAPConnectionConfig.SystemNumber");
+
+        var Edit =$.Lang("GlobalButton.Edit");
+        return [
+            { display:ObjectID, name: "ObjectID", hide: true },
+            { display: ConnectionName, name: "Name"},
+            { display: MaxPoolSize, name: "MaxPoolSize", hide: true },
+            { display: LoginUser, name: "LoginUser" },
+            { display: LoginPassword, name: "LoginPassword"},
+            { display: Language, name: "Language"},
+            { display: Client, name: "Client" },
+            { display: AppServerHost, name: "AppServerHost" },
+            { display: SystemNumber, name: "SystemNumber" },
+            { display: IsDefault, name: "IsDefault", render: SetIsDefault },
+            {
+                display: Edit, name: "", render: function (row) {
+                    return "<a href='#' ConnectionName='" + row.Name + "'  onclick='RowEditClick(this)'>" + Edit + "</a>";
+                }
+            }
+            ];
+    }
+
+    function SetIsDefault(rowdata, index, value) {
+        if (value) {
+            return "<img ConnectionName='" + rowdata.Name + "' name='DefaultImg' value='true' src='" + _PORTALROOT_GLOBAL + "/WFRes/images/checked.gif' value='true' onclick='SetDefault(this)'  style='cursor:pointer;'/>";
+        }
+        else {
+            return "<img ConnectionName='" + rowdata.Name + "' name='DefaultImg' value='false' src='" + _PORTALROOT_GLOBAL + "/WFRes/images/unChecked.gif' value='false' onclick='SetDefault(this)' style='cursor:pointer;'/>";
+        }
+    }
+
+    function SetDefault(obj) {
+        if ($(obj).attr("value") == "false") {
+            $("img[name='DefaultImg']").attr("src", _PORTALROOT_GLOBAL + "/WFRes/images/unChecked.gif");
+            $("img[name='DefaultImg']").attr("value", "false");
+            $(obj).attr("src", _PORTALROOT_GLOBAL + "/WFRes/images/checked.gif");
+            $(obj).attr("value", "true");
+        }
+        else {
+            return;
+        }
+
+        var url = $.Controller.SAPConnectionConfig.SetDefault;;
+        var name = $(obj).attr("ConnectionName");
+        $.ajax({
+            url: url,
+            data:{name:name},
+            success: function () {
+                if ($(obj).attr("value") == "true")
+                    $.H3Dialog.Success({ content: $.Lang("SAPConnectionConfig.SetSuccess") });
+                   
+                else
+                    $.H3Dialog.Warn({ content: $.Lang("SAPConnectionConfig.CancelSuccess") });
+                   
+            }
+        });
+    }
+
+    function RowEditClick(obj) {
+        var EditConfiguration = $.Lang("SAPConnectionConfig.EditConfiguration");
+        ShowPanel(EditConfiguration, $(obj).attr("ConnectionName"));
+    }
+
+    function AddFun() {
+        var AddConfiguration = $.Lang("SAPConnectionConfig.AddConfiguration");
+        ShowPanel(AddConfiguration, "");
+    }
+
+    function ShowPanel(text, ConnectionName) {
+        var paramName =$.Lang("SAPConnectionConfig.ParamName");
+        var url = _PORTALROOT_GLOBAL+"/admin/TabMaster.html?url=BizBus/EditSAPConnectionConfig.html";
+        url += "&paramName=" + ConnectionName;
+        ShowDialog(text, url);
+    }
+
+    function DeleteFun(obj) {
+        var deleteConfirm = $.Lang("BizDbConnectionConfig.DeleteConfirm");
+        $.ligerDialog.confirm(deleteConfirm, function (result) {
+            if (result) {
+                var gridManager = $("#ConfigList").ligerGetGridManager();
+                var rows = gridManager.getSelectedRows();
+                if (rows == null || rows.length == 0) {
+                    $.H3Dialog.Warn({ content: $.Lang("SAPConnectionConfig.SelectContent") });
+                    return;
+                }
+                var ConnectionNames = "";
+                for (var i = 0; i < rows.length; i++) {
+                    ConnectionNames = ConnectionNames + rows[i]["Name"] + ";";
+                }
+                var url = $.Controller.SAPConnectionConfig.DeleteSAPConnectionConfig;
+                $.ajax({
+                    url: url,
+                    type: "post",
+                    data: { names: ConnectionNames },
+                    success: function (data) {
+                        $.H3Dialog.Success({ content: data });
+                        top.workTab.reload(top.workTab.getSelectedTabItemID());
+                    }
+                });
+            }
+       });
+    }
+
+    function lnkBAPIFun() {
+        ShowDialog("BAPI", _PORTALROOT_GLOBAL+"/admin/TabMaster.html?url=BizBus/ListBAPI.html");
+    }
+</script>
+
+<div id="ToolBar">
+    <a href="#" id="lnkAdd" onclick="AddFun(); return false;" data-icon="fa fa-plus" data-lang="GlobalButton.Add"></a>
+    <a href="#" data-icon="fa fa-search" onclick="lnkBAPIFun(); return false;" data-lang="GlobalButton.ShowBAPIList"></a>
+    <a href="#" id="lnkDelete" onclick="DeleteFun(this); return false;" data-icon="fa fa-minus" data-lang="GlobalButton.Delete"></a>
+</div>
+<div>
+    <div id="ConfigList"></div>
+</div>

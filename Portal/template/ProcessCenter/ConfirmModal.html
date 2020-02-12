@@ -1,0 +1,22 @@
+﻿<form name="form">
+    <div class="modal-header">
+        <button type="button" class="close" ng-show="Button_Close"
+                data-dismiss="modal" aria-hidden="true" ng-click="cancel()">
+            &times;
+        </button>
+        <h4 class="modal-title" id="myModalLabel">
+            <span ng-bind="Title"></span>
+        </h4>
+    </div>
+    <div class="modal-body">
+        <span ng-bind="Message"></span>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn" ng-click="cancel()" ng-show="Button_Cancel" style="background-color: gainsboro;">
+            <span ng-bind="Button_Cancel_Text"></span>
+        </button>
+        <button type="button" class="btn btn-info" ng-click="ok()" ng-show="Button_OK">
+            <span ng-bind="Button_OK_Text"></span>
+        </button>
+    </div>
+</form>

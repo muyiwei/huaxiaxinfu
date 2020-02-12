@@ -1,0 +1,104 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="cache-control" content="no-cache" />
+    <meta http-equiv="expires" content="0" />
+    <meta http-equiv="Cache" content="no-cache" />
+    <!--<meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">-->
+    <title>APP BPM</title>
+    <link href="css/ionic.app.css" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <style type="text/css">
+        .iOS7 {
+            margin-top: 20px;
+            position: absolute;
+            background-color: #000;
+        }
+    </style>
+    <!-- un-comment this code to enable service worker
+      <script>
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('service-worker.js')
+            .then(() => console.log('service worker installed'))
+            .catch(err => console.log('Error', err));
+        }
+      </script>-->
+    <!-- <link href="lib/ionic/css/ionic.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <link href="lib/ionic/css/fontStyle.css" rel="stylesheet">
+
+
+     IF using Sass (run gulp sass first), then uncomment below and remove the CSS includes above -->
+    <!--<link href="css/ionic.app.css" rel="stylesheet">-->
+    <link href="css/fonts.css" rel="stylesheet">
+    <!-- 报表css -->
+    <link href="css/font-awesome.min.css" rel="stylesheet">
+    <link href="report/css/bootstrapMobile.css" rel="stylesheet">
+
+    <!-- ionic/angularjs js -->
+    <script src="lib/ionic/js/ionic.bundle.min.js"></script>
+    <script src="lib/ngCordova/ng-cordova.js"></script>
+    <!-- cordova script (this will be a 404 during development) -->
+    <script src="cordova.js"></script>
+    <!-- 时间插件 -->
+    <script src="lib/ion-datetime-picker/release/ion-datetime-picker.min.js"></script>
+    <link href="lib/ion-datetime-picker/release/ion-datetime-picker.min.css" rel="stylesheet">
+    <script src="js/dingTalk.js"></script>
+    <script src="js/app.js?v=20180706"></script>
+    <script src="js/config.js"></script>
+    <script src="js/controllers.js?20180706"></script>
+    <script src="js/service/services.js?20180706"></script>
+    <script src="js/service/httpService.js?20180706"></script>
+    <script src="js/services.js?20180706"></script>
+    <script src="js/service/sheetUserService.js?r=20180706"></script>
+
+    <!--rem布局-->
+    <script src="js/flexible.js"></script>
+    <script src="form/jquery-2.1.3.min.js"></script>
+
+    <!--分部分controller-->
+    <script src="js/controller/homeCtrl.js?v=20180706"></script>
+    <script src="js/controller/myInstancesCtrl.js?v=20180706"></script>
+    <script src="js/controller/startworkflowCtrl.js?v=20180706"></script>
+    <script src="js/controller/loginCtrl.js?v=20180706"></script>
+    <script src="js/controller/settingsCtrl.js?v=20180706"></script>
+    <script src="js/controller/settingsLangCtrl.js?v=20180706"></script>
+    <script src="js/controller/detailsCtrl.js?v=20180706"></script>
+    <script src="js/controller/listDetailsCtrl.js?v=20180706"></script>
+    <script src="js/controller/inputGroupCtrl.js?v=20180706"></script>
+    <script src="js/controller/inputGroupShowCtrl.js?v=20180706"></script>
+    <script src="js/controller/sheetUserCtrl.js?v=20180706"></script>
+    <script src="js/controller/appCenterCtrl.js?v=20180706"></script>
+    <script src="js/controller/appCenterItemCtrl.js?v=20180706"></script>
+    <script src="js/controller/EditBizObjectController.js?v=20180706"></script>
+    <!-- 查询列表 -->
+    <script src="js/controller/EditBizObjectController.js?v=20180706"></script>
+    <script src="js/controller/queryListCtrl.js?v=20180706"></script>
+    <script src="js/controller/filterCtrl.js?v=20180706"></script>
+    <!-- 报表 -->
+    <script src="report/lib/bootstrap/bootstrap.js"></script>
+    <script src="report/lib/bootstrap/bootstrap-select.min.js"></script>
+    <script src="report/lib/ui-bootstrap-tpls.js"></script>
+    <script src="report/lib/ocLazyLoad.js"></script>
+    <script src="report/lib/ui-load.js"></script>
+    <script src="report/lib/ui-jq.js"></script>
+    <script src="js/config.lazyload.js"></script>
+    <script src="js/controller/ShowReportCtrl.js?v=20180706"></script>
+    <script src="js/userDirectives.js?v=20180706"></script>
+    <!-- 通讯录 -->
+    <script src="js/controller/addressListCtrl.js?v=20180706"></script>
+    <script src="js/controller/userDetailCtrl.js?v=20180706"></script>
+    <script src="js/controller/addressListItemCtrl.js?v=20180706"></script>
+</head>
+<body ng-app="starter" ng-controller="mainCtrl" ng-class="{'iOS7':iOS7}">
+
+    <ion-nav-bar class="bar-light header-botton ">
+        <ion-nav-back-button>
+        </ion-nav-back-button>
+    </ion-nav-bar>
+    <ion-nav-view></ion-nav-view>
+</body>
+
+</html>

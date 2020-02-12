@@ -1,0 +1,51 @@
+﻿<li id="functionNode_switch" class="hidden-folded padder m-t m-b-sm text-muted text-xs">
+</li>
+
+<li ng-repeat="secondItem in user.firstFunction.Children" class="{{user.firstFunction.Children.length==1 ? 'active' : ''}}"
+    ui-finshed-render="InitAsideName">
+    <!--无子目录-->
+    <a class="auto" ng-if="secondItem.Children.length==0&&(secondItem.Url).indexOf('http')==-1" ui-sref="{{secondItem.Url}}" ng-click="GetTitleName(secondItem)">
+        <b class="badge bg-danger pull-right" ng-if="secondItem.Code=='Workspace_MyUnfinishedWorkItem'">{{MyCount.UnfinishedWorkItemCount}}</b>
+        <b class="badge bg-info pull-right" ng-if="secondItem.Code=='Workspace_MyUnReadWorkItem'">
+            {{MyCount.UnreadWorkItemCount}}
+        </b>
+        <b class="badge bg-info pull-right" ng-if="secondItem.Code=='Workspace_MyInstance'">
+            {{MyCount.MyWorkflowCount}}
+        </b>
+        <i class="menu-icon {{secondItem.IconCss}}"></i>
+        <span translate="HomePage.{{secondItem.Code}}" translate-default="{{secondItem.DisplayName}}"></span>
+    </a>
+    <a class="auto" ng-if="secondItem.Children.length==0&&(secondItem.Url).indexOf('http')!=-1"
+       ng-href="{{secondItem.Url}}" target="_blank">
+        <i class="menu-icon {{secondItem.IconCss}}"></i>
+        <span translate="HomePage.{{secondItem.Code}}" translate-default="{{secondItem.DisplayName}}"></span>
+    </a>
+
+    <!--有子目录-->
+    <a class="auto" ng-if="secondItem.Children.length>0">
+        <span class="pull-right text-muted">
+            <i class="fa fa-fw fa-angle-right text"></i>
+            <i class="fa fa-fw fa-angle-down text-active"></i>
+        </span>
+        <i class="glyphicon {{secondItem.IconCss}}"></i>
+        <span translate="HomePage.{{secondItem.Code}}" translate-default="{{secondItem.DisplayName}}">
+            {{secondItem.DisplayName}}
+        </span>
+    </a>
+
+    <ul class="nav nav-sub dk" ng-if="secondItem.Children.length>0">
+        <li class="active" ng-repeat="thirdItem in secondItem.Children">
+            <a ui-sref="{{thirdItem.Url}}" ng-if="thirdItem.Code!='Query_Search'&&(thirdItem.Url).indexOf('http')==-1"
+               ng-click="GetTitleName(thirdItem)">
+                <span translate="HomePage.{{thirdItem.Code}}" translate-default="{{thirdItem.DisplayName}}">
+                    {{thirdItem.DisplayName}}
+                </span>
+            </a>
+            <a ng-href="{{thirdItem.Url}}" ng-if="thirdItem.Code!='Query_Search'&&(thirdItem.Url).indexOf('http')!=-1" target="_blank">
+                <span translate="HomePage.{{thirdItem.Code}}" translate-default="{{thirdItem.DisplayName}}">
+                    {{thirdItem.DisplayName}}
+                </span>
+            </a>
+        </li>
+    </ul>
+</li>

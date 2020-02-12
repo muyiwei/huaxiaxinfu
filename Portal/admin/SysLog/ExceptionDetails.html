@@ -1,0 +1,161 @@
+﻿<script>
+    $(function () {
+        var pageData = {
+            ExceptionLogDetail: {},
+            IsFixed:false,
+            LanData: $.Languages
+        };
+        //初始化页面数据
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                fixClick: function () {
+                    $.ajax({
+                        url: $.Controller.ExceptionLog.FixException,
+                        type: 'post',
+                        dataType: 'json',
+                        async: false,//同步执行
+                        data: { id: pageData.ExceptionDetail.ObjectID },
+                        success: function (result) {
+                            if (result.Success) {
+                                pageData.ExceptionDetail.Fix = $.Lang( result.Extend.ExceptionDetail.Fix);
+                                pageData.ExceptionDetail.FixTime = result.Extend.ExceptionDetail.FixTime;
+                                pageData.IsFixed = result.Extend.IsFixed;
+                                parent.QueryFun();
+                            }
+                        }
+                    });
+                }
+            }
+        });
+        function initPageData() {
+            var id = getUrlParam("Id")||"";
+            $.ajax({
+                url: $.Controller.ExceptionLog.GetExceptionLogDetail,
+                type: 'get',
+                dataType: 'json',
+                async: false,//同步执行
+                data:{id:id},
+                success: function (result) {
+                    if (result.Success) {
+                        pageData.ExceptionDetail = result.Extend.ExceptionDetail;
+                        pageData.ExceptionDetail.Fix = $.Lang(pageData.ExceptionDetail.Fix);
+                        pageData.IsFixed = result.Extend.IsFixed;
+                    }
+                }
+            });
+        }
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+        $("div .togglebtn").eq(1).click();
+    });
+</script>
+<div id="ToolBar" v-show="IsFixed==false">
+    <a data-icon="fa fa-wrench" href="javascript:void(0)" data-lang="ExceptionLog.Fix" v-on:click="fixClick"></a>
+</div>
+<div class="H3Panel">
+    <span>{{LanData.ExceptionLog.ExceptionDetail}}</span>
+    <table style="table-layout: fixed; width: 80%">
+        <tr>
+            <td style="width: 20%"></td>
+            <td style="width: 30%"></td>
+            <td style="width: 20%"></td>
+            <td style="width: 30%"></td>
+        </tr>
+        <tr>
+            <td class="tableleft">
+                {{LanData.ExceptionLog.InstanceName}}
+
+            </td>
+            <td colspan="3">
+                <a target="_blank" href="{{ExceptionDetail.InstanceUrl}}">
+                    {{ExceptionDetail.InstanceName}}
+                </a>
+            </td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="tableLeft">
+                {{LanData.ExceptionLog.OccurrenceTime}}
+            </td>
+            <td>
+                <span>{{ExceptionDetail.OccurrenceTime}}</span>
+            </td>
+            <td class="tableLeft">
+                {{LanData.ExceptionLog.Fix}}
+            </td>
+            <td>
+                <span>{{ExceptionDetail.Fix}}</span>
+            </td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="tableLeft">
+                {{LanData.ExceptionLog.FixTime}}
+            </td>
+            <td>
+                <span>{{ExceptionDetail.FixTime}}</span>
+            </td>
+            <td class="tableLeft">
+                {{LanData.ExceptionLog.Block}}
+            </td>
+            <td>
+                <span>{{ExceptionDetail.Block}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableLeft">
+                {{LanData.ExceptionLog.WorkflowPackage}}
+            </td>
+            <td>
+                <span>{{ExceptionDetail.WorkflowPackage}}</span>
+            </td>
+            <td class="tableLeft">
+                {{LanData.ExceptionLog.WorkflowVersion}}
+            </td>
+            <td>
+                <span>{{ExceptionDetail.WorkflowVersion}}</span>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="tableLeft">
+                {{LanData.ExceptionLog.ExceptionSource}}
+            </td>
+            <td>
+                <span>{{ExceptionDetail.ExceptionSource}}</span>
+            </td>
+            <td class="tableLeft">
+                {{LanData.ExceptionLog.ExceptionName}}
+            </td>
+            <td>
+                <span>{{ExceptionDetail.SourceName}}</span>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableLeft">
+                {{LanData.ExceptionLog.ExceptionAction}}
+            </td>
+            <td>
+                <span>{{ExceptionDetail.Action}}</span>
+            </td>
+            <td class="tableLeft"></td>
+            <td class="tableLeft"></td>
+        </tr>
+    </table>
+</div>
+<div class="H3Panel">
+    <span>{{LanData.ExceptionLog.ExceptionInfo}}</span>
+    <table class="tableList">
+        <tr>
+            <td class="tableLeft">
+                {{LanData.ExceptionLog.ExceptionInfo}}
+            </td>
+            <td>
+                <span>{{ExceptionDetail.Message}}</span>
+            </td>
+        </tr>
+    </table>
+</div>

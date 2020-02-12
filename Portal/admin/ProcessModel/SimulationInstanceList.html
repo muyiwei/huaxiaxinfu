@@ -1,0 +1,97 @@
+﻿<script>
+
+    //URL参数
+    var SimulationID = getUrlParam("SimulationID");
+    var SimulationToken = getUrlParam("SimulationToken");
+    var SchemaCode = getUrlParam("SchemaCode");
+    var pageData = {};
+    //debugger;
+    function DocumentReady() {
+        $(".H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel({ excludeIDs: ["AclGrid"] });
+    }
+    $(function () {
+
+        DocumentReady();
+        LoadData();
+
+        //创建表格
+        if (typeof (pageData.Instances) != "undefined") {
+            $("#AclGrid").ligerGrid({
+                columns: GetInstanceListColumns(),
+                width: '100%',
+                height: '98%',
+                data: pageData.Instances,
+                rownumbers: true,
+                usePager: false,
+                tree: null,
+                allowAdjustColWidth: true
+            });
+        }
+    });
+
+    function LoadData()
+    {
+        var loadUrl = _PORTALROOT_GLOBAL + $.Controller.Simulation.LoadSimulationInstanceList;
+        $.ajax({
+            url: loadUrl,
+            type: "post",
+            dataType: "json",
+            async: false,
+            data: { SimulationID: SimulationID, SimulationToken: SimulationToken, SchemaCode: SchemaCode },
+            success: function (result) {
+                //debugger;
+                if (result) {
+                    pageData = result;
+                    $("#lblSimulation").text(pageData.SimulationName);
+
+                }
+            }
+        });
+    }
+
+    function GetInstanceListColumns() {
+        var MyInstance_FlowName =$.Lang("Simulation.MyInstance_FlowName");
+        var Simulation_Originator =$.Lang("Simulation.Simulation_Originator");
+        var SimulationInstanceList_DataItem =$.Lang("Simulation.SimulationInstanceList_DataItem");
+        var SysDeployment_State =$.Lang("Simulation.SysDeployment_State");
+        var View = $.Lang("GlobalButton.View");
+        return [
+            { display: MyInstance_FlowName, name: "InstanceName" },
+            { display: Simulation_Originator, name: "Originator", align: "left" },
+            {
+                display: SimulationInstanceList_DataItem, width: "30%", render: function (row) {
+                    if (row.DataItems) {
+                        var v = "";
+                        for (p in row.DataItems) {
+                            v += p + ":" + row.DataItems[p] + ";"
+                        }
+                        return v;
+                    }
+                }
+            },
+            { display: SysDeployment_State, name: "State", align: "center", render: function (row) { debugger; return $.Lang(row.State)}},
+            {
+                display: View, name: "",
+                render: function (row) {
+                    return "<div style='float:left;'><a href='" + row.Url + "' target='_blank'>" + View+ "</a></div>";
+                }
+            }];
+    }
+
+</script>
+<div class="H3Panel">
+    <span data-lang="Simulation.SimulationInstanceList_SelectCase"></span>
+    <table>
+        <tr>
+            <td data-lang="Simulation.Simulation_CaseName"></td>
+            <td>
+                <span ID="lblSimulation"></span>
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="H3Panel">
+    <span data-lang="Simulation.SimulationInstanceList_AllCase"></span>
+    <div id="AclGrid" style="clear: both; margin: 0px; padding: 0px;"></div>
+</div>

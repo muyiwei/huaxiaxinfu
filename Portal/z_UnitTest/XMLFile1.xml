@@ -1,0 +1,319 @@
+﻿<BizSheet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Serialized>true</Serialized>
+  <ObjectID>d3ffdb49-89e9-4b1a-9026-79b8d97c23df</ObjectID>
+  <ParentObjectID />
+  <ParentIndex>0</ParentIndex>
+  <BizObjectSchemaCode>DataTest</BizObjectSchemaCode>
+  <SheetCode>SDataTest</SheetCode>
+  <DisplayName>默认表单</DisplayName>
+  <LastModifiedTime>2017-05-05 11:21:45</LastModifiedTime>
+  <SheetType>DefaultSheet</SheetType>
+  <DesignModeContent>
+    <![CDATA[
+    <div style="text-align: center;" class="DragContainer" tabindex="0">
+      <label id="lblTitle" class="panel-title" tabindex="0">数据项测试</label>
+    </div>
+    <div class="panel-body sheetContainer" tabindex="0">
+      <div class="nav-icon fa fa-chevron-right bannerTitle">
+        <label id="divBasicInfo" data-en_us="Basic information" tabindex="0">基本信息</label>
+      </div>
+      <div class="divContent" tabindex="0">
+        <div class="row" tabindex="0">
+          <div id="divFullNameTitle" class="col-md-2" tabindex="0">
+            <label id="lblFullNameTitle" data-type="SheetLabel" data-datafield="Originator.UserName" data-en_us="Originator" data-bindtype="OnlyVisiable" tabindex="0" style="z-index: 101; cursor: move;">发起人</label>
+          </div>
+          <div id="divFullName" class="col-md-4" tabindex="0">
+            <label id="lblFullName" data-type="SheetLabel" data-datafield="Originator.UserName" data-bindtype="OnlyData" tabindex="0" style="z-index: 101; cursor: move;">
+              <span class="OnlyDesigner">Originator.UserName</span>
+            </label>
+          </div>
+          <div id="divOriginateDateTitle" class="col-md-2" tabindex="0">
+            <label id="lblOriginateDateTitle" data-type="SheetLabel" data-datafield="OriginateTime" data-en_us="Originate Date" data-bindtype="OnlyVisiable" tabindex="0" style="z-index: 101; cursor: move;">发起时间</label>
+          </div>
+          <div id="divOriginateDate" class="col-md-4" tabindex="0">
+            <label id="lblOriginateDate" data-type="SheetLabel" data-datafield="OriginateTime" data-bindtype="OnlyData" tabindex="0" style="z-index: 101; cursor: move;">
+              <span class="OnlyDesigner">OriginateDate</span>
+            </label>
+          </div>
+        </div>
+        <div class="row" tabindex="0">
+          <div id="divOriginateOUNameTitle" class="col-md-2" tabindex="0">
+            <label id="lblOriginateOUNameTitle" data-type="SheetLabel" data-datafield="Originator.OUName" data-en_us="Originate OUName" data-bindtype="OnlyVisiable" tabindex="0" style="z-index: 101; cursor: move;">所属组织</label>
+          </div>
+          <div id="divOriginateOUName" class="col-md-4" tabindex="0">
+            <!--					<label id="lblOriginateOUName" data-type="SheetLabel" data-datafield="Originator.OUName" data-bindtype="OnlyData">
+<span class="OnlyDesigner">Originator.OUName</span>
+					</label>-->
+            <select data-datafield="Originator.OUName" data-type="SheetOriginatorUnit" id="ctlOriginaotrOUName" class="" style="z-index: 101; cursor: move;">
+            </select>
+          </div>
+          <div id="divSequenceNoTitle" class="col-md-2" tabindex="0">
+            <label id="lblSequenceNoTitle" data-type="SheetLabel" data-datafield="SequenceNo" data-en_us="SequenceNo" data-bindtype="OnlyVisiable" tabindex="0" style="z-index: 101; cursor: move;">流水号</label>
+          </div>
+          <div id="divSequenceNo" class="col-md-4" tabindex="0">
+            <label id="lblSequenceNo" data-type="SheetLabel" data-datafield="SequenceNo" data-bindtype="OnlyData" tabindex="0" style="z-index: 101; cursor: move;">
+              <span class="OnlyDesigner">SequenceNo</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="nav-icon fa  fa-chevron-right bannerTitle">
+        <label id="divSheetInfo" data-en_us="Sheet information" tabindex="0">表单信息</label>
+      </div>
+      <div class="divContent" id="divSheet" tabindex="0">
+        <div class="row" tabindex="0">
+          <div id="title1" class="col-md-2" tabindex="0">
+            <span id="Label11" data-type="SheetLabel" data-datafield="Title" style="z-index: 101; cursor: move;">流程主题</span>
+          </div>
+          <div id="control1" class="col-md-4" tabindex="0">
+            <input id="Control11" type="text" data-datafield="Title" data-type="SheetTextBox" style="z-index: 101; cursor: move;">
+				</div>
+          <div id="title2" class="col-md-2" tabindex="0">
+            <span id="Label12" data-type="SheetLabel" data-datafield="DWB" style="z-index: 101; cursor: move;">短文本</span>
+          </div>
+          <div id="control2" class="col-md-4" tabindex="0">
+            <input id="Control12" type="text" data-datafield="DWB" data-type="SheetTextBox" class="" style="z-index: 101; cursor: move;">
+				</div>
+        </div>
+        <div class="row" tabindex="0">
+          <div id="title3" class="col-md-2" tabindex="0">
+            <span id="Label13" data-type="SheetLabel" data-datafield="XLK" style="z-index: 101; cursor: move;">下拉框</span>
+          </div>
+          <div id="control3" class="col-md-4" tabindex="0">
+            <select data-datafield="XLK" data-type="SheetDropDownList" id="ctl199639" class="" style="z-index: 101; cursor: move;" data-defaultitems="A;B;C">
+            </select>
+          </div>
+          <div id="title4" class="col-md-2" tabindex="0">
+            <span id="Label14" data-type="SheetLabel" data-datafield="DXK" style="z-index: 101; cursor: move;">单选框</span>
+          </div>
+          <div id="control4" class="col-md-4" tabindex="0">
+            <div data-datafield="DXK" data-type="SheetRadioButtonList" id="ctl673239" class="" style="z-index: 101; cursor: move;" data-defaultitems="A;B;C">
+              <span class="OnlyDesigner">
+                <input type="radio">
+                  选项一&nbsp;&nbsp;&nbsp;&nbsp;							<input type="radio">
+选项二						</span>
+            </div>
+          </div>
+        </div>
+        <div class="row" tabindex="0">
+          <div id="title5" class="col-md-2" tabindex="0">
+            <span id="Label15" data-type="SheetLabel" data-datafield="FXK" style="z-index: 101; cursor: move;">复选框</span>
+          </div>
+          <div id="control5" class="col-md-4" tabindex="0">
+            <div data-datafield="FXK" data-type="SheetCheckboxList" id="ctl721067" class="" style="z-index: 101; cursor: move;" data-defaultitems="A;B;C">
+              <span class="OnlyDesigner">
+                <input type="checkbox">
+                  选项一&nbsp;&nbsp;&nbsp;&nbsp;							<input type="checkbox">
+选项二						</span>
+            </div>
+          </div>
+          <div id="title6" class="col-md-2" tabindex="0">
+            <span id="Label16" data-type="SheetLabel" data-datafield="KCK" style="z-index: 101; cursor: move;">开窗查询</span>
+          </div>
+          <div id="control6" class="col-md-4" tabindex="0">
+            <input id="Control16" type="text" data-datafield="KCK" data-type="SheetTextBox" class="" style="z-index: 101; cursor: move;">
+				</div>
+        </div>
+        <div class="row" tabindex="0">
+          <div id="title7" class="col-md-2" tabindex="0">
+            <span id="Label17" data-type="SheetLabel" data-datafield="RQK" style="z-index: 101; cursor: move;">日期框</span>
+          </div>
+          <div id="control7" class="col-md-4" tabindex="0">
+            <input id="Control17" type="text" data-datafield="RQK" data-type="SheetTime" class="" style="z-index: 101; cursor: move;">
+				</div>
+          <div id="title8" class="col-md-2" tabindex="0">
+            <span id="Label18" data-type="SheetLabel" data-datafield="ZSX" style="z-index: 101; cursor: move;">整数型</span>
+          </div>
+          <div id="control8" class="col-md-4" tabindex="0">
+            <input id="Control18" type="text" data-datafield="ZSX" data-type="SheetTextBox" style="z-index: 101; cursor: move;">
+				</div>
+        </div>
+        <div class="row tableContent" tabindex="0">
+          <div id="title9" class="col-md-2" tabindex="0">
+            <span id="Label19" data-type="SheetLabel" data-datafield="LWB" style="z-index: 101; cursor: move;">长文本</span>
+          </div>
+          <div id="control9" class="col-md-10" tabindex="0">
+            <textarea id="26683c5b-f0ef-4912-9ce8-14e8cc5bdc64" data-datafield="LWB" data-type="SheetRichTextBox" style="z-index: 101; cursor: move;">
+            </textarea>
+          </div>
+        </div>
+        <div class="row" tabindex="0">
+          <div id="title11" class="col-md-2" tabindex="0">
+            <span id="Label20" data-type="SheetLabel" data-datafield="LJX" style="z-index: 101; cursor: move;">逻辑型</span>
+          </div>
+          <div id="control11" class="col-md-4" tabindex="0">
+            <input id="Control20" type="checkbox" data-datafield="LJX" data-type="SheetCheckbox" style="z-index: 101; cursor: move;">
+				</div>
+          <div id="title12" class="col-md-2" tabindex="0">
+            <span id="Label21" data-type="SheetLabel" data-datafield="SZX" style="z-index: 101; cursor: move;">数值型</span>
+          </div>
+          <div id="control12" class="col-md-4" tabindex="0">
+            <input id="Control21" type="text" data-datafield="SZX" data-type="SheetTextBox" style="z-index: 101; cursor: move;">
+				</div>
+        </div>
+        <div class="row" tabindex="0">
+          <div id="title13" class="col-md-2" tabindex="0">
+            <span id="Label22" data-type="SheetLabel" data-datafield="Att" style="z-index: 101; cursor: move;">附件</span>
+          </div>
+          <div id="control13" class="col-md-10" tabindex="0">
+            <div id="Control22" data-datafield="Att" data-type="SheetAttachment" style="z-index: 101; cursor: move;">
+              <span class="OnlyDesigner">
+                未选择任何文件<input type="button" value="浏览...">
+						</span>
+            </div>
+          </div>
+        </div>
+        <div class="row" tabindex="0">
+          <div id="title15" class="col-md-2" tabindex="0">
+            <span id="Label23" data-type="SheetLabel" data-datafield="SUR" style="z-index: 101; cursor: move;">参与者单人</span>
+          </div>
+          <div id="control15" class="col-md-4" tabindex="0">
+            <div id="Control23" data-datafield="SUR" data-type="SheetUser" style="z-index: 101; cursor: move;">
+              <input type="text" style="width:100%" class="OnlyDesigner">
+					</div>
+          </div>
+          <div id="title16" class="col-md-2" tabindex="0">
+            <span id="Label24" data-type="SheetLabel" data-datafield="MUR" style="z-index: 101; cursor: move;">参与者多人</span>
+          </div>
+          <div id="control16" class="col-md-4" tabindex="0">
+            <div id="Control24" data-datafield="MUR" data-type="SheetUser" style="z-index: 101; cursor: move;">
+              <input type="text" style="width:100%" class="OnlyDesigner">
+					</div>
+          </div>
+        </div>
+        <div class="row" tabindex="0">
+          <div id="title17" class="col-md-2" tabindex="0">
+            <span id="Label25" data-type="SheetLabel" data-datafield="TIM" style="z-index: 101; cursor: move;">时间段</span>
+          </div>
+          <div id="control17" class="col-md-4" tabindex="0">
+            <div id="Control25" data-datafield="TIM" data-type="SheetTimeSpan" style="z-index: 101; cursor: move;">
+              <span class="OnlyDesigner">
+                <input type="text">
+						
+              </span>
+            </div>
+          </div>
+          <div id="space18" class="col-md-2" tabindex="0">
+          </div>
+          <div id="spaceControl18" class="col-md-4" tabindex="0">
+          </div>
+        </div>
+        <div class="row tableContent" tabindex="0">
+          <div id="title19" class="col-md-2" tabindex="0">
+            <span id="Label26" data-type="SheetLabel" data-datafield="HTML" style="z-index: 101; cursor: move;">富文本</span>
+          </div>
+          <div id="control19" class="col-md-10" tabindex="0">
+            <textarea id="Control26" data-datafield="HTML" data-richtextbox="true" data-type="SheetRichTextBox" style="z-index: 101; cursor: move;">
+            </textarea>
+          </div>
+        </div>
+        <div class="row tableContent" tabindex="0">
+          <div id="title21" class="col-md-2" tabindex="0">
+            <span id="Label27" data-type="SheetLabel" data-datafield="TDetail" style="z-index: 101; cursor: move;">明细表</span>
+          </div>
+          <div id="control21" class="col-md-10" tabindex="0">
+            <table id="Control27" data-datafield="TDetail" data-type="SheetGridView" class="SheetGridView">
+              <tbody>
+                <tr class="OnlyDesigner">
+                  <td class="OnlyDesigner" colspan="6" tabindex="0">
+                    <label data-datafield="TDetail" data-for="Control27" data-type="SheetGridView" tabindex="0" style="z-index: 101; cursor: move;">TDetail属性</label>
+                  </td>
+                </tr>
+                <tr class="header">
+                  <td id="Control27_SerialNo" class="rowSerialNo" tabindex="0">
+                    序号
+                  </td>
+                  <td id="Control27_Header3" data-datafield="TDetail.Item" tabindex="0">
+                    <label id="Control27_Label3" data-datafield="TDetail.Item" data-type="SheetLabel" tabindex="0" style="z-index: 101; cursor: move;">项目</label>
+                  </td>
+                  <td id="Control27_Header4" data-datafield="TDetail.Price" tabindex="0">
+                    <label id="Control27_Label4" data-datafield="TDetail.Price" data-type="SheetLabel" tabindex="0" style="z-index: 101; cursor: move;">单价</label>
+                  </td>
+                  <td id="Control27_Header5" data-datafield="TDetail.Num" tabindex="0">
+                    <label id="Control27_Label5" data-datafield="TDetail.Num" data-type="SheetLabel" tabindex="0" style="z-index: 101; cursor: move;">数量</label>
+                  </td>
+                  <td id="Control27_Header6" data-datafield="TDetail.Amount" tabindex="0">
+                    <label id="Control27_Label6" data-datafield="TDetail.Amount" data-type="SheetLabel" tabindex="0" style="z-index: 101; cursor: move;">小计</label>
+                  </td>
+                  <td class="rowOption" tabindex="0">
+                    删除
+                  </td>
+                </tr>
+                <tr class="SheetGridViewTemplate">
+                  <td id="Control27_Option" class="rowOption" tabindex="0">
+                  </td>
+                  <td data-datafield="TDetail.Item" tabindex="0">
+                    <input id="Control27_ctl3" type="text" data-datafield="TDetail.Item" data-type="SheetTextBox" style="z-index: 101; cursor: move;">
+								</td>
+                  <td data-datafield="TDetail.Price" tabindex="0">
+                    <input id="Control27_ctl4" type="text" data-datafield="TDetail.Price" data-type="SheetTextBox" style="z-index: 101; cursor: move;">
+								</td>
+                  <td data-datafield="TDetail.Num" tabindex="0">
+                    <input id="Control27_ctl5" type="text" data-datafield="TDetail.Num" data-type="SheetTextBox" style="z-index: 101; cursor: move;">
+								</td>
+                  <td data-datafield="TDetail.Amount" tabindex="0">
+                    <input id="Control27_ctl6" type="text" data-datafield="TDetail.Amount" data-type="SheetTextBox" style="z-index: 101; cursor: move;">
+								</td>
+                  <td class="rowOption" tabindex="0">
+                    <a class="delete">
+                      <div class="fa fa-minus">
+                      </div>
+                    </a>
+                    <a class="insert">
+                      <div class="fa fa-arrow-down">
+                      </div>
+                    </a>
+                  </td>
+                </tr>
+                <tr class="footer">
+                  <td class="rowOption" tabindex="0">
+                  </td>
+                  <td data-datafield="TDetail.Item" tabindex="0">
+                  </td>
+                  <td data-datafield="TDetail.Price" tabindex="0">
+                    <label id="Control27_stat4" data-type="SheetCountLabel" data-datafield="TDetail.Price" tabindex="0" style="z-index: 101; cursor: move;">
+                      <span class="OnlyDesigner">统计</span>
+                    </label>
+                  </td>
+                  <td data-datafield="TDetail.Num" tabindex="0">
+                    <label id="Control27_stat5" data-type="SheetCountLabel" data-datafield="TDetail.Num" tabindex="0" style="z-index: 101; cursor: move;">
+                      <span class="OnlyDesigner">统计</span>
+                    </label>
+                  </td>
+                  <td data-datafield="TDetail.Amount" tabindex="0">
+                    <label id="Control27_stat6" data-type="SheetCountLabel" data-datafield="TDetail.Amount" tabindex="0" style="z-index: 101; cursor: move;">
+                      <span class="OnlyDesigner">统计</span>
+                    </label>
+                  </td>
+                  <td class="rowOption" tabindex="0">
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="row tableContent" tabindex="0">
+          <div id="title23" class="col-md-2" tabindex="0">
+            <span id="Label28" data-type="SheetLabel" data-datafield="AppText" style="z-index: 101; cursor: move;">审批意见</span>
+          </div>
+          <div id="control23" class="col-md-10" tabindex="0">
+            <div id="Control28" data-datafield="AppText" data-type="SheetComment" class="" style="z-index: 101; cursor: move;">
+              <textarea rows="10" class="OnlyDesigner" style="width:100%">
+              </textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    ]]>
+  </DesignModeContent>
+  <RuntimeContent>
+  </RuntimeContent>
+  <EnabledCode>false</EnabledCode>
+  <CodeContent>
+    
+  </CodeContent>
+  <SheetAddress>SDataTest.html</SheetAddress>
+  <MobileSheetAddress />
+  <IsMVC>true</IsMVC>
+</BizSheet>

@@ -1,0 +1,70 @@
+﻿<div id="ActionDiv">
+    <div id="ActionToolBar">
+        <a v-on:click="addAction">{{LanData.BizQuery.Function}}</a>
+        <asp:LinkButton ID="btnAddAction" runat="server" OnClick="btnAddAction_Click">{{LanData.BizQuery.Function}}</asp:LinkButton>
+    </div>
+    <div class="tableNoCss">
+        <div>
+            <table class="mywork_list_table" cellspacing="0" rules="all" border="0" border="1" id="gvActions" style="width:95%;border-collapse:collapse;">
+                <tr>
+                    <th align="center" scope="col" style="width:120px;">动作编码{{LanData.BizQuery.ActionCode}}</th>
+                    <th align="center" scope="col" style="width:80px;">{{LanData.BizQuery.DisplayName}}</th>
+                    <th align="center" scope="col" style="width:80px;">{{LanData.BizQuery.ActionType}}</th>
+                    <th align="center" scope="col">业务方法或链接{{LanData.BizQuery.ActionLink}}</th>
+                    <th scope="col">
+                        <span >传入ID{{LanData.BizQuery.WithID}}</span>
+                        <input  type="checkbox" v-on:click="selectAll(Actions)" />
+                    </th>
+                    <th scope="col">
+                        <span >{{LanData.BizQuery.Confirm}}</span>
+                        <input type="checkbox" v-on:click="selectAll(Actions)" />
+                    </th>
+                    <th align="center" scope="col" style="width:10%;">{{LanData.BizQuery.SaveCompleted}}</th>
+                    <th align="center" scope="col" style="width:40px;">{{LanData.BizQuery.SortKey}}</th>
+                    <th align="center" scope="col"></th>
+                </tr>
+                <tr v-for="item in Actions">
+                    <td align="center">
+                        <input type="text" v-model="item.ActionCode"/>
+                    </td>
+                    <td align="center">
+                        <input type="text" v-model="item.DisplayName" />
+                    </td>
+                    <td align="center">
+                        <select v-model="item.ActionType">
+                            <option v-for="option in ActionTypes" v-bind:value="option.Value">{{option.Text}}</option>
+                        </select>
+                    </td>
+                    <td align="center">
+                        <select v-model="item.ActionMethod" v-show="item.ActionType==0">
+                            <option v-for="option in ActionMethods" v-bind:value="option.Value">{{option.Text}}</option>
+                        </select>
+
+                        <select v-model="item.ActionSheet" v-show="item.ActionType==1">
+                            <option v-for="option in ActionSheet" v-bind:value="option.Value">{{option.Text}}</option>
+                        </select>
+                        <input v-show="item.ActionType==2" type="text" v-model="item.Url" maxlength="400" title="Example:StartInstance.aspx?BizObjectID={BizObjectID}&amp;WorkflowCode=..." style="width:95%;" />
+                    </td>
+                    <td>
+                        <input v-model="item.WithID" type="checkbox" v-show="item.ActionType!=2" />
+                    </td>
+                    <td>
+                        <input v-model="item.Confirm" type="checkbox" v-show="item.ActionType==0" />
+                    </td>
+                    <td align="center">
+                        <select v-model="item.SaveCompled" v-show="item.ActionType==1">
+                            <option v-for="option in SaveComples" v-bind:value="option.Value">{{option.Text}}</option>
+                        </select>
+                    </td>
+                    <td align="center">
+                        <input type="text" maxlength="200" style="width:30px;" v-model="item.SortKey" />
+                    </td>
+                    <td align="center">
+                        <a v-on:click="delAction(item)">删除</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    
+</div>

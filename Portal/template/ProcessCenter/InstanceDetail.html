@@ -1,0 +1,510 @@
+﻿<!--
+    流程状态
+    -->
+
+<div class="main-container container" id="InstanceDetail">
+    <div class="panel">
+        <div id="main-navbar" class="navbar " role="navigation">
+            <div class="navbar-inner">
+                <div id="main-navbar-collapse" class="collapsable navbar-collapse main-navbar-collapse " style="margin-left:20px;float:right;">
+                    <ul class="nav navbar-nav">
+                        <li>
+                            <a ng-click="ToolBarAuthority.Urge_Enabled ? showUrgeInstanceModal() : ''"
+                               ng-show="ToolBarAuthority.UrgeActivity_Show && ToolBarAuthority.Urge_Enabled">
+                                <span class="panel-title-icon fa  fa-bullhorn toolImage"></span>
+                                <span class="toolText" translate="InstanceDetail.Urge">催办</span>
+                            </a>
+                        </li>
+                        <li ng-show="ToolBarAuthority.ViewInstanceData_Show">
+                            <a href="{{ViewInstanceData}}" target="_blank">
+                                <span class="panel-title-icon fa fa-table toolImage"></span>
+                                <span class="toolText" translate="InstanceDetail.InstanceData">流程数据</span>
+                            </a>
+                        </li>
+                        <li ng-show="ToolBarAuthority.ViewInstanceSheets_Show">
+                            <a href="{{ViewAllSheets}}" target="_blank">
+                                <span class="panel-title-icon fa  fa-file-o toolImage"></span>
+                                <span class="toolText" translate="InstanceDetail.InstanceSheets">流程表单</span>
+                            </a>
+                        </li>
+                        <li ng-show="ToolBarAuthority.ViewUserLog_Show">
+                            <a id="lnkUserLog" target="_blank" ui-sref="{{InstanceUserLogUrl}}">
+                                <span class="panel-title-icon fa fa-calendar toolImage"></span>
+                                <span class="toolText" translate="InstanceDetail.UserLog">用户操作日志</span>
+                            </a>
+                        </li>
+                        <li ng-show="ToolBarAuthority.AdjustActivity_Show && ToolBarAuthority.AdjustActivity_Enabled">
+                            <a id="lnkAdjustActivity" ng-click="showAdjustActivityModal('ToolBar')">
+                                <span class="panel-title-icon fa fa-expand toolImage"></span>
+                                <span class="toolText" translate="InstanceDetail.AdjustActivity">调整活动</span>
+                            </a>
+                        </li>
+                        <li ng-show="ToolBarAuthority.ReactActivity_Show && ToolBarAuthority.Activate_Enabled">
+                            <a id="btnActivate" ng-show="ToolBarAuthority.Activate_Enabled" ng-click="ActivateInstance()">
+                                <span class="panel-title-icon fa fa-check toolImage"></span>
+                                <span class="toolText" translate="InstanceDetail.Reactivate">重新激活</span>
+                            </a>
+                        </li>
+                        <li ng-show="ToolBarAuthority.CancelActivity_Show && ToolBarAuthority.Cancel_Enabled">
+                            <a id="btnCancel" ng-click="CancelInstance()">
+                                <span class="panel-title-icon fa  fa-square-o toolImage"></span>
+                                <span class="toolText" translate="InstanceDetail.Cancel">取消流程</span>
+                            </a>
+                        </li>
+                        <li ng-show="ToolBarAuthority.ReactActivity_Show">
+                            <a id="btnRemove" ng-click="RemoveInstance()">
+                                <span class="panel-title-icon fa  fa-minus toolImage"></span>
+                                <span class="toolText" translate="InstanceDetail.Remove">删除</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a id="btnRemove" ng-click="Close()">
+                                <span class="panel-title-icon fa fa-times toolImage"></span>
+                                <span class="toolText" translate="InstanceDetail.Close">关闭</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="content-wrapper">
+            <div class="panel-body">
+                <!-- 基本信息 -->
+                <i class="nav-icon fa   bannerTitle"
+                   ng-class="{'fa-chevron-right':!BasicInfoShow,'fa-chevron-down':BasicInfoShow}"
+                   ng-click="BasicInfoShow=!BasicInfoShow">
+                    <label translate="InstanceDetail.BasicInfo">
+                        基本信息
+                    </label>
+                </i>
+                <div class="divContent" ng-show="!BasicInfoShow">
+                    <table class="tableStyle" style="width:100%;">
+                        <tr>
+                            <td style="background-color: #f3f4f6; text-align: right; height: 22px; width: 12%">
+                                <label translate="InstanceDetail.Name">流程实例名称 &nbsp;</label>
+                            </td>
+                            <td style="text-align: left;" colspan="5">
+                                &nbsp;<label ng-bind="BaseInfo.Name"></label>
+                            </td>
+
+                        </tr>
+                        <tr ng-if="BaseInfo.ParentflowLink">
+                            <td style="background-color: #f3f4f6; text-align: right; height: 22px; width: 12%">
+                                <label>父流程链接&nbsp;</label>
+                            </td>
+                            <td colspan="5">
+                                &nbsp;<a ng-click="OpenParent()"><span translate="InstanceDetail.Detail">详情</span></a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="background-color: #f3f4f6; text-align: right; height: 22px; width: 12%">
+                                <span translate="InstanceDetail.SequenceNo">流水号&nbsp;</span>
+                            </td>
+                            <td style="text-align: left;">
+                                &nbsp;<label ng-bind="BaseInfo.SequenceNo"></label>
+                            </td>
+                            <td style="background-color: #f3f4f6; text-align: right; height: 22px; width: 12%">
+                                <span translate="InstanceDetail.TheSponsors">发起人&nbsp;</span>
+                            </td>
+                            <td style="text-align: left;" colspan="4">
+                                &nbsp;<label ng-bind="BaseInfo.Originator"></label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="background-color: #f3f4f6; text-align: right; height: 22px; width: 12%">
+                                <span translate="InstanceDetail.WorkflowDoc">流程模板&nbsp;</span>
+                            </td>
+                            <td style="text-align: left; width: 21%">
+                                &nbsp;<label ng-bind="BaseInfo.WorkflowFullName"></label>
+                            </td>
+                            <td style="background-color: #f3f4f6; text-align: right; height: 22px; width: 12%;">
+                                <span translate="InstanceDetail.Priority">优先级 &nbsp;</span>
+                            </td>
+                            <td style="text-align: left; width: 21%">
+                                &nbsp;<label ng-bind="BaseInfo.Priority"></label>
+                            </td>
+                            <td style="background-color: #f3f4f6; text-align: right; height: 22px; width: 12%">
+                                <span translate="InstanceDetail.Status">状态 &nbsp;</span>
+                            </td>
+                            <td style="text-align: left; width: 22%">
+                                &nbsp;
+                                <label ng-bind="BaseInfo.State" ng-style="{color:(Exceptional==true)?'red':''}"></label>
+                                <span ng-bind="BaseInfo.Progress" ng-if="false"></span>
+                            </td>
+                        </tr>
+                        <tr align="left">
+                            <td bgcolor="#f3f4f6" align="right" style="height: 22px;">
+                                <span translate="InstanceDetail.StartDate">开始日期 &nbsp;</span>
+                            </td>
+                            <td bgcolor="#FFFFFF">
+                                &nbsp;<label ng-bind="BaseInfo.StartDate"></label>
+                            </td>
+                            <td bgcolor="#f3f4f6" align="right">
+                                <span translate="InstanceDetail.EndDate">结束日期 &nbsp;</span>
+                            </td>
+                            <td bgcolor="#FFFFFF">
+                                &nbsp;<label ng-bind="BaseInfo.FinishDate"></label>
+                            </td>
+                            <td bgcolor="#f3f4f6" align="right">
+                                <span translate="InstanceDetail.PlanFinishDate">截止日期 &nbsp;</span>
+                            </td>
+                            <td bgcolor="#FFFFFF">
+                                &nbsp;<label ng-bind="BaseInfo.PlanFinishDate"></label>
+                            </td>
+                        </tr>
+                        <tr align="left">
+                            <td bgcolor="#f3f4f6" align="right" style="height: 22px;">
+                                <span translate="InstanceDetail.CurrentActivity">当前活动&nbsp;</span>
+                            </td>
+                            <td bgcolor="#FFFFFF" colspan="5">
+                                <table class="table table-striped" style="width:95%;margin-bottom:0px;">
+                                    <tr>
+                                        <td style="width: 20%;"><span translate="InstanceDetail.CurrentActivity">活动节点</span></td>
+                                        <td style="width: 20%;"><span translate="InstanceDetail.Participants">未完成的参与者</span></td>
+                                        <td style="width: 20%;"><span translate="InstanceDetail.Assistants">未完成的协办</span></td>
+                                        <td style="width: 20%;"><span translate="InstanceDetail.Consultants">未完成的征询意见</span></td>
+                                        <td style="width: 20%;"><span translate="InstanceDetail.Circulates">未读的传阅</span></td>
+                                    </tr>
+                                    <tr ng-repeat="WorkInfo in CurrentWorkInfo">
+                                        <th><span ng-bind="WorkInfo.Activity" style="word-break: break-all;"></span></th>
+                                        <th>
+                                            <label ng-repeat="ParticipantName in WorkInfo.Participants track by $index" ng-bind="ParticipantName"></label>
+                                        </th>
+                                        <th>
+                                            <label ng-repeat="AssistantName in WorkInfo.Assistants track by $index" ng-bind="AssistantName"></label>
+                                        </th>
+                                        <th>
+                                            <label ng-repeat="ConsultantName in WorkInfo.Consultants track by $index" ng-bind="ConsultantName"></label>
+                                        </th>
+                                        <th>
+                                            <label ng-repeat="CirculateName in WorkInfo.Circulates track by $index" ng-bind="CirculateName">
+                                            </label>
+                                        </th>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <br />
+
+                <!-- 流程运行跟踪 -->
+                <i class="nav-icon fa  bannerTitle" id="lblWorkflowTitle"
+                   ng-class="{'fa-chevron-right':!InstanceChartShow,'fa-chevron-down':InstanceChartShow}"
+                   ng-click="InstanceChartShow=!InstanceChartShow">
+                    <label translate="InstanceDetail.InstanceChart">
+                        流程运行跟踪
+                    </label>
+                </i>
+                <div class="divContent" ng-show="!InstanceChartShow" style="overflow-x: auto; overflow-y: auto;">
+                    <table border="0" class="flow_info_title">
+                        <tr>
+                            <td>
+                                <ul class="ulColor">
+                                    <li style="background-color: #6dbacc;">
+                                        <span translate="InstanceDetail.FinishedColor">处理过的环节</span>
+                                    </li>
+                                    <li style="background-color: #FFFF00;">
+                                        <span translate="InstanceDetail.RunningColor">进行中的环节</span>
+                                    </li>
+                                    <li style="background-color: red;">
+                                        <span translate="InstanceDetail.ExceptionColor">存在异常的环节</span>
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </table>
+                    <div ui-jq="workflowdocument" ui-options="options()">
+                        <div class="workspace"></div>
+                    </div>
+                </div>
+                <!-- 日志 -->
+                <i class="nav-icon fa bannerTitle"
+                   ng-class="{'fa-chevron-right':!LogShow,'fa-chevron-down':LogShow}"
+                   ng-click="LogShow=!LogShow">
+                    <label translate="InstanceDetail.Log">
+                        日志
+                    </label>
+                </i>
+                <div class="divContent" ng-show="!LogShow">
+                    <!-- table-striped -->
+                    <table id="TokenGrid" class="table m-b-none" style="width:100%;table-layout:fixed;word-break:break-all;word-wrap:break-word;">
+                        <thead>
+                            <tr>
+                                <td colspan="5">
+                                    <span translate="InstanceDetail.ActivityCode">流程编码:</span><span id="CurrentActivityCode"></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="width: 5%;">
+                                    <span translate="InstanceUserLog.No">序号</span>
+                                </th>
+                                <th style="width: 30%;">
+                                    <span translate="InstanceDetail.Activity">活动名称</span>
+                                </th>
+                                <th style="width: 15%;">
+                                    <span translate="QueryTableColumn.ReceiveTime">接收时间</span>
+                                </th>
+                                <th style="width: 15%;">
+                                    <span translate="QueryTableColumn.FinishTime">完成时间</span>
+                                </th>
+                                <th style="width: 10%;">
+                                    <span translate="InstanceDetail.UserTime">使用时间</span>
+                                </th>
+                                <th style="width: 10%;">
+                                    <span translate="FormulaEditor.Participants">参与者</span>
+                                </th>
+                                <th style="width: 10%;">
+                                    <span translate="ListOrgJob.Operation">操作</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="Log in LogInfo" data-activity="{{Log.ActivityCode}}"
+                                index="{{$index}}" ui-finshed-render="DoMerge">
+                                <th id="DoMerge">
+                                    <div style="height: 100%; padding-left:15px;">
+                                        <span ng-bind="Log.No"></span>
+                                    </div>
+                                </th>
+                                <th id="DoMerge">
+                                    <div style="height:100%;">
+                                        <span ng-bind="Log.ActivityName"></span>
+                                    </div>
+                                </th>
+                                <th id="DoMerge">
+                                    <div style="height:100%;">
+                                        <span ng-bind="Log.CreatedTime"></span>
+                                    </div>
+                                </th>
+                                <th><span ng-bind="Log.FinishedTime"></span></th>
+                                <th><span ng-bind="Log.UsedTime"></span></th>
+                                <th>
+                                    <!-- 参与者  未完成任务 -->
+                                    <span>
+                                        <!-- 完成 非代理完成  只显示完成者-->
+                                        <a ng-click="showUserInfoModal('{{Log.Finisher}}')">{{Log.FinisherName}}</a>
+
+                                        <!-- 代理完成 显示 完成者 代理  代理人 -->
+                                        <a ng-click="showUserInfoModal('{{Log.Delegant}}')"
+                                           ng-show="Log.Delegant">{{Log.DelegantName}}</a>
+                                        <span ng-show="Log.Delegant">代理</span>
+                                        <a ng-click="showUserInfoModal('{{Log.Participant}}')">{{Log.ParticipantName}}</a>
+
+                                        <!-- 征询，传阅 -->
+                                        <a ng-click="showUserInfoModal('{{Log.Creator}}')"
+                                           ng-show="Log.Creator">{{Log.CreatorName}}</a>
+                                    </span>
+                                </th>
+                                <th ng-if="!Log.ChildInstanceId"><span ng-bind="Log.ApprovalName"></span></th>
+                                <th ng-if="Log.ChildInstanceId">
+                                    <a ng-click="OpenChild('{{Log.ChildInstanceId}}')">
+                                        <span ng-bind="Log.ApprovalName"></span>
+                                    </a>
+                                </th>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr style="display:none">
+                                <td colspan=5><div ng-show="ToolBarAuthority.AdjustActivity_Show && ToolBarAuthority.AdjustActivity_Enabled"> 单击流程节点或<a id="showAdjustActivityModal" ng-click="showAdjustActivityModal('Table')">点击这里</a>可以调整活动</div></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div id="divImage" class="modal fade" tabindex="-1" role="dialog" style="display: none;">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <img style="border: 0px" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 催办 -->
+<script type="text/ng-template" id="UrgeInstance.html">
+    <div class="modal-header">
+        <button type="button" class="close"
+                data-dismiss="modal" aria-hidden="true" ng-click="cancel()">
+            ×
+        </button>
+        <h4 class="modal-title" id="myModalLabel">
+            <span translate="InstanceDetail.Urge">催办</span>
+        </h4>
+    </div>
+    <div class="modal-body" style="padding-left:50px;padding-right:50px;">
+        <form class="bs-example form-horizontal" name="UserInfo">
+            <div class="row">
+                <div class="col-md-12" style="text-align:center;">
+                    <div class="form-group">
+                        <label class="col-lg-12 control-label h5" style="text-align:center;"
+                               translate="InstanceDetail.NewUrgency">新的催办</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="col-lg-3 control-label"
+                               translate="InstanceDetail.Content">催办内容</label>
+                        <label class="col-lg-9">
+                            <textarea ng-model="UrgeContent" class="form-control" rows="4" required></textarea>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="col-lg-12 control-label" style="text-align:center;"
+                               translate="InstanceDetail.UrgencyHistory">历史催办</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <table class="table table-striped m-b-none">
+                        <tr>
+                            <td class="col-lg-4"><span translate="InstanceDetail.UrgencyTime">催办时间</span></td>
+                            <td class="col-lg-8"><span translate="InstanceDetail.Content">催办内容</span></td>
+                        </tr>
+                        <tr ng-repeat="row in UrgeInstanceInfo">
+                            <th>
+                                <label ng-bind="row.UrgeTime"></label>
+                            </th>
+                            <th>
+                                <label ng-bind="row.UrgeContent"></label>
+                            </th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-info" ng-click="ok()" ng-disabled="UserInfo.$invalid">
+            <span translate="QueryTableColumn.Button_Save">保存</span>
+        </button>
+    </div>
+</script>
+
+<!-- 调整活动 -->
+<script type="text/ng-template" id="AdjustActivity.html">
+    <div class="modal-header">
+        <button type="button" class="close"
+                data-dismiss="modal" aria-hidden="true" ng-click="cancel()">
+            ×
+        </button>
+        <h4 class="modal-title" id="myModalLabel">
+            <span translate="InstanceDetail.AdjustActivity">调整活动</span>
+        </h4>
+    </div>
+    <div class="modal-body" style="padding-left:50px;padding-right:50px;">
+        <form class="bs-example form-horizontal" name="form">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="col-md-3 control-label"
+                               translate="InstanceDetail.SelectActivity">选择活动</label>
+                        <div class="col-md-6">
+                            <select class="form-control"
+                                    ng-model="ActivityCode" select2 ng-change="ActivityChange()">
+                                <option value="{{o.ActivityCode}}" ng-repeat="o in InstanceActivity">{{o.ActivityName}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="col-md-3 control-label" translate="InstanceDetail.SelectType">选择类型</label>
+                        <div class="col-md-6 input-group">
+                            <label class="checkbox-inline i-checks">
+                                <input ng-disabled="!AdjustActivityInfo.btnAdjustEnabled" style="opacity: 1;margin-left:-20px" type="radio" name="SelectType" value="AdjustActivity" ng-model="SelectType" />
+                                <label translate="InstanceDetail.AdjustActivity">调整活动</label>
+                            </label>
+                            <label class="checkbox-inline i-checks">
+                                <input ng-disabled="!AdjustActivityInfo.btnCancelEnabled" style="opacity: 1; margin-left: -20px" type="radio" name="SelectType" value="CancelActivity" ng-model="SelectType" />
+                                <label translate="InstanceDetail.CancelActivity">
+                                    取消活动
+                                </label>
+                            </label>
+                            <label class="checkbox-inline i-checks">
+                                <input ng-disabled="!AdjustActivityInfo.btnActivateEnabled" style="opacity: 1; margin-left: -20px" type="radio" name="SelectType" value="ActivateActivity" ng-model="SelectType" />
+                                <label translate="InstanceDetail.ActivateActivity">
+                                    激活活动
+                                </label>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="height:10px;"></div>
+            <!-- 活动节点为手工 -->
+            <div ng-show="AdjustActivityInfo.btnAdjustEnabled&&SelectType=='AdjustActivity'&&AdjustActivityInfo.ActivityType==3" class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="col-md-3 control-label"
+                               translate="InstanceDetail.SelectParticipant">选择参与者</label>
+                        <div class="col-md-6 input-group" ng-show="AdjustActivityInfo.UserEnabled">
+                            <div ui-jq="SheetUser" ui-options="UserOptions"
+                                 id="sheetUser" class="input-group" style=""></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 活动节点为审批 -->
+            <div ng-show="AdjustActivityInfo.btnAdjustEnabled&&SelectType=='AdjustActivity'&&AdjustActivityInfo.ActivityType==4" class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="col-md-3 control-label"
+                               translate="InstanceDetail.SelectParticipant">选择参与者</label>
+                        <div class="col-md-6 input-group" ng-show="AdjustActivityInfo.UserEnabled">
+                            <div ui-jq="SheetUser" ui-options="MutilUserOptions"
+                                 id="mutilsheetUser" class="input-group" style=""></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-info" ng-click="Confirm()" ng-disabled="!SelectType">
+            <span translate="GlobalButton.Confirm">确认</span>
+        </button>
+        <button type="button" class="btn btn-info" ng-click="cancel()">
+            <span translate="GlobalButton.Cancel">
+                取消
+            </span>
+        </button>
+        <!--<button type="button" class="btn btn-info" ng-click="Activate_Click()"
+                ng-disabled="form.$invalid || !AdjustActivityInfo.btnActivateEnabled">
+            <span translate="InstanceDetail.ActivateActivity">激活活动</span>
+        </button>
+        <button type="button" class="btn btn-info" ng-click="Cancel_Click()"
+                ng-disabled="form.$invalid || !AdjustActivityInfo.btnCancelEnabled">
+            <span translate="InstanceDetail.CancelActivity">取消活动</span>
+        </button>
+        <button type="button" class="btn btn-info" ng-click="Adjust_Click()"
+                ng-disabled="form.$invalid || !AdjustActivityInfo.btnAdjustEnabled || !Participants">
+            <span translate="InstanceDetail.AdjustActivity">调整
+            参与者</span>
+        </button>-->
+    </div>
+</script>
+<style>
+    .app-header-fixed {
+        padding-top: 0px;
+    }
+
+    /*span {
+        padding: 5px;
+    }*/
+</style>
+

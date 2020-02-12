@@ -1,0 +1,84 @@
+﻿<link href="../WFRes/css/PortalStyle0.css" rel="stylesheet" type="text/css" />
+<style type="text/css">
+    .l-tree li .l-body {
+       overflow:visible; 
+    }
+</style>
+<script>
+
+    var BAPIList = [];
+    var Message = "";
+    function DocumentReady() {
+        $("#ToolBar").AspLinkToolBar();
+
+        //TODO ,显示列表和获取出错信息
+    }
+
+    $(function () {
+        //debugger;
+        //获取BAPI列表
+        $.ajax({
+            url: $.Controller.SAPConnectionConfig.GetBAPIList,
+            type: "post",
+            dataType: "json",
+            async: false,
+            data: {  },
+            success: function (result) {
+                if (result.Success) {
+                    BAPIList = result.Extend;
+                }
+                else {
+                    Message = result.Message;
+                }
+            }
+        });
+        if (BAPIList.length > 0) {
+            //绑定BAPI树
+            $("#UserTree").ligerTree({
+                checkbox: false,
+                width: "100%",
+                idFieldName: 'id',
+                textFieldName: 'text',
+                iconFieldName: "icon",
+                parentIDFieldName: "pid",
+                isExpand: 1,
+                data: BAPIList
+            });
+        } else {
+            $("#lblMessage").text($.Lang(Message));
+        }
+    });
+
+    
+</script>
+
+<div id="ToolBar">
+</div>
+<div>
+    <table border="0" cellspacing="0" cellpadding="0" class="search_table">
+        <tr>
+            <td class="blue_table_l"></td>
+            <td class="blue_table_m">
+                <img src="../WFRes/images/title_dot.gif" id="imgtitle" align="absmiddle"/>
+                <span data-lang="SAPConnectionConfig.OrgTree_Directory"></span>
+                &nbsp;<label id="lblMessage" ></label>
+            </td>
+            <td class="blue_table_r">
+               
+            </td>
+        </tr>
+        <tr>
+            <td class="blue_table_content_l">
+                &nbsp;
+            </td>
+            <td class="blue_table_content">
+                <!--tree view-->
+                <ul id="UserTree"></ul>
+            </td>
+            <td class="blue_table_content_r">
+                &nbsp;
+            </td>
+        </tr>
+    </table>
+
+</div>

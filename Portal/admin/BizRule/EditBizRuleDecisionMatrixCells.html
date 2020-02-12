@@ -1,0 +1,102 @@
+﻿
+
+<script type="text/javascript" src="../WFRes/_Scripts/designer/misc.js"></script>
+<script type="text/javascript" src="../WFRes/_Scripts/designer/FormulaEditable.js?20150422"></script>
+<script src="../WFRes/_Scripts/jquery/plugin/biztable/jquery.biztable.js"></script>
+<script type="text/javascript">
+    var ruleCode = "";
+    var matrixCode = "";
+    $(function () {
+
+        ruleCode = getUrlParam("RuleCode");
+        matrixCode = getUrlParam("DecisionMatrixCode");
+
+        //渲染业务规则表
+        $("#CellGrid").BizRuleTable({ ruleCode: ruleCode, matrixCode: matrixCode, isView: false });
+
+        $("#H3Toolbar").AspLinkToolBar();
+
+        //绑定公式编辑器
+        var _textarea = $("div[id*=CellGrid]").find("textarea");
+        _textarea.FormulaEditable();
+        FormulaEditableStack.GetDisplayControl(_textarea).css("min-width", "0px");
+    });
+
+    function Save() {
+        var result = $("#CellGrid").BizRuleTable().save();
+        if (result) {
+            if (result.Success) {
+                parent.$.H3Dialog.Success({ content: $.Lang(result.Message) });
+                parent.H3DialogManger.Cancel();
+            } else {
+                $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+            }
+        }
+    }
+
+    function View(obj) {
+        var Isview = $("#hdIsView").val();
+        if (Isview == "true") {
+            $("#hdIsView").val(false);
+            $(obj).find("span").html($.Lang("GlobalButton.Edit"));
+            $(obj).find("i").removeClass("fa-eye").addClass("fa-edit")
+        }
+        else {
+            $("#hdIsView").val(true);
+            $(obj).find("span").html($.Lang("GlobalButton.View"));
+            $(obj).find("i").removeClass("fa-edit").addClass("fa-eye")
+        }
+        $("#CellGrid").BizRuleTable().save();
+        $("#CellGrid").BizRuleTable({ ruleCode: ruleCode, matrixCode: matrixCode, isView: Isview, reload: true });
+        //debugger;
+        //编辑
+        if (Isview == "false") {
+            //绑定公式编辑器
+            var _textarea = $("div[id*=CellGrid]").find("textarea");
+            _textarea.FormulaEditable();
+            FormulaEditableStack.GetDisplayControl(_textarea).css("min-width", "0px");
+        }
+    }
+
+    function Export() {
+        $("#CellGrid").BizRuleTable().getTableValue();
+    }
+</script>
+
+<style>
+    .formula-display {
+        width: 98%;
+        min-height: 64px;
+        border: 1px solid #CCC;
+        margin: 2px;
+    }
+
+    /*table {
+        margin-top: 10px;
+    }*/
+
+    #CellGrid td {
+        height: 31px;
+        padding-left: 3px;
+        min-width: 60px;
+    }
+
+    td input{
+        height: 22px;
+        padding-left: 3px;
+    }
+
+    td:hover > .formula-display {
+        background-color: #eee;
+    }
+</style>
+<div id="H3Toolbar">
+    <a id="btnSave" onclick="Save()" data-icon="fa fa-save" data-lang="GlobalButton.Save"></a>
+    <a id="lnkView" onclick="View(this);" data-icon="fa fa-eye" data-lang="GlobalButton.View"></a>
+    <a id="lnkExport" onclick="Export();" data-icon="fa fa-download" data-lang="GlobalButton.Export"></a>
+</div>
+<div style="padding-left: 10px;">
+    <!--横向滚动条-->
+    <div id="CellGrid" style="overflow-x:scroll;"></div>
+</div>
+<input type="hidden" id="hdIsView" value="true" />

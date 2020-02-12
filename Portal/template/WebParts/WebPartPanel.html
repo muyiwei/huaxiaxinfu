@@ -1,0 +1,63 @@
+﻿<div class="panel {{WebPartData.CssName==''? 'panel-default':WebPartData.CssName}}" ot_webpart_inst="{{WebPartData.ObjectID}}"
+     ot_part_for="{{WebPartData.WebPartPost}}"
+     style="{{WebPartData.Width<=0?'width:100%;':'width:'+WebPartData.Width+WebPartData.WidthUnit+';'}}
+     {{WebPartData.Height<=0?'height:100%;':'height:'+WebPartData.Height+WebPartData.HeightUnit+';'}}
+     overflow:auto;">
+    <div ng-show="OT_EditorModel" class="tool-button drag-handler portlet-handler">
+        <a class="button edit-button" ng-click="showEditModel('{{WebPartData.ObjectID}}','{{WebPartData.WebPartID}}','{{WebPartData.WebPartPost}}')">
+            <li class="fa fa-gear"></li>
+            <span style="margin-left:3px;" translate="HomePage.Setting"></span>
+        </a>
+        <a class="button delete-button" ng-click="RemoveWebPartInst('{{WebPartData.ObjectID }}')">
+            <li class="fa fa-remove"></li>
+            <span style="margin-left:3px;" translate="HomePage.Remove"></span>
+        </a>
+    </div>
+    <div class="panel-heading" style="padding-bottom:10px;" ng-show="{{WebPartData.TitleVisible=='1'}}">
+        <span class="panel_title" style="width:15px;height:15px;vertical-align:sub;">
+            <i class="{{WebPartData.TitleIcon}}" style="margin-left:3px;"></i>
+            {{WebPartData.Title}}
+        </span>
+        <a style="float:right;" ng-if="WebPartData.MoreLink.indexOf('http')==-1&&WebPartData.MorePos=='tr'"
+           ui-sref="{{WebPartData.MoreLink==''?'#':WebPartData.MoreLink}}" target="_blank">{{WebPartData.MoreText}}</a>
+        <a style="float:right;" ng-if="WebPartData.MoreLink.indexOf('http')!=-1&&WebPartData.MorePos=='tr'"
+           ng-href="{{WebPartData.MoreLinkl}}" target="_blank">{{WebPartData.MoreText}}</a>
+    </div>
+    <div class="panel-body">
+        <div class="Ascx"
+             id="{{WebPartType.Value}}" data-ng-include="WebPartData.ControlPath"
+             ng-if="WebPartType.Text=='Ascx控件'">
+            Ascx控件
+        </div>
+        <div class="Static" id="{{WebPartData.ObjectID}}"
+             ng-if="WebPartType.Text=='静态内容'">
+            <span ng-bind="HtmlContent"></span>
+        </div>
+        <div class="DataModel" id="{{WebPartType.Value}}"
+             ng-if="WebPartType.Text=='数据模型'">
+            <table class="table table-striped m-b-none" style="width:99%;">
+                <tbody>
+                    <tr ng-repeat="trData in trDatas">
+                        <td ng-repeat="tdData in trData">
+                            <a title="{{tdData.Text}}" ng-if="tdData.Href!='#'" href="{{tdData.Href}}" target="_blank">{{tdData.Text}}</a>
+                            <span title="{{tdData.Text}}" ng-if="tdData.Href=='#'" target="_blank">{{tdData.Text}}</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="Report" id="{{WebPartData.ObjectID}}"
+             ng-if="WebPartType.Text=='报表'">
+            <div  class="ReportFiters report-content form-horizontal"></div>
+            <div  class="ReportPage report-content"></div>
+            <!--<div ui-jq="LoadReportFiters" ui-options="WebPartData.Options['{{WebPartData.ObjectID}}']" class="ReportFiters report-content form-horizontal"></div>
+            <div class="ReportPage report-content"></div>-->
+        </div>
+        <div class="data-more" style="{{WebPartData.MorePos=='br'?'text-align:right;':'text-align:left;'}}">
+            <a ng-if="WebPartData.MoreLink.indexOf('http')==-1&&WebPartData.MorePos!='tr'" ui-sref="{{WebPartData.MoreLink==''?'#':WebPartData.MoreLink}}" target="_blank">
+                {{WebPartData.MoreText}}
+            </a>
+            <a ng-if="WebPartData.MoreLink.indexOf('http')!=-1&&WebPartData.MorePos!='tr'" ng-href="{{WebPartData.MoreLink}}" target="_blank">{{WebPartData.MoreText}}</a>
+        </div>        
+    </div>
+</div>

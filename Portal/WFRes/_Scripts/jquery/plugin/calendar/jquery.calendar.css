@@ -1,0 +1,101 @@
+﻿.workCalendar {
+    width: 420px;
+    border: 2px solid #BBB7B7;
+    padding: 10px;
+}
+
+    .workCalendar .btnToday {
+        float: right;
+    }
+
+    .workCalendar .toolbar {
+        padding: 10px 5px;
+        border-bottom: 1px solid #CCC;
+    }
+
+    .workCalendar select, .workCalendar button {
+        height: 28px;
+        margin-right: 5px;
+    }
+
+    .workCalendar select {
+        width: 80px;
+    }
+
+    .workCalendar .calendarTable {
+        border: 0px;
+        border-collapse: collapse;
+        width: 100%;
+        table-layout: fixed;
+    }
+
+        .workCalendar .calendarTable .titleCell {
+            min-height: 30px;
+            min-width: 30px;
+            height: 30px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .workCalendar .calendarTable .dayCell {
+            border: 1px solid #CCC;
+            text-align: center;
+            height: 39px;
+            vertical-align: middle;
+            position: relative;
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        .workCalendar .calendarTable .msgHoliday {
+            position: absolute;
+            left: 2px;
+            top: 2px;
+            padding: 3px;
+            font-size: 12px;
+            background-color: #CCC;
+            line-height: initial;
+        }
+
+        .workCalendar .calendarTable .msgWork {
+            position: absolute;
+            left: 2px;
+            top: 2px;
+            padding: 3px;
+            font-size: 12px;
+            background-color: #ff0000;
+            line-height: initial;
+        }
+
+        .workCalendar .calendarTable .daymessage {
+            font-size: 9px;
+            width: 100%;
+            float: left;
+            line-height: initial;
+        }
+
+        .workCalendar .calendarTable .workDay {
+            background-color: #FF8C00;
+        }
+
+        .workCalendar .calendarTable .holiday {
+            background-color: #808080;
+            color: #FFFFFF;
+        }
+
+        .workCalendar .calendarTable .today {
+            border: 2px solid #ff0000;
+        }
+
+        .workCalendar .calendarTable .mouseMove {
+            border: 2px solid #009E61;
+        }
+
+        .workCalendar .calendarTable .selectedDay {
+            border: 2px solid #009E61;
+        }
+
+        .workCalendar .calendarTable .otherMonth {
+            color: #ccc;
+        }

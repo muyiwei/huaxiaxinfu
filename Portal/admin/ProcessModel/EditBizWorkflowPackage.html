@@ -1,0 +1,246 @@
+﻿<link href="../WFRes/css/MvcSheet.css" rel="stylesheet" type="text/css" />
+<script>
+    $(function () {
+        var pageData = {
+            WorkflowPackage: {}, 
+            StorageType: [{ Value: "0", Text: $.Lang("WorkflowPackage.DataList") }, { Value: "1", Text: $.Lang("WorkflowPackage.PureServiceBased") }],
+            LanData: $.Languages
+        };
+        //初始化页面数据
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        //$.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                },
+                setIsShared: function (event) {
+                    if (pageData.WorkflowPackage.ObjectID)
+                        setIsShared();
+                }
+            }
+        });
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+
+        $("#divWorkflow").SheetWorkflow({ Editable: !pageData.WorkflowPackage.ObjectID, Visiable: true, IsMultiple: false, Mode: "Package", Originate: true, DefaultValue: pageData.WorkflowPackage.BindPacket, IsShared: true });
+
+        $("#WorkflowFolders").SheetWorkflow({
+            OnChange: function () {
+                pageData.WorkflowPackage.Folder = $("#WorkflowFolders").SheetUIManager().GetValue();
+            },
+            SheetWorkflowHandler: $.Controller.WorkflowPackage.GetWorkflowFolder,
+            Editable: true,
+            Visiable: true,
+            Mode: "WorkflowFolders",
+            AllowSearch: true,
+            IsMultiple: false,
+            IsSearchThree: true,
+            FolderChoosed: true,
+        });
+        if (pageData.WorkflowPackage.Folder) {
+            $("#WorkflowFolders").SheetUIManager().SetValue(pageData.WorkflowPackage.Folder);
+        }
+
+        //初始化页面数据
+        function initPageData() {
+            var id = getUrlParam("ID") || "";
+            var parentCode = getUrlParam("ParentCode") || "";
+            var parentId = getUrlParam("ParentID") || "";
+            var objectType = getUrlParam("ObjectType") || "";
+            if (id || parentId || parentCode || objectType) {
+                $.ajax({
+                    url: $.Controller.WorkflowPackage.GetWorkflowPackage,
+                    type: 'get',
+                    dataType: "json",
+                    data: { id: id, parentId: parentId, parentCode: parentCode, objectType: objectType },
+                    async: false,//同步执行
+                    success: function (result) {
+                        debugger
+                        if (result.Message) {
+                            //parent.$.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                            //parent.H3DialogManger.Cancel();
+                            setControlUsable(0, $("a"));
+                        } else {
+                            pageData.WorkflowPackage = result.WorkflowPackage;
+                            pageData.Folders = result.Folders;
+                            if (pageData.WorkflowPackage.CheckedUser) {
+                                //锁定状态其他人不可编辑
+                                if (result.CurrentUser != pageData.WorkflowPackage.CheckedUser && pageData.WorkflowPackage.CheckedUser != "WorkflowPackage.UnLocked") {
+                                    $("table").find("input,select").attr("disabled", "disabled") 
+                                    $("#ToolBar").remove();
+                                }
+                                pageData.WorkflowPackage.CheckedUser = $.Lang(pageData.WorkflowPackage.CheckedUser);
+                            } 
+
+                        }
+                    }
+                });
+            }
+        };
+        //保存
+        function saveData() {
+            var bindPacket = $("#divWorkflow").SheetUser().GetValue();
+            //应用流程包时,应用的流程包不可为空
+            if (pageData.WorkflowPackage.IsQuotePacket && !bindPacket) {
+                $.H3Dialog.Warn({ content: $.Lang("WorkflowPackage.WorkflowCodeRequried") });
+                return;
+            }
+            pageData.WorkflowPackage.Folder = $("#WorkflowFolders").SheetUIManager().GetValue();
+            if (pageData.WorkflowPackage.Folder == "")
+            {
+                return;
+            }
+            pageData.WorkflowPackage.BindPacket = bindPacket;
+            $.ajax({
+                url: $.Controller.WorkflowPackage.SaveWorkflowPackage,
+                type: "post",
+                dataType: "json",
+                data: pageData.WorkflowPackage,
+                success: function (result) {
+                    if (result.Success) {
+                        top.ReloadNode(result.Extend);
+                        if (result.Extend != pageData.WorkflowPackage.Folder) {
+                            top.ReloadNode(pageData.WorkflowPackage.Folder);
+                        }
+                        if (!pageData.WorkflowPackage.ObjectID) parent.H3DialogManger.Close();
+                    } else {
+                        if (result.Extend) {
+                            var content = $.format($.Lang(result.Message), $.Lang(result.Extend));
+                            $.H3Dialog.Warn({ content: content });
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        }
+                    }
+                }
+            });
+        };
+
+        //改变流程包共享状态
+        function setIsShared() {
+            $.ajax({
+                url: $.Controller.WorkflowPackage.SetWorkflowPackageShared,
+                type: "post",
+                dataType: "json",
+                data: { schemaCode: pageData.WorkflowPackage.Code, isShared: !pageData.WorkflowPackage.IsShared },
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                    } else {
+                        pageData.WorkflowPackage.IsShared = !pageData.WorkflowPackage.IsShared;
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        }
+    });
+
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a id="lnkOK" v-on:click="saveData" data-icon="fa fa-save"  href="javascript:void(0)" data-lang="GlobalButton.Save">保存</a>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.msgGlobalString.BasicInfo}}</span>
+        <table>
+            <tr>
+                <td>
+                    {{LanData.WorkflowPackage.Directory}}
+                </td>
+                <td>
+                    <!--<select v-model="WorkflowPackage.Folder">
+                        <option v-for="option in Folders" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>-->
+                    <div id="WorkflowFolders" style="width: 250px"></div>
+                    <span style="color:Red;" v-if="WorkflowPackage.Folder==''" data-lang="msgGlobalString.EnumValueRequired"></span>
+
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.WorkflowPackage.Code}}</td>
+                <td>
+                    <input v-model="WorkflowPackage.Code" detect-change="on" detect-blur="on" initial="off" v-validate:code="{required:true}" type="text" :disabled="WorkflowPackage.ObjectID" />
+                    <span style="color:Red;" v-if="$formValidator.code.required" data-lang="msgGlobalString.EnumValueRequired"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.WorkflowPackage.DisplayName}}</td>
+                <td>
+                    <input v-model="WorkflowPackage.DisplayName" detect-change="on" detect-blur="on" initial="off" v-validate:display-name="{required:true}"  type="text" />
+                    <span style="color:Red;" v-if="$formValidator.displayName.required" data-lang="msgGlobalString.EnumValueRequired"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.WorkflowPackage.Type}}</td>
+                <td colspan="2" class="tableNoCss">
+                    <table border="0" style="width:300px">
+                        <tr>
+                            <td v-for="item in StorageType">
+                                <input type="radio" value="{{item.Value}}" v-model="WorkflowPackage.StorageType" v-bind:disabled="WorkflowPackage.ObjectID" />
+                                <label>{{item.Text}}</label>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tbody style="display:none;"> <!--v-show="!WorkflowPackage.ObjectType">-->
+                <tr v-show="!WorkflowPackage.IsQuotePacket">
+                    <td>{{LanData.WorkflowPackage.IsShared}}</td>
+                    <td colspan="2" class="tableNoCss">
+                        <table border="0">
+                            <tr>
+                                <td>
+                                    <input type="checkbox" v-model="WorkflowPackage.IsShared" :disabled="ContorlDisabled" v-on:click="setIsShared" />
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr v-show="!WorkflowPackage.IsShared">
+                    <td>{{LanData.WorkflowPackage.IsQuotePacket}}</td>
+                    <td colspan="2" class="tableNoCss">
+                        <table border="0">
+                            <tr>
+                                <td>
+                                    <input type="checkbox" v-model="WorkflowPackage.IsQuotePacket" v-bind:disabled="WorkflowPackage.ObjectID" />
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr v-show="WorkflowPackage.IsQuotePacket">
+                    <td>{{LanData.WorkflowPackage.BindPacket}}</td>
+                    <td colspan="2" class="tableNoCss">
+                        <table border="0">
+                            <tr>
+                                <td>
+                                    <div id="divWorkflow" style="width: 250px;"></div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+            <tr v-show="WorkflowPackage.ObjectID">
+                <td>{{LanData.WorkflowPackage.CheckedUser}}</td>
+                <td>
+                    <label>{{WorkflowPackage.CheckedUser}}</label>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.WorkflowPackage.SortKey}}</td>
+                <td colspan="3">
+                    <input v-model="WorkflowPackage.SortKey" detect-change="on" detect-blur="on" initial="off" v-validate:sort-key="['number']"   type="text" />
+                    <span style="color:Red;" v-if="$formValidator.sortKey.number">{{LanData.msgGlobalString.NumberValidate}}</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+</validator>

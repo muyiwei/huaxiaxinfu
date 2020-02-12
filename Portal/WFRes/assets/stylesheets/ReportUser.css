@@ -1,0 +1,1134 @@
+﻿.select2-search-field input {
+    position: absolute;
+    padding: 2px 0px !important;
+    height: 28px;
+}
+
+    .select2-choices:after, .select2-choices:before, .select2-container:after, .select2-container:before, .select2-drop:after, .select2-drop:before, .select2-search input:after, .select2-search input:before, .select2-search-field input:after, .select2-search-field input:before, .select2-search-field:after, .select2-search-field:before, .select2-search:after, .select2-search:before {
+        content: " ";
+        display: table;
+    }
+
+    .select2-choices:after, .select2-container:after, .select2-drop:after, .select2-search input:after, .select2-search-field input:after, .select2-search-field:after, .select2-search:after {
+        clear: both;
+    }
+
+.select2-container, .select2-container.form-control {
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+.select2-container {
+    display: inline-block;
+    height: auto !important;
+    position: relative;
+    zoom: 1;
+    *display: inline;
+    vertical-align: middle;
+    width: 100%;
+}
+
+    .select2-container .select2-choice {
+        background-clip: padding-box;
+        background-color: #fff;
+        background-image: none;
+        border: 1px solid #d6d6d6;
+        border-top-color: #c2c2c2;
+        border-radius: 2px;
+        color: #555;
+        display: block;
+        font-size: 13px;
+        line-height: 1.42857143;
+        height: 32px;
+        overflow: hidden;
+        padding: 6px 12px;
+        position: relative;
+        text-decoration: none;
+        white-space: nowrap;
+        width: 100%;
+        -webkit-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+        transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+        .select2-container .select2-choice > .select2-chosen {
+            display: block;
+            margin-right: 26px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .select2-container .select2-choice .select2-search-choice-close {
+            border: 0;
+            color: #888;
+            cursor: pointer;
+            display: none;
+            font-size: 11px;
+            line-height: 30px;
+            height: 30px;
+            right: 18px;
+            width: 24px;
+        }
+
+            .select2-container .select2-choice .select2-search-choice-close:hover {
+                color: #aaa;
+                cursor: pointer;
+            }
+
+        .select2-container .select2-choice .select2-arrow {
+            display: block;
+            height: 100%;
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 26px;
+        }
+
+            .select2-container .select2-choice .select2-arrow b {
+                color: #555;
+                display: block;
+                font-family: FontAwesome;
+                font-size: 12px;
+                font-weight: 400;
+                line-height: 1.42857143;
+                height: 100%;
+                margin-top: 1px;
+                padding: 6px 0;
+                text-align: center;
+                width: 100%;
+            }
+
+                .select2-container .select2-choice .select2-arrow b:before {
+                    content: "\f0d7";
+                }
+
+    .select2-container.select2-drop-above .select2-choice {
+        border-bottom-color: #aaa;
+        border-radius: 0 0 2px 2px;
+    }
+
+    .select2-container.select2-allowclear .select2-choice .select2-chosen {
+        margin-right: 42px;
+    }
+
+    .select2-container.select2-allowclear .select2-choice .select2-search-choice-close {
+        display: block;
+    }
+
+.select2-drop {
+    background: #fff;
+    border: 1px solid #d6d6d6;
+    border-top: 0;
+    border-radius: 0 0 2px 2px;
+    color: #555;
+    margin-top: -1px;
+    position: absolute;
+    top: 100%;
+    width: 100%;
+    z-index: 9999;
+}
+
+    .select2-drop.select2-drop-above {
+        border-bottom: 0;
+        border-top: 1px solid #aaa;
+        border-radius: 2px 2px 0 0;
+        margin-bottom: -1px;
+        margin-top: 1px;
+    }
+
+.select2-drop-auto-width {
+    border-top: 1px solid #aaa;
+    width: auto;
+}
+
+    .select2-drop-auto-width .select2-search {
+        padding-top: 4px;
+    }
+
+.select2-drop-active {
+    border-top: none;
+}
+
+.select2-search {
+    display: block;
+    margin: 0;
+    min-height: 17px;
+    padding-left: 8px;
+    padding-right: 8px;
+    position: relative;
+    white-space: nowrap;
+    width: 100%;
+    z-index: 10000;
+}
+
+    .select2-search:after {
+        color: #888;
+        content: "\f002";
+        display: block;
+        font-family: FontAwesome;
+        font-size: 14px;
+        text-align: center;
+        position: absolute;
+        right: 9px;
+        top: 10px;
+        width: 30px;
+    }
+
+    .select2-search input {
+        background-color: #fff;
+        background-image: none;
+        border: 1px solid #d6d6d6;
+        border-top-color: #c2c2c2;
+        border-radius: 2px;
+        color: #555;
+        font-size: 12px;
+        line-height: 15px;
+        height: auto !important;
+        margin-top: 8px;
+        min-height: 17px;
+        outline: 0 !important;
+        padding: 4px 9px;
+        padding-right: 30px;
+        position: relative;
+        width: 100%;
+        -webkit-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+        transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+    }
+
+.select2-container-active .select2-choice, .select2-container-active .select2-choices {
+    outline: 0;
+}
+
+.select2-dropdown-open .select2-choice {
+    border-bottom-color: #aaa;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+    .select2-dropdown-open .select2-choice .select2-arrow b:before {
+        content: "\f0d8";
+    }
+
+.select2-results {
+    margin: 8px;
+    max-height: 200px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 0;
+    position: relative;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
+    .select2-results ul.select2-result-sub {
+        margin: 0;
+        padding-left: 0;
+    }
+
+        .select2-results ul.select2-result-sub > li .select2-result-label {
+            padding-left: 20px;
+        }
+
+        .select2-results ul.select2-result-sub ul.select2-result-sub > li .select2-result-label {
+            padding-left: 40px;
+        }
+
+        .select2-results ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub > li .select2-result-label {
+            padding-left: 60px;
+        }
+
+        .select2-results ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub > li .select2-result-label {
+            padding-left: 80px;
+        }
+
+        .select2-results ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub > li .select2-result-label {
+            padding-left: 100px;
+        }
+
+        .select2-results ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub > li .select2-result-label {
+            padding-left: 110px;
+        }
+
+        .select2-results ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub ul.select2-result-sub > li .select2-result-label {
+            padding-left: 120px;
+        }
+
+    .select2-results li {
+        background-image: none;
+        display: block;
+        list-style: none;
+    }
+
+        .select2-results li em {
+            background: #feffde;
+            font-style: normal;
+        }
+
+        .select2-results li.select2-result-with-children > .select2-result-label {
+            font-weight: 600;
+        }
+
+    .select2-results .select2-result-label {
+        cursor: pointer;
+        margin: 0;
+        min-height: 1em;
+        padding: 5px 7px;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+    .select2-results .select2-highlighted {
+        /*color: #fff;*/
+        background-color:#23b7e5
+    }
+
+        .select2-results .select2-highlighted em {
+            background: 0;
+        }
+
+        .select2-results .select2-highlighted ul {
+            background: #fff;
+            color: #555;
+        }
+
+    .select2-results .select2-no-results, .select2-results .select2-searching, .select2-results .select2-selection-limit {
+        color: #999;
+        display: block;
+        font-style: italic;
+    }
+
+    .select2-results .select2-disabled, .select2-results .select2-disabled.select2-highlighted {
+        color: #888;
+        cursor: default;
+        display: block;
+    }
+
+    .select2-results .select2-selected {
+        display: none;
+    }
+
+.select2-more-results {
+    display: block;
+}
+
+.select2-container.select2-container-disabled .select2-choice {
+    background-color: #eee;
+    cursor: default;
+}
+
+    .select2-container.select2-container-disabled .select2-choice .select2-arrow:before {
+        display: none !important;
+    }
+
+    .select2-container.select2-container-disabled .select2-choice abbr {
+        display: none;
+    }
+
+.select2-container-multi .select2-choices {
+    background: #fff;
+    border: 1px solid #d6d6d6;
+    border-top-color: #c2c2c2;
+    border-radius: 2px;
+    cursor: text;
+    height: auto !important;
+    min-height: 27.6px !important;
+    height: 1%;
+    margin: 0;
+    overflow: hidden;
+    padding: 3px 5px 2px;
+    position: relative;
+    width: 100%;
+    -webkit-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+    transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+}
+
+    .select2-container-multi .select2-choices li {
+        display: block;
+        float: left;
+        list-style: none;
+    }
+
+    .select2-container-multi .select2-choices .select2-search-field {
+        display: block;
+        margin: 0;
+        padding: 0;
+        white-space: nowrap;
+    }
+
+        .select2-container-multi .select2-choices .select2-search-field input {
+            background: transparent !important;
+            border: 0;
+            color: #555;
+            font-size: 13px;
+            line-height: 1.42857143;
+            /*margin-top: -5px;*/
+            height: 23px;
+            padding: 6px 12px;
+            outline: 0;
+        }
+
+    .select2-container-multi .select2-choices .select2-search-choice {
+        border-radius: 2px;
+        color: #fff;
+        cursor: default;
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 20px;
+        padding: 0 20px 0 1px;
+        position: relative;
+        text-shadow: 0 -1px 0 rgba(0,0,0,.2);
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        margin-top: 1px !important;
+    }
+
+        .select2-container-multi .select2-choices .select2-search-choice .select2-chosen {
+            cursor: default;
+        }
+
+        .select2-container-multi .select2-choices .select2-search-choice + .select2-search-field input {
+            padding-left: 6px;
+            padding-right: 0;
+        }
+
+.select2-container-multi.select2-container-active .select2-choices {
+    outline: 0;
+}
+
+.select2-locked {
+    padding: 0 6px !important;
+}
+
+.select2-default {
+    color: #999 !important;
+}
+
+.select2-search-choice-close {
+    display: block;
+    color: #fff;
+    font-family: FontAwesome;
+    font-size: 10px;
+    font-weight: 400;
+    line-height: 20px;
+    outline: 0;
+    position: absolute;
+    right: 3px;
+    text-align: center;
+    top: 0;
+    width: 14px;
+    -webkit-transition: all .3s;
+    transition: all .3s;
+}
+
+    .select2-search-choice-close:before {
+        content: "\f00d";
+    }
+
+    .select2-search-choice-close:hover {
+        color: #fff;
+        color: rgba(255,255,255,.7);
+        text-decoration: none;
+    }
+
+.select2-container-multi.select2-container-disabled .select2-choices {
+    background-color: #eee;
+    cursor: default;
+}
+
+    .select2-container-multi.select2-container-disabled .select2-choices .select2-search-choice {
+        opacity: .7;
+        padding: 0 6px;
+    }
+
+        .select2-container-multi.select2-container-disabled .select2-choices .select2-search-choice .select2-search-choice-close {
+            background: 0;
+            display: none;
+        }
+
+.select2-drop-mask {
+    border: 0;
+    left: 0;
+    height: auto;
+    margin: 0;
+    min-height: 100%;
+    min-width: 100%;
+    padding: 0;
+    opacity: 0;
+    position: fixed;
+    top: 0;
+    width: auto;
+    z-index: 9998;
+    background-color: #fff;
+    filter: alpha(opacity=0);
+}
+
+.select2-result-selectable .select2-match, .select2-result-unselectable .select2-match {
+    text-decoration: underline;
+}
+
+.select2-offscreen, .select2-offscreen:focus {
+    clip: rect(0 0 0 0) !important;
+    width: 1px !important;
+    height: 1px !important;
+    border: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    outline: 0 !important;
+    left: 0 !important;
+    top: 0 !important;
+}
+
+.select2-display-none {
+    display: none;
+}
+
+.select2-measure-scrollbar {
+    position: absolute;
+    top: -10000px;
+    left: -10000px;
+    width: 100px;
+    height: 100px;
+    overflow: scroll;
+}
+
+.select2-container-multi .select2-choices .select2-search-choice {
+    background: #b0b0b0;
+}
+
+.select2-container-multi .select2-choices .select2-search-choice-focus {
+    background: #979797;
+}
+
+.select2-container-multi.select2-container-disabled .select2-choices .select2-search-choice {
+    background: #b0b0b0 !important;
+}
+
+.select2-success .select2-container-multi .select2-choices .select2-search-choice {
+    background: #5ebd5e;
+}
+
+.select2-success .select2-container-multi .select2-choices .select2-search-choice-focus {
+    background: #43a543;
+}
+
+.select2-success .select2-container-multi.select2-container-disabled .select2-choices .select2-search-choice {
+    background: #5ebd5e !important;
+}
+
+.select2-warning .select2-container-multi .select2-choices .select2-search-choice {
+    background: #f4b04f;
+}
+
+.select2-warning .select2-container-multi .select2-choices .select2-search-choice-focus {
+    background: #f19a1f;
+}
+
+.select2-warning .select2-container-multi.select2-container-disabled .select2-choices .select2-search-choice {
+    background: #f4b04f !important;
+}
+
+.select2-danger .select2-container-multi .select2-choices .select2-search-choice {
+    background: #e66454;
+}
+
+.select2-danger .select2-container-multi .select2-choices .select2-search-choice-focus {
+    background: #df3c28;
+}
+
+.select2-danger .select2-container-multi.select2-container-disabled .select2-choices .select2-search-choice {
+    background: #e66454 !important;
+}
+
+.select2-info .select2-container-multi .select2-choices .select2-search-choice {
+    background: #5bc0de;
+}
+
+.select2-info .select2-container-multi .select2-choices .select2-search-choice-focus {
+    background: #31b0d5;
+}
+
+.select2-info .select2-container-multi.select2-container-disabled .select2-choices .select2-search-choice {
+    background: #5bc0de !important;
+}
+
+.SelectorPanel {
+    border: 1px solid #ccc;
+    width: initial !important;
+    left: initial !important;
+    margin-left: initial !important;
+}
+
+.l-tree li .l-body {
+    text-align: left;
+}
+
+.SelectorPanel input {
+    width: initial !important;
+}
+/*报表选人控件中间文字太长显示异常*/
+.SelectorPanel .task {
+    text-align: left;
+    display:flex;
+}
+.SelectorPanel .task .task-title{
+    flex-grow:1;
+    margin-right:10px;
+}
+
+@font-face {
+    font-family: 'LigerUIFont';
+    src: url('../fonts/font-awesome/LigerUIFont.eot?-7jh7wx');
+    src: url('../fonts/font-awesome/LigerUIFont.eot?#iefix-7jh7wx') format('embedded-opentype'),url('../fonts/font-awesome/LigerUIFont.woff?-7jh7wx') format('woff'),url('../fonts/font-awesome/LigerUIFont.ttf?-7jh7wx') format('truetype'),url('../fonts/font-awesome/LigerUIFont.svg?-7jh7wx#LigerUIFont') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.l-tree [class^="icon-"], .l-tree [class*=" icon-"] {
+    font-family: 'LigerUIFont';
+    speak: none;
+    font-style: normal;
+    font-weight: bold;
+    font-variant: normal;
+    text-transform: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/*.icon-zhushujushili2:before {
+    content: "\e646";
+}
+
+.icon-xiezuo:before {
+    content: "\e645";
+}
+
+.icon-dingyileixing:before {
+    content: "\e600";
+}
+
+.icon-dingyizhiwu:before {
+    content: "\e601";
+}
+
+.icon-gangweitubiao:before {
+    content: "\e602";
+}
+
+.icon-H3BPM:before {
+    content: "\e603";
+}
+
+.icon-qunzutubiao:before {
+    content: "\e604";
+}
+
+.icon-tongbushezhi:before {
+    content: "\e605";
+}
+
+.icon-zuzhitongbu:before {
+    content: "\e606";
+}
+
+.icon-zuzhisousuo:before {
+    content: "\e607";
+}
+
+.icon-zuzhitubiao:before {
+    content: "\e608";
+}
+
+.icon-liuchengzhongxin:before {
+    content: "\e609";
+}
+
+.icon-peizhiSAPlianjie:before {
+    content: "\e60a";
+}
+
+.icon-shipeiqi:before {
+    content: "\e60b";
+}
+
+.icon-yewufuwu:before {
+    content: "\e60c";
+}
+
+.icon-yewufuwufangfa:before {
+    content: "\e60d";
+}
+
+.icon-yewushujulianjiechi:before {
+    content: "\e60e";
+}
+
+.icon-yewuwushili:before {
+    content: "\e60f";
+}
+
+.icon-yewuxitongzhanghaoyingshe:before {
+    content: "\e610";
+}
+
+.icon-guizeshili:before {
+    content: "\e611";
+}
+
+.icon-jiexiqi:before {
+    content: "\e612";
+}
+
+.icon-yewuguize:before {
+    content: "\e613";
+}
+
+.icon-denglurizhi:before {
+    content: "\e614";
+}
+
+.icon-jichengrizhi:before {
+    content: "\e615";
+}
+
+.icon-xitongrizhi:before {
+    content: "\e616";
+}
+
+.icon-yichangrizhi:before {
+    content: "\e617";
+}
+
+.icon-yidongbangongrizhi:before {
+    content: "\e618";
+}
+
+.icon-zuzhirizhi:before {
+    content: "\e619";
+}
+
+.icon-huanjingbianliang:before {
+    content: "\e61a";
+}
+
+.icon-SharePoint:before {
+    content: "\e61b";
+}
+
+.icon-shujuzidian:before {
+    content: "\e61c";
+}
+
+.icon-weituoshezhi:before {
+    content: "\e61d";
+}
+
+.icon-wenjiancunchu:before {
+    content: "\e61e";
+}
+
+.icon-xitongguanliyuan:before {
+    content: "\e61f";
+}
+
+.icon-xitongxianshi:before {
+    content: "\e620";
+}
+
+.icon-zhuangtaishezhi:before {
+    content: "\e621";
+}
+
+.icon-bangding:before {
+    content: "\e622";
+}
+
+.icon-baocunbingjixutianjia:before {
+    content: "\e623";
+}
+
+.icon-chakanchazuorizhi:before {
+    content: "\e624";
+}
+
+.icon-charubiaoge:before {
+    content: "\e625";
+}
+
+.icon-daochuASPXtubiao:before {
+    content: "\e626";
+}
+
+.icon-daochuexcel:before {
+    content: "\e627";
+}
+
+.icon-dengdaxiao:before {
+    content: "\e628";
+}
+
+.icon-denggaodu:before {
+    content: "\e629";
+}
+
+.icon-dengkuandu:before {
+    content: "\e62a";
+}
+
+.icon-hengpaidengjianju:before {
+    content: "\e62b";
+}
+
+.icon-jinyong:before {
+    content: "\e62c";
+}
+
+.icon-shuaxin:before {
+    content: "\e62d";
+}
+
+.icon-shupaidengjianju:before {
+    content: "\e62e";
+}
+
+.icon-yijianbushu-01:before {
+    content: "\e62f";
+}
+
+.icon-yunxing:before {
+    content: "\e630";
+}
+
+.icon-chaxunliebiao-01:before {
+    content: "\e631";
+}
+
+.icon-jiantingshili:before {
+    content: "\e632";
+}
+
+.icon-liuchengjiedian-chuanyue:before {
+    content: "\e633";
+}
+
+.icon-liuchengjiedian-yewudongzuo:before {
+    content: "\e634";
+}
+
+.icon-liuchengjieidan-ziliucheng:before {
+    content: "\e635";
+}
+
+.icon-liuchengmoxing:before {
+    content: "\e636";
+}
+
+.icon-liuchengshili:before {
+    content: "\e637";
+}
+
+.icon-liuchengshujumoxing:before {
+    content: "\e638";
+}
+
+.icon-shujumoxingxitongfafang:before {
+    content: "\e639";
+}
+
+.icon-shujumoxingzidingyifangfa:before {
+    content: "\e63a";
+}
+
+.icon-zhushuju:before {
+    content: "\e63b";
+}
+
+.icon-zhushujushili:before {
+    content: "\e646";
+}
+
+.icon-baobiaomoban:before {
+    content: "\e63d";
+}
+
+.icon-baobiaoshujuyuan:before {
+    content: "\e63e";
+}
+
+.icon-quanxianshezhi:before {
+    content: "\e63f";
+}
+
+.icon-chuanyue:before {
+    content: "\e640";
+}
+
+.icon-genggaicaiyuzhe:before {
+    content: "\e641";
+}
+
+.icon-liuchengzhuangtai:before {
+    content: "\e642";
+}
+
+.icon-tiaozheng:before {
+    content: "\e643";
+}
+
+.icon-zhengxun:before {
+    content: "\e644";
+}
+
+/*.icon-home:before {
+    content: "\e647";
+}*/
+
+.icon-menu2:before {
+    content: "\e6ff";
+}
+
+.icon-tree:before {
+    content: "\e700";
+}
+
+.icon-cloud:before {
+    content: "\e701";
+}
+
+.icon-cloud-download:before {
+    content: "\e702";
+}
+
+.icon-cloud-upload:before {
+    content: "\e703";
+}
+
+.icon-download2:before {
+    content: "\e704";
+}
+
+.icon-upload2:before {
+    content: "\e705";
+}
+
+.icon-download3:before {
+    content: "\e706";
+}
+
+.icon-upload3:before {
+    content: "\e707";
+}
+
+.icon-globe:before {
+    content: "\e708";
+}
+
+.icon-earth:before {
+    content: "\e709";
+}
+
+.icon-link:before {
+    content: "\e70a";
+}
+
+.icon-flag:before {
+    content: "\e70b";
+}
+
+.icon-attachment:before {
+    content: "\e70c";
+}
+
+.icon-eye:before {
+    content: "\e70d";
+}
+
+.icon-eye-blocked:before {
+    content: "\e70e";
+}
+
+.icon-eye2:before {
+    content: "\e70f";
+}
+
+.icon-bookmark:before {
+    content: "\e710";
+}
+
+.icon-bookmarks:before {
+    content: "\e711";
+}
+
+.icon-brightness-medium:before {
+    content: "\e712";
+}
+
+.icon-brightness-contrast:before {
+    content: "\e713";
+}
+
+.icon-contrast:before {
+    content: "\e714";
+}
+
+.icon-star:before {
+    content: "\e715";
+}
+
+.icon-star2:before {
+    content: "\e716";
+}
+
+.icon-star3:before {
+    content: "\e717";
+}
+
+.icon-heart:before {
+    content: "\e718";
+}
+
+.icon-heart2:before {
+    content: "\e719";
+}
+
+.icon-heart-broken:before {
+    content: "\e71a";
+}
+
+.icon-thumbs-up:before {
+    content: "\e71b";
+}
+
+.icon-thumbs-up2:before {
+    content: "\e71c";
+}
+
+.icon-happy:before {
+    content: "\e71d";
+}
+
+.icon-happy2:before {
+    content: "\e71e";
+}
+
+.icon-smiley:before {
+    content: "\e71f";
+}
+
+.icon-smiley2:before {
+    content: "\e720";
+}
+
+.icon-tongue:before {
+    content: "\e721";
+}
+
+.icon-tongue2:before {
+    content: "\e722";
+}
+
+.icon-sad:before {
+    content: "\e723";
+}
+
+.icon-sad2:before {
+    content: "\e724";
+}
+
+.icon-wink:before {
+    content: "\e725";
+}
+
+.icon-wink2:before {
+    content: "\e726";
+}
+
+.icon-grin:before {
+    content: "\e727";
+}
+
+.icon-grin2:before {
+    content: "\e728";
+}
+
+.icon-cool:before {
+    content: "\e729";
+}
+
+.icon-cool2:before {
+    content: "\e72a";
+}
+
+.icon-angry:before {
+    content: "\e72b";
+}
+
+.icon-angry2:before {
+    content: "\e72c";
+}
+
+.icon-evil:before {
+    content: "\e72d";
+}
+
+.icon-evil2:before {
+    content: "\e72e";
+}
+
+.icon-shocked:before {
+    content: "\e72f";
+}
+
+.icon-shocked2:before {
+    content: "\e730";
+}
+
+.icon-confused:before {
+    content: "\e731";
+}
+
+.icon-confused2:before {
+    content: "\e732";
+}
+
+.icon-neutral:before {
+    content: "\e733";
+}
+
+.icon-neutral2:before {
+    content: "\e734";
+}
+
+.icon-wondering:before {
+    content: "\e735";
+}
+
+.icon-wondering2:before {
+    content: "\e736";
+}
+
+.icon-point-up:before {
+    content: "\e737";
+}
+
+.icon-point-right:before {
+    content: "\e738";
+}
+
+

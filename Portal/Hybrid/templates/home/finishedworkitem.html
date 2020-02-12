@@ -1,0 +1,85 @@
+﻿<ion-view view-title="已办任务" hide-nav-bar="{{$root.dingMobile.hideHeader}}">
+    <ion-nav-bar class="bar-calm">
+        <ion-nav-buttons side="left">
+            <button class="button button-icon button-clear ion-ios-arrow-back" ng-click="back();">返回</button>
+        </ion-nav-buttons>
+    </ion-nav-bar>
+
+    <div class="bar {{$root.dingMobile.dingHeaderClass}}  item-input-inset">
+        <label class="item-input-wrapper"
+               ng-class="{'placeholder-icon-focus':focus,'placeholder-icon-unfocus':!focus}"
+               style="transition: all linear 0.1s;">
+            <i class="icon ion-ios-search-strong"></i>
+            <input type="search" placeholder="搜索"
+                   class="input-placeholder"
+                   ng-model="searchKey" ng-change="doSearch()"
+                   ng-focus="focus=true" ng-blur="searchKey==''?focus=false:focus=true">
+            <i class="icon ion-close-circled placeholder-icon" style="vertical-align: middle;"
+               on-tap="clearSearch()" ng-if="searchKey.length"></i>
+        </label>
+    </div>
+
+    <div class="ng-hide animated fadeIn scrollTop" ng-show="displayTop" ng-click="scrollTop()">
+        <i class="icon ion-arrow-up-a"></i>
+    </div>
+
+    <ion-content class="scroll-content ionic-scroll {{$root.dingMobile.dingSubHeaderClass}}" on-scroll="getScrollPosition();">
+        <ion-refresher on-refresh="refreshFinishedWorkItem()">
+        </ion-refresher>
+        <ion-list>
+            <ion-item ng-repeat="workItem in finishedWorkItems" class="circle-item"
+                      ng-click="openWorkItem('{{workItem.ObjectID}}')">
+                <div class="circle-left">
+                    <i class="circle-name"
+                       ng-class="{'user-a':$index%4==0,'user-b':$index%4==1,'user-c':$index%4==2,'user-d':$index%4==3,'circle-name-select':selectItemMode}">
+                        <span>{{workItem.OrigiantorName|limitTo :-2}}</span>
+                    </i>
+                </div>
+                <div class="circle-center" ng-class="{'circle-center-select':selectItemMode}">
+                    <div ng-if="workItem.ObjectID!='' ">
+                        <h2>{{workItem.InstanceName}}</h2>
+                        <p>发起人：{{workItem.OrigiantorName}}<span style="padding-left:10px;margin-right:10px">办理时间：{{workItem.FinishTime | limitTo:-11}}</span></p>
+                    </div>
+                    <div ng-if="workItem.ObjectID==''" class="item-icon-left" style="padding-left:20px;">
+                        <i class="icon ion-android-happy" ng-if="workItem.HasWorkItem"></i>
+                        <i class="icon ion-checkmark" ng-if="!workItem.HasWorkItem"></i>
+                        <h2>{{workItem.InstanceName}}</h2>
+                    </div>
+                </div>
+            </ion-item>
+            <ion-item ng-if="finishedWorkItems.length > 0 && loadCompleted && !exception"
+                      style="cursor:pointer">
+                <div class="item-icon-left" style="padding-left:20px;">
+                    <i class="icon ion-android-happy"></i>
+                    <h2 style="margin-left:10px;">全部加载完成</h2>
+                </div>
+            </ion-item>
+            <ion-item ng-if="finishedWorkItems.length == 0 && loadCompleted && searchKey=='' && !exception"
+                      style="cursor:pointer">
+                <div class="item-icon-left" style="padding-left:20px;">
+                    <i class="icon ion-information-circled"></i>
+                    <h2 style="margin-left:10px;">您未办理过任何任务</h2>
+                </div>
+            </ion-item>
+            <ion-item ng-if="finishedWorkItems.length == 0 && loadCompleted && searchKey!='' && !exception"
+                      style="cursor:pointer">
+                <div class="item-icon-left" style="padding-left:20px;">
+                    <i class="icon ion-information-circled"></i>
+                    <h2 style="margin-left:10px;">未搜索到任务</h2>
+                </div>
+            </ion-item>
+            <ion-item ng-if="exception"
+                      style="cursor:pointer">
+                <div class="item-icon-left" style="padding-left:20px;">
+                    <i class="icon ion-information-circled"></i>
+                    <h2 style="margin-left:10px;">系统数据加载失败，请稍候再试！</h2>
+                </div>
+            </ion-item>
+        </ion-list>
+        <ion-infinite-scroll ng-if="!loadCompleted"
+                             icon="ion-loading-c"
+                             distance="10%"
+                             on-infinite="loadMoreFishedWorkItem()">
+        </ion-infinite-scroll>
+    </ion-content>
+</ion-view>

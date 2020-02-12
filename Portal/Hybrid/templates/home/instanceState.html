@@ -1,0 +1,327 @@
+﻿<!-- 未使用 -->
+
+<ion-view view-title="流程状态">
+    <div class="bar bar-header bar-calm">
+        <button class="button button-icon button-clear ion-ios-arrow-left"
+                ng-click="$ionicGoBack()">
+            返回
+        </button>
+    </div>
+    <div class="ng-hide animated fadeIn scrollTop" ng-show="displayTop" ng-click="scrollTop()">
+        <i class="icon ion-arrow-up-a"></i>
+    </div>
+
+    <div class="bar bar-subheader">
+        <div class=" button-bar">
+            <button class="button button-light button-android"
+                    ng-class="{ 'button\-positive': type=='base' }"
+                    ng-click="switch('base')">
+                <span style="font-size:17px;">基本信息</span>
+            </button>
+            <button class="button button-light button-android"
+                    ng-if="!IsOriginate"
+                    ng-class="{ 'button\-positive': type=='log' }"
+                    ng-click="switch('log')">
+                <span style="font-size:17px;">日志</span>
+            </button>
+        </div>
+    </div>
+
+    <ion-content class="scroll-content ionic-scroll {{$root.dingMobile.dingSubHeaderClass}}" delegate-handle="basehandle">
+        <ul class="list" id="itemInstanceInfo">
+            <li class="Activity-Log">
+                <span class="display-title">流程名称</span>
+                <span id="spnInstanceName" class="display-content" ng-bind="BaseInfo.Name"></span>
+                <br />
+                <span class="display-title">发起人</span>
+                <span id="spnOriginator" class="display-content" ng-bind="BaseInfo.OriginatorName"></span>
+                <br />
+                <span class="display-title">流水号</span>
+                <span id="spnSequenceNo" class="display-content" ng-bind="BaseInfo.SequenceNo"></span>
+                <br />
+                <span class="display-title">流程状态</span>
+                <span id="spnStatus" class="display-content" ng-bind="BaseInfo.State"></span>
+                <br />
+                <span class="display-title">发起时间</span>
+                <span id="spnStatedTime" class="display-content" ng-bind="BaseInfo.StartDate"></span>
+                <br />
+                <span class="display-title">结束时间</span>
+                <span id="spnEndedTime" class="display-content" ng-bind="BaseInfo.FinishDate"></span>
+            </li>
+        </ul>
+        <ion-list>
+            <ion-item id="itemInstanceState">
+                <ion-scroll direction="xy" delegate-handle="workspacehandle"
+                            on-scroll="scrollState()"
+                            style="max-height:700px;min-height:400px; display:block;">
+                    <div class="workspace" id="workspace"></div>
+                </ion-scroll>
+            </ion-item>
+        </ion-list>
+        <ion-list id="log" ng-show="type=='log'">
+            <ul class="list">
+                <li class="Activity-Log" ng-repeat="Log in LogInfo">
+                    <span class="display-title">活动名称</span>
+                    <span class="display-content" ng-bind="Log.ActivityName"></span>
+                    <br />
+                    <span class="display-title">接收时间</span>
+                    <span class="display-content" ng-bind="Log.CreatedTime"></span>
+                    <br />
+                    <span class="display-title">完成时间</span>
+                    <span class="display-content" ng-bind="Log.FinishedTime"></span>
+                    <br />
+                    <span class="display-title">处理人</span>
+                    <span class="display-content" ng-bind="Log.ParticipantName"></span>
+                    <br />
+                    <span class="display-title">处理状态</span>
+                    <span class="display-content" ng-bind="Log.ApprovalName"></span>
+                </li>
+            </ul>
+        </ion-list>
+    </ion-content>
+</ion-view>
+
+
+<style>
+    #ionicForm .list .divider {
+        min-height: 32px !important;
+    }
+
+    #ionicForm .list li {
+        border-bottom: 1px solid #c8c7cc !important;
+    }
+
+    .display-title {
+        /*float: left;*/
+        padding-left: 10px;
+        color: black;
+    }
+
+    .display-content {
+        float: right;
+        padding-right: 10px;
+        color: #8e8e93 !important;
+        text-decoration: none !important;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        word-break: break-all;
+        width: 50%;
+        text-align: right;
+    }
+
+    .return {
+        border: none;
+        width: 55px;
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+        background: url(images/btn_2.png) no-repeat;
+        color: #fff;
+        font-size: 1em;
+        margin-right: 10px;
+        cursor: pointer;
+    }
+
+    #btnReturn {
+        display: block !important;
+        visibility: visible !important;
+        width: 20px !important;
+    }
+
+    .group-title {
+        background-color: #efeff4 !important;
+        padding-right: 10px !important;
+        color: #8e8e93 !important;
+        font-weight: normal !important;
+        /*margin-left: 10px !important;*/
+        padding-top: 20px !important;
+    }
+
+    .workspace {
+        padding-bottom: 20px !important;
+        overflow: hidden;
+    }
+
+    @font-face {
+        font-family: FontAwesome;
+        src: url(../assets/fonts/font-awesome/fontawesome-webfont.eot?v=4.0.3);
+        src: url(../assets/fonts/font-awesome/fontawesome-webfont.eot?#iefix&v=4.0.3) format('embedded-opentype'), url(../assets/fonts/font-awesome/fontawesome-webfont.ttf?v=4.0.3) format('truetype'),url(../assets/fonts/font-awesome/fontawesome-webfont.svg?v=4.0.3#fontawesomeregular) format('svg');
+        font-weight: 400;
+        font-style: normal;
+    }
+
+    .Activity-Log {
+        line-height: 28px;
+    }
+
+    .activity_instance {
+        min-height: 40px;
+    }
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--<ion-view view-title="流程状态" hide-nav-bar="{{$root.dingMobile.hideHeader}}">
+    <ion-nav-bar class="bar-stable">
+        <ion-nav-back-button class="button-clear">
+            <button class="button button-icon button-clear ion-ios-arrow-left"
+                    ng-click="GoBack()">
+                返回
+            </button>
+        </ion-nav-back-button>
+    </ion-nav-bar>
+    <ion-content id="divInstanceState" class="{{$root.dingMobile.dingHeaderClass}}">
+        <ion-list>
+            <ul class="list">
+                <li class="divider group-title" ng-show="!IsOriginate">基本信息</li>
+                <li style="overflow: hidden" ng-show="!IsOriginate">
+                    <span class="display-title">流程名称</span>
+                    <span id="spnInstanceName" class="display-content" ng-bind="BaseInfo.Name"></span>
+                </li>
+                <li ng-show="!IsOriginate">
+                    <span class="display-title">发起人</span>
+                    <span id="spnOriginator" class="display-content" ng-bind="BaseInfo.OriginatorName"></span>
+                </li>
+                <li ng-show="!IsOriginate">
+                    <span class="display-title">流水号</span>
+                    <span id="spnSequenceNo" class="display-content" ng-bind="BaseInfo.SequenceNo"></span>
+                </li>
+                <li ng-show="!IsOriginate">
+                    <span class="display-title">流程状态</span>
+                    <span id="spnStatus" class="display-content" ng-bind="BaseInfo.State"></span>
+                </li>
+                <li ng-show="!IsOriginate">
+                    <span class="display-title">发起时间</span>
+                    <span id="spnStatedTime" class="display-content" ng-bind="BaseInfo.StartDate"></span>
+                </li>
+                <li ng-show="!IsOriginate">
+                    <span class="display-title">结束时间</span>
+                    <span id="spnEndedTime" class="display-content" ng-bind="BaseInfo.FinishDate"></span>
+                </li>
+                <li class="divider group-title" ng-show="!IsOriginate">日志</li>
+                <li class="Activity-Log" ng-repeat="Log in LogInfo" ng-show="!IsOriginate">
+                    <span class="display-title">活动名称</span>
+                    <span class="display-content" ng-bind="Log.ActivityName"></span>
+                    <br />
+                    <span class="display-title">接收时间</span>
+                    <span class="display-content" ng-bind="Log.CreatedTime"></span>
+                    <br />
+                    <span class="display-title">完成时间</span>
+                    <span class="display-content" ng-bind="Log.FinishedTime"></span>
+                    <br />
+                    <span class="display-title">处理人</span>
+                    <span class="display-content" ng-bind="Log.ParticipantName"></span>
+                    <br />
+                    <span class="display-title">处理状态</span>
+                    <span class="display-content" ng-bind="Log.ApprovalName"></span>
+                    <hr>
+                </li>
+                <li class="divider group-title">流程图</li>
+                <li>
+                    <div class="workspace" id="workspace"></div>
+                </li>
+            </ul>
+        </ion-list>
+    </ion-content>
+</ion-view>
+
+
+<style>
+    #afui .list .divider {
+        min-height: 32px !important;
+    }
+
+    #afui .list li {
+        border-bottom: 1px solid #c8c7cc !important;
+    }
+
+    .display-title {
+        /*float: left;*/
+        padding-left: 10px;
+        color: black;
+    }
+
+    .display-content {
+        float: right;
+        padding-right: 10px;
+        color: #8e8e93 !important;
+        text-decoration: none !important;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        word-break: break-all;
+        width: 50%;
+        text-align: right;
+    }
+
+    .return {
+        border: none;
+        width: 55px;
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+        background: url(images/btn_2.png) no-repeat;
+        color: #fff;
+        font-size: 1em;
+        margin-right: 10px;
+        cursor: pointer;
+    }
+
+    #btnReturn {
+        display: block !important;
+        visibility: visible !important;
+        width: 20px !important;
+    }
+
+    .group-title {
+        background-color: #efeff4 !important;
+        padding-right: 10px !important;
+        color: #8e8e93 !important;
+        font-weight: normal !important;
+        margin-left: 10px !important;
+        padding-top: 20px !important;
+    }
+
+    .workspace {
+        padding-bottom: 20px !important;
+        overflow: hidden;
+    }
+
+    @font-face {
+        font-family: FontAwesome;
+        src: url(../assets/fonts/font-awesome/fontawesome-webfont.eot?v=4.0.3);
+        src: url(../assets/fonts/font-awesome/fontawesome-webfont.eot?#iefix&v=4.0.3) format('embedded-opentype'), url(../assets/fonts/font-awesome/fontawesome-webfont.ttf?v=4.0.3) format('truetype'),url(../assets/fonts/font-awesome/fontawesome-webfont.svg?v=4.0.3#fontawesomeregular) format('svg');
+        font-weight: 400;
+        font-style: normal;
+    }
+
+    .Activity-Log {
+        line-height: 28px;
+    }
+
+    .activity_instance {
+        min-height: 40px;
+    }
+</style>-->

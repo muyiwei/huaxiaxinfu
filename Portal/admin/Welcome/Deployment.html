@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>H3 BPM</title>
+    <link rel="stylesheet" href="welcome.css" />
+    <script src="../../WFRes/_Scripts/jquery/jquery.js"></script>
+    <script src="../../WFRes/_Scripts/jquery/jquery.lang.js" type="text/javascript"></script>
+    <script src="../../WFRes/_Scripts/vue/vue.min.js" type="text/javascript"></script>
+    <script src="Welcome.js"></script>
+    <script type="text/javascript">
+        var pageInfo = {
+            controls: {
+                divBody: ".body",
+                divBizRule: "#divBizRule",
+                divAdapter: "#divAdapter"
+            }
+        }
+
+        $(function () {
+            $.each(pageInfo.controls, function (k, v) {
+                pageInfo.controls[k] = $(v);
+            });
+            // $(".activityFoot").hide();
+            // 注册退格事件，回到主页
+            $("body").keydown(function (e) {
+                if (e.keyCode == 8) {
+                    window.location.href = "Home.html";
+                    e.preventDefault();
+                }
+            });
+
+            //var a, b, c;
+            //// 线条连接业务服务到适配器
+            //a = getSidePoint(pageInfo.controls.divAdapter, "right");
+            //c = getSidePoint(pageInfo.controls.divBizRule, "left");
+            //$("<div></div>")
+            //   .addClass("poly-line")
+            //   .addClass("pointLine-right")
+            //   .css("width", c.x - a.x)
+            //   .css("height", 1)
+            //   .css("left", a.x)
+            //   .css("top", a.y)
+            //   .appendTo(pageInfo.controls.divBody);
+        });
+
+        var getSidePoint = function (obj, side) {
+            if (side == "top") {
+                return {
+                    x: obj.position().left + obj.width() / 2,
+                    y: obj.position().top
+                };
+            }
+            else if (side == "left") {
+                return {
+                    x: obj.position().left,
+                    y: obj.position().top + obj.height() / 2
+                };
+            }
+            else if (side == "right") {
+                return {
+                    x: obj.position().left + obj.width(),
+                    y: obj.position().top + obj.height() / 2
+                };
+            }
+            else {
+                return {
+                    x: obj.position().left + obj.width() / 2,
+                    y: obj.position().top + obj.height()
+                };
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="head">
+        <div>
+            <div class="title">
+                一键部署
+            </div>
+            <hr class="line" />
+            <div class="description">
+                &nbsp;&nbsp;&nbsp;&nbsp;一键部署支持将开发环境所有已配置好的组织、服务、流程、参数等信息一键导入到测试环境或正式环境中。
+            </div>
+        </div>
+    </div>
+    <div class="body">
+        <!--<div id="divAdapter" class="activity activityPointer" style="top: 150px; left: 150px; width: 220px;"
+            onclick="openUrl('部署参数','../admin/SysDeployment/DeploymentParamSetting.html');">
+            <div class="activityHead">
+                <div>
+                    部署参数
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    配置部署目标服务器的H3 BPM引擎访问方式
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div>
+                    <a href="#" onclick="openUrl('部署参数','../admin/SysDeployment/DeploymentParamSetting.html')">点击进入>></a>
+                </div>
+            </div>
+        </div>-->
+        <div id="divBizRule" class="activity activityPointer" style="top: 150px; left: 320px; width: 220px"
+            onclick="openUrl('一键部署','../admin/SysDeployment/OneButtonDeployment.html');">
+            <div class="activityHead">
+                <div>
+                    一键部署
+                </div>
+            </div>
+            <div class="activityBody">
+                <div>
+                    执行一键部署操作
+                </div>
+            </div>
+            <div class="activityFoot">
+                <div style="display: none">
+                    <a href="#" onclick="openUrl('一键部署','../admin/SysDeployment/OneButtonDeployment.html')">点击进入>></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

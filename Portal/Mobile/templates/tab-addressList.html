@@ -1,0 +1,107 @@
+﻿<ion-view view-title="{{languages.tabs.addressList}}" hide-nav-bar="true" class="tab-startwf tab-addressList">
+    <div class="menu-tittle {{$root.dingMobile.dingHeaderClass}} ">
+        <div class="menu-tittle-left"></div>
+        <div class="menu-tittle-middle f17">{{languages.tabs.addressList}}</div>
+    </div>
+    <div class="tab-startwf-head">
+        <div class="">
+            <label class="item-input-wrapper startwfSearch" ng-class="{'placeholder-icon-focus':SearchMode,'placeholder-icon-unfocus':!SearchMode}">
+                <i class="icon-search f13"></i>
+                <input type="search" placeholder="{{languages.tabAddressList.search}}"
+                       class="input-placeholder f14"
+                       ng-model="searchKey" ng-change="doSearch()"
+                       ng-focus="SearchMode=true" ng-blur="searchKey==''?SearchMode=false:SearchMode=true" style="background: transparent;">
+                <i class="icon ion-close-circled placeholder-icon  f16" style="vertical-align: middle;"
+                   on-tap="CancelSearch()" ng-if="searchKey.length"></i>
+            </label>
+        </div>
+    </div>
+        <ion-content class="{{$root.dingMobile.dingContentClass}}">
+            <!-- 展示视图 -->
+            <div ng-show="!SearchMode&&loadAllComplete">
+                <!-- 当前部门 -->
+                <ion-list>
+                    <ion-item class="item-icon-right"
+                              style="cursor:pointer" ng-click="openUserOU(userOU.objectId)">
+                        <h2><span class="h6">{{userOU.name}}</span><span class="h6">{{languages.tabAddressList.currentDep}}</span></h2>
+                        <i class="icon ion-chevron-right icon-accessory f12" ng-show="RootId!=userOU.objectId"></i>
+                    </ion-item>
+                </ion-list>
+                <!-- 组织区域 -->
+                <div class="vertical-border" ng-show="OrgUnits.length>0">
+                    <div class="vertical-line"></div>
+                    <span class="vertical-title f14 ng-binding">{{languages.tabAddressList.OU}}</span>
+                </div>
+                <ion-list>
+                    <ion-item class="item-icon-right" ng-repeat="org in OrgUnits"
+                              style="cursor:pointer" ng-click="openUserOU('{{org.ObjectID}}')">
+                        <h2>{{org.Name}}</h2>
+                        <i class="icon ion-chevron-right icon-accessory f12"></i>
+                    </ion-item>
+                </ion-list>
+                <!-- 用户区域 -->
+                <div class="vertical-border" ng-show="OrgUsers.length>0">
+                    <div class="vertical-line"></div>
+                    <span class="vertical-title f14 ng-binding">{{languages.tabAddressList.user}}</span>
+                </div>
+                <!--<ion-list>
+            <ion-item class="item-icon-right" ng-repeat="user in OrgUsers"
+                      style="cursor:pointer" ng-click="openUser('{{user.ObjectID}}',$index)">
+                <h2>{{ user.Name}}</h2>
+                <i class="icon ion-chevron-right icon-accessory f12"></i>
+            </ion-item>
+        </ion-list>-->
+                <ion-list>
+                    <div class="flow-list-item" ng-repeat="user in OrgUsers" ng-click="openUser('{{user.ObjectID}}',$index)">
+                        <div class="flow-li-left">
+                            <img class="user-name" ng-src="{{user.ImageUrl}}" ng-if="user.ImageUrl.length>0">
+                            <img class="user-name" src="img/usermen.png" ng-if="user.ImageUrl.length==0||user.ImageUrl==null?user.Gender==0||user.Gender==1:false">
+                            <img class="user-name" src="img/userwomen.png" ng-if="user.ImageUrl.length==0||user.ImageUrl==null?user.Gender==2:false">
+                        </div>
+                        <div class="flow-li-right">
+                            <div class="groupRight">
+                                <span class="f16">{{user.Name}}</span>
+                                <p class="f12">{{user.DepartmentName}}</p>
+                            </div>
+                            <i class="ion-chevron-right f12"></i>
+                        </div>
+                    </div>
+                </ion-list>
+            </div>
+            <!-- 搜索视图 -->
+            <div ng-show="SearchMode">
+                <div ng-show="OrgUsers_Search.length!=0&&loadComplete">
+                    <!-- 组织区无 -->
+                    <!-- 用户区域 -->
+                    <div class="vertical-border" ng-show="OrgUsers.length>0">
+                        <div class="vertical-line"></div>
+                        <span class="vertical-title f14 ng-binding">{{languages.tabAddressList.user}}</span>
+                    </div>
+                    <ion-list>
+                        <div class="flow-list-item" ng-repeat="user in OrgUsers_Search" ng-click="openUser('{{user.ObjectID}}',$index)">
+                            <div class="flow-li-left">
+                                <img class="user-name" ng-src="{{user.ImageUrl}}" ng-if="user.ImageUrl.length>0">
+                                <img class="user-name" src="img/usermen.png" ng-if="user.ImageUrl.length==0||user.ImageUrl==null?user.Gender==0||user.Gender==1:false">
+                                <img class="user-name" src="img/userwomen.png" ng-if="user.ImageUrl.length==0||user.ImageUrl==null?user.Gender==2:false">
+                            </div>
+                            <div class="flow-li-right">
+                                <div class="groupRight">
+                                    <span class="f16">{{user.Name}}</span>
+                                    <p class="f12">{{user.DepartmentName}}</p>
+                                </div>
+                                <i class="ion-chevron-right f12"></i>
+                            </div>
+                        </div>
+                    </ion-list>
+                </div>
+                <!-- 无组织和人员 -->
+                <ion-item ng-show="OrgUsers_Search.length==0&&loadComplete&&searchKey!=''"
+                          style="cursor:pointer">
+                    <div class="item-icon-left f15" style="padding-left:20px;">
+                        <h2 style="text-align:center;" class=" f15" ng-show="languages.inEnShow">{{languages.sheetUser.result}} <span style="color:blue;" ng-bind="searchKey"></span></h2>
+                        <h2 style="text-align:center;" class=" f15" ng-show="!languages.inEnShow">未搜索到与 “ <span style="color:blue;" ng-bind="searchKey"></span> ” 相关的结果</h2>
+                    </div>
+                </ion-item>
+            </div>
+        </ion-content>
+</ion-view>

@@ -1,0 +1,147 @@
+﻿html,body {
+    margin:0px;
+    padding:0px;
+}
+
+body {
+    font:normal 12px/20px 'Microsoft YaHei',SimSun,Arial,Verdana;
+}
+input {
+    border-width:1px;
+}
+h2 {
+    line-height:30px;
+    margin-bottom:10px;
+}
+input[type="button"], input[type="submit"], button {
+    padding:2px 5px;
+}
+.dialogtable td {
+    padding:2px!important;
+}
+
+.fl {
+    float:left;
+}
+.fr {
+    float:right;
+}
+.clear {
+    clear:both;
+}
+
+.select-tool {
+    height:30px;
+    line-height:30px;
+    background-color:#efefef;
+    font-weight:bold;
+    font-size:13px;
+    padding:0px 10px 0px 10px;
+}
+
+.control-list {
+    overflow:hidden;
+    overflow-y:auto;
+}
+
+.control-item {
+    float:left;
+    width:120px;
+    height:90px;
+    display:block;
+    margin:8px 0px 0px 8px;
+    cursor:pointer;
+    border:solid 1px #cccccc;
+}
+    .control-item .name {
+        text-align:center;
+        line-height:20px;
+        z-index:2;
+    }
+    .control-item .icon {
+        border:none;
+        height:70px;
+        z-index:0;
+    }
+
+    .control-item .icon img {    
+        border:none;    
+        width:120px;
+        height:70px;
+    }
+
+
+/*选择模板时的列表*/
+.template-list {
+}
+
+.template-item {
+    float:left;
+    width:170px;
+    height:150px;
+    display:block;
+    margin:8px 0px 0px 8px;
+    cursor:pointer;
+    overflow:hidden;
+    background-color:#efefef;
+}
+    .template-item .img {
+        text-align:center;
+        border:solid 0px #cccccc;
+        margin:5px;
+    } 
+    .template-item .img img {
+        vertical-align:middle;
+    }
+    .template-item .name{
+        text-align:center;
+        line-height:18px;
+    }
+.template-curr {
+    background-color:orange;
+}
+
+.bottom-tool {
+    position:fixed;
+    bottom:0px;
+    text-align:center;
+    background-color:#f3f3f3;
+    line-height:20px;
+    padding:5px;
+    width:100%;
+}
+
+/*编辑页面字段*/
+.edit-obj {
+    margin:0px 30px 0px 30px;
+}
+    .edit-obj select {
+        margin-left:0px;
+    }
+.edit-obj table {
+    width:100%;
+    border-spacing:3px;
+}
+.edit-obj td {
+    line-height:20px;
+    padding:1px 3px;
+}
+.edit-obj .edit-title {
+}
+    .edit-obj .text {
+        border:1px solid #cdcdcd;
+    }
+
+.smalltable {
+    width:100%;
+}
+    .smalltable tr:hover {
+        background-color: #f0f66f;
+    }
+    .smalltable .head, .smalltable .head:hover {
+        background-color:#cccccc;
+    }
+    .smalltable td {
+        line-height:20px;
+        padding:2px;
+    }

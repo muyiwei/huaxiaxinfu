@@ -1,0 +1,136 @@
+﻿<script>
+    $(function () {
+        var pageData = {
+            AppFunctionNode: {},
+            LanData: $.Languages,
+            OpenMethods: []
+        };
+        //初始化页面数据
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                }
+            }
+        });
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+        //初始化页面数据
+        function initPageData() {
+            var appNodeCode = getUrlParam("AppFunctionNodeCode");
+            $.ajax({
+                url: $.Controller.HybridApp.GetAppFunctionNode,
+                type: 'get',
+                dataType: "json",
+                data: { code: appNodeCode },
+                async: false,//同步执行
+                success: function (result) {
+                    if (result.Success) {
+                        pageData.AppFunctionNode = result.Extend.AppFunctionNode;
+                        pageData.OpenMethods = result.Extend.OpenMethods;
+                    }
+                }
+            });
+        };
+        //保存应用节点信息
+        function saveData() {
+            $.ajax({
+                url: $.Controller.HybridApp.SaveAppFunctionNode,
+                type: "post",
+                dataType: "json",
+                data: pageData.AppFunctionNode,
+                success: function (result) {
+                    if (result.Success) {
+                        parent.ReloadGridData("AppFunctionNodes");
+                        parent.$.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                        parent.H3DialogManger.Cancel();
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SaveFailed") });
+                    }
+                }
+            });
+        }
+    });
+
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a v-on:click="saveData" data-icon="fa fa-save" href="javascript:void(0)">{{LanData.GlobalButton.Save}}</a>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.msgGlobalString.Msg_BasciInfor}}</span>
+        <input v-model="AppFunctionNode.ObjectID" hidden="hidden" />
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft">{{LanData.HybridApp.Code}}</td>
+                <td>
+                    <input v-model="AppFunctionNode.Code" detect-change="on" detect-blur="on" initial="off" v-validate:code="['space','required']" type="text" v-bind:disabled="AppFunctionNode.ObjectID" />
+                    <span style="color:Red;" v-if="$formValidator.code.invalid">{{LanData.msgGlobalString.NotSpace}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.HybridApp.DisplayName}}</td>
+                <td>
+                    <input v-model="AppFunctionNode.DisplayName" detect-change="on" detect-blur="on" initial="off" v-validate:display-name="['space','required']" type="text" />
+                    <span style="color:Red;" v-if="$formValidator.displayName.invalid">{{LanData.msgGlobalString.NotSpace}}</span>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.HybridApp.Url}}</td>
+                <td>
+                    <input v-model="AppFunctionNode.Url" type="text" />
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.HybridApp.IconUrl}}</td>
+                <td>
+                    <input v-model="AppFunctionNode.IconUrl" type="text" />
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.HybridApp.SortKey}}</td>
+                <td>
+                    <input v-model="AppFunctionNode.SortKey" type="text" detect-change="on" detect-blur="on" initial="off" v-validate:sort-key="['number']" />
+                    <span style="color:Red;" v-if="$formValidator.sortKey.number">{{LanData.msgGlobalString.NumberValidate}}</span>
+                </td>
+            </tr>
+            <!--<tr>
+                <td class="tableLeft">{{LanData.HybridApp.OpenMethod}}</td>
+                <td colspan="2" class="tableNoCss">
+                    <table border="0">
+                        <tr>
+                            <td v-for="item in OpenMethods" style="padding-right:50px;">
+                                <input id="rad{{item.Value}}" type="radio" name="AppOpenMethod" value="{{item.Text}}" v-model="AppFunctionNode.AppOpenMethod" />
+                                <label for="rad{{item.Value}}" style="position: relative;top: -2px;">
+                                    {{item.Text}}
+                                </label>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.HybridApp.IsDisplay}}
+                </td>
+                <td>
+                    <input v-model="AppFunctionNode.IsDisplay" type="checkbox" />
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.HybridApp.Des}}</td>
+                <td>
+                    <textarea v-model="AppFunctionNode.Description" rows="2" cols="20"></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

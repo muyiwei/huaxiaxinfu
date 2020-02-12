@@ -1,0 +1,104 @@
+﻿<script src="../WFRes/_Scripts/bizquery.js" type="text/javascript"></script>
+<style>
+    table#tableSearch label {
+        margin-right: 20px;
+    }
+</style>
+<script>
+    var CustomColumns = [];//用户自定义列
+    // 若要添加自定义的列,请参考以下示例
+    // CustomColumns.push({
+    //    display: "自定义列标题1",//列标题
+    //    width: "360px",//宽度
+    //    //显示逻辑
+    //    render: function (rowData, rowIndex) {
+    //        return "<div>行号:" + rowIndex + "; 字段[ObjectID]值为:" + rowData.ObjectID + "</div>";
+    //    }
+    // });
+
+    var SchemaCode = getUrlParam("SchemaCode");//数据模型编码
+    var QueryCode = getUrlParam("QueryCode");//查询列表编码
+    var BizQueryActions = [];//工具栏按钮
+    var FilterData = [];//查询条件数组
+    var DisplayFormats = [];//显示格式
+    var GirdColumns = [];//表格显示列
+    var Controller = $.Controller.RunBizQuery.GetGridData;//表格数据请求地址
+    var GridParam = { schemaCode: SchemaCode, queryCode: QueryCode };//表格数据请求参数
+    var isFrame = false;//是否在frame中
+    var isRetrun = false;//是否返回
+    var p = false;
+    var sourceObj;
+    var outputPropertyMappings = "";
+    var ActionVisible = "false";//是否显示工具栏
+    var Param_BizObjectID = "BizObjectID";
+    var Param_SchemaCode = "SchemaCode";
+    var BizObjectHandlerUrl = $.Controller.RunBizQuery.InvokeMethod;
+    var LoginUrl = _PORTALROOT_GLOBAL + '/index.html#/platform/login';
+    var EditBizObjectUrl = $.Controller.RunBizQuery.EditBizObject;
+    var ListDefault = 0;
+    var inputMappings = null;
+    $(function () {
+        initPage();
+        BuildFilter(isFrame);
+        BuildPage();
+        GridParam = GetGridParam();
+        if (ListDefault != 0) {
+            LoadData();
+        }
+    })
+    //初始化页面数据
+    function initPage() {
+        if (SchemaCode && QueryCode) {
+            $.ajax({
+                url: $.Controller.RunBizQuery.GetRunBizQueryData,
+                type: 'get',
+                dataType: "json",
+                data: { schemaCode: SchemaCode, queryCode: QueryCode },
+                async: false,//同步执行
+                success: function (result) {
+                    if (result.Success) {
+                        isFrame = result.Extend.isFrame;
+                        isReturn = result.Extend.isReturn;
+                        p = isFrame ? window.parent : window.opener;
+                        if (result.CtrlID) {
+                            sourceObj = p == null ? null : (p.$ == null ? null : p.$.find("#" + result.Extend.CtrlID + ""));
+                        }
+                        outputPropertyMappings = result.Extend.outputPropertyMappings;
+                        ActionVisible = result.Extend.ActionVisible;
+                        Param_BizObjectID = result.Extend.Param_BizObjectID;
+                        Param_SchemaCode = result.Extend.Param_SchemaCode;
+                        GirdColumns = result.Extend.GirdColumns;
+                        BizQueryActions = result.Extend.BizQueryActions;
+                        DisplayFormats = result.Extend.DisplayFormats;
+                        FilterData = result.Extend.FilterData;
+                        ListDefault = result.Extend.ListDefault;
+                    } else {
+                        parent.$.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        }
+    };
+
+    //查询按钮点击事件
+    function searchClick() {
+        GridParam = GetGridParam();
+        DocumentReady();
+        ReloadData();
+        //LoadData();
+    }
+
+</script>
+<div id="H3ToolBar">
+    <a href="javascript:void(0)" id="btnSearch" onclick="searchClick()" data-icon="fa fa-search" data-lang="GlobalButton.Search">查询</a>
+</div>
+<div id="panelSearch">
+    <div class="H3Panel">
+        <table id="tableSearch" border="0"></table>
+    </div>
+</div>
+<div class="H3Panel">
+    <div id="excludePanel">
+        <div id="masterDataGrid"></div>
+    </div>
+</div>

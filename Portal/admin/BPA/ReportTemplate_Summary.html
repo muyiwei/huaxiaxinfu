@@ -1,0 +1,214 @@
+﻿<link href="../WFRes/_Content/themes/H3Default/H3-ReportTemplate.css" rel="stylesheet" type="text/css" />
+<link href="../WFRes/_Content/designer/css/property.css" rel="stylesheet" type="text/css" />
+<script src="../WFRes/_Scripts/ReportDesigner/ReportBase.js"></script>
+<script src="../WFRes/_Scripts/ReportDesigner/ReportTemplate.js"></script>
+<script>
+    
+    $(function () {
+        var reportSourceCode = getUrlParam("ReportSourceCode") || "";
+        var parentID = getUrlParam("ParentID") || "";
+        TemplateInit(reportSourceCode, parentID);
+    });
+</script>
+<div id="H3ToolBar">
+    <a onclick="btnSave_Click(this);" id="btnSave" data-icon="fa fa-save" data-lang="GlobalButton.Save">保存</a>
+    <a id="btnView" href="javascript:void(0)" data-icon="fa fa-eye" data-lang="GlobalButton.View">查看</a>
+    <a onclick="btnDel_Click(this)" id="btnDel" data-icon="fa fa-minus" data-lang="GlobalButton.Delete" href="#">删除</a>
+</div>
+<div id="BodyContent">
+    <div position="left" data-title="ReportTemplate.DataSource">
+        <div class="left_Div_Block" id="divReportSource">
+            <select id="seleportSource"></select>
+        </div>
+        <div id="divSourceColumns">
+        </div>
+    </div>
+
+    <div position="center">
+        <div class="H3Panel">
+            <span data-lang="ReportTemplate.FilterSetting"></span>
+            <div id="paramsSetting" class="RragPlace">
+            </div>
+        </div>
+        <div class="H3Panel" id="tablePanel">
+            <div id="tableSetting"></div>
+        </div>
+    </div>
+
+    <div position="right" data-title="ReportTemplate.PropertySetting" style="overflow-x: hidden;">
+        <div class="content-r-item">
+            <table class="PropertyTable">
+                <tr group="ReportProperty" style="display: table-row; background-color: rgb(234, 229, 229); cursor: pointer;">
+                    <td group="ReportProperty" class="Expanded"></td>
+                    <td colspan="3" data-lang="ReportTemplate.ReportProperty"> </td>
+                </tr>
+                <tr group="ReportProperty" property="ReportProperty">
+                    <td></td>
+                    <td data-lang="ReportTemplate.Code"></td>
+                    <td colspan="2">
+                        <input id="txtCode" type="text" />
+                    </td>
+                </tr>
+                <tr group="ReportProperty" property="ReportProperty">
+                    <td></td>
+                    <td data-lang="ReportTemplate.DisplayName"></td>
+                    <td colspan="2">
+                        <input id="txtDisplayName" type="text" />
+                    </td>
+                </tr>
+
+                <tbody id="ColumnPanel">
+                    <tr group="ColumnProperty" style="display: table-row; background-color: rgb(234, 229, 229); cursor: pointer;">
+                        <td group="ColumnProperty" class="Expanded"></td>
+                        <td colspan="3" data-lang="ReportTemplate.FieldProperty"> </td>
+                    </tr>
+                    <tr group="ColumnProperty" property="ColumnProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.FieldCode"></td>
+                        <td colspan="2">
+                            <span id="lbColumnCode"></span>
+                        </td>
+                    </tr>
+                    <tr group="ColumnProperty" property="ColumnProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.DisplayName"></td>
+                        <td colspan="2">
+                            <input id="txtColumnDisplayName" type="text" />
+                        </td>
+                    </tr>
+                    <tr group="ColumnProperty" property="ColumnProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.SummaryWay"></td>
+                        <td colspan="2">
+                            <select id="slFunctionType">
+                                <option value="-1">None</option>
+                                <option value="1">Sum</option>
+                                <option value="2">Avg</option>
+                                <option value="3">Min</option>
+                                <option value="4">Max</option>
+                                <option value="0">Count</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr group="ColumnProperty" property="ColumnProperty">
+                        <td></td>
+                        <td data-desc="ReportTemplate.LinkRuleDesc" data-lang="ReportTemplate.LinkRule"></td>
+                        <td colspan="2">
+                            <input type="text" id="txtLinkRule" />
+                        </td>
+                    </tr>
+                    <tr group="ColumnProperty" property="ColumnProperty">
+                        <td></td>
+                        <td data-desc="ReportTemplate.WidthTip" data-lang="ReportTemplate.WidthDisplay"></td>
+                        <td colspan="2">
+                            <input type="text" id="txtColumnWidth" value="0" />
+                        </td>
+                    </tr>
+
+                    <tr group="ColumnProperty" property="ColumnProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.DisplayType"></td>
+                        <td colspan="2">
+                            <select id="sltDisplayType">
+                                <option value="13" selected="selected">String</option>
+                                <option value="26">Single</option>
+                                <option value="27">Mutiple</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+
+                <tbody id="ParamPanel">
+                    <tr group="ParamProperty" style="display: table-row; background-color: rgb(234, 229, 229); cursor: pointer;">
+                        <td group="ParamProperty" class="Expanded"></td>
+                        <td colspan="3" data-lang="ReportTemplate.ParamSetting"> </td>
+                    </tr>
+                    <tr group="ParamProperty" property="ParamProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.FieldCode"></td>
+                        <td colspan="2">
+                            <label id="lbPColCode"></label>
+                        </td>
+                    </tr>
+                    <tr group="ParamProperty" property="ParamProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.FilterType"></td>
+                        <td colspan="2">
+                            <select id="slPColType"></select>
+                        </td>
+                    </tr>
+
+                    <tr group="ParamProperty" property="ParamProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.FixedItems"></td>
+                        <td colspan="2">
+                            <input id="txtFixedValue" type="text" />
+                        </td>
+                    </tr>
+                    <tr group="ParamProperty" property="ParamProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.SystemParamValue"></td>
+                        <td colspan="2">
+                            <select id="slSystem">
+                                <option value="0" data-lang="ReportTemplate.TopCurrUser"></option>
+                                <option value="1" data-lang="ReportTemplate.CurrOrg"></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr group="ParamProperty" property="ParamProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.OrgAcl"></td>
+                        <td colspan="2">
+                            <select id="slOrgnization">
+                                <option value="0" data-lang="ReportTemplate.NotVerified"></option>
+                                <option value="1" data-lang="ReportTemplate.Verified"></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr group="ParamProperty" property="ParamProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.DefaultValue"></td>
+                        <td colspan="2">
+                            <input id="txtDefaultValue" type="text" />
+                        </td>
+                    </tr>
+                    <tr group="ParamProperty" property="ParamProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.DefaultValue"></td>
+                        <td colspan="2">
+                            <select id="slDataTime">
+                                <option value="0" data-lang="DataSettings.CurrentDay"></option>
+                                <option value="1" data-lang="DataSettings.ThisWeek"></option>
+                                <option value="2" data-lang="DataSettings.ThisMouth"></option>
+                                <option value="3" data-lang="DataSettings.ThisYear"></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr group="ParamProperty" property="ParamProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.OtherSettings"></td>
+                        <td colspan="2">
+                            <label>
+                                <input type="checkbox" id="ckAllowNull" checked="checked" /><span data-lang="ReportTemplate.AllowNull"></span>
+                            </label>
+                            <label>
+                                <input type="checkbox" id="ckIsShow" checked="checked" data-lang="ReportTemplate.Visible" /><span data-lang="ReportTemplate.Visible"></span>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr group="ParamProperty" property="ParamProperty">
+                        <td></td>
+                        <td data-lang="ReportTemplate.Description"></td>
+                        <td colspan="2">
+                            <textarea id="txtParamDes" style="width: 95%; height: 80px;"></textarea>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="proertyPanel_Desc">
+            <span id="desc_title" style="color: black; font-size: 13px; font-weight: bold;" data-lang="ReportTemplate.PropertyDesc"></span><br />
+            <span id="desc_content" style="color: black;"></span>
+        </div>
+    </div>
+</div>

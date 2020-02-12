@@ -1,0 +1,208 @@
+﻿<script>
+    var PortalRoot = _PORTALROOT_GLOBAL;//虚拟目录
+
+    $(function () {
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel({ excludeIDs: ["RoleFunctionList"] });
+        //debugger;
+        //角色名称
+        InitRole();
+
+        //创建表格
+        var dataUrl = $.Controller.FunctionAcl.GetFunctionData;//TODO
+        var unitid = getUrlParam("unitid");
+
+        $("#RoleFunctionList").ligerGrid({
+            columns: GetUserListColumns(),
+            width: '100%',
+            height: '98%',
+            url: dataUrl,
+            rownumbers: true,
+            usePager: false,
+            tree: { columnName: 'DisplayName' },
+            allowAdjustColWidth: true,
+            parms: { unitID: unitid }
+        });
+
+    });
+
+    function InitRole() {
+        var unitid = getUrlParam("unitid");
+        var getRoleUrl = $.Controller.ListOrgJob.GetRoleByID
+        if (unitid != null && unitid != "") {
+            $.ajax({
+                url: $.Controller.ListOrgJob.GetRoleByID,
+                type: 'get',
+                dataType: "json",
+                data: { roleId: unitid },
+                async: false,//同步执行
+                success: function (result) {
+                    //debugger;
+                    $("#roleName").val(result.DisplayName);
+                }
+            });
+        }
+    }
+
+    //组织角色列
+    function GetUserListColumns() {
+        //var primaryKey = $.Lang("ListOrgJob.PrimaryKey");
+        var functionCode = $.Lang("FunctionAcl.Code");
+        var functionName = $.Lang("FunctionAcl.DisplayName");
+        var functionDesc = $.Lang("FunctionAcl.Description");
+        var inheritPower = $.Lang("FunctionAcl.Inherited");
+        var ownPower = $.Lang("FunctionAcl.Own");
+
+        return [
+            //{ display: primaryKey, name: "ObjectID", hide: true },
+            { display: functionCode, name: "Code" },
+            { display: functionName, name: "DisplayName" },
+            { display: functionDesc, name: "Description" },
+            { display: inheritPower, name: "Inherited", render: BuildBoolCoum, align: "center" },
+            { display: ownPower, name: "Own", render: SetOwnRow, align: "center" }];
+
+    }
+
+
+    function SetOwnRow(rowdata, index, value) {
+
+        if (rowdata.Code == "PortalRoot" || rowdata.Code == "AdminRoot") {
+            return;
+        }
+        if (value) {
+            return "<img src='" + PortalRoot + "/WFRes/images/checked.gif' value='true' onclick='SetOwnSattus(this,\"" + rowdata.Code + "\",\"" + rowdata.ObjectID + "\")' style='cursor:pointer;'/>";
+        }
+        else {
+            return "<img src='" + PortalRoot + "/WFRes/images/unChecked.gif' value='false' onclick='SetOwnSattus(this,\"" + rowdata.Code + "\",\"" + rowdata.ObjectID + "\")' style='cursor:pointer;'/>";
+        }
+    }
+
+    function SetOwnSattus(obj, rowCode, delObjectID) {
+        var delIds = $("#DelSelectIds").val();
+        var addIds = $("#AddSelectIds").val();
+        if ($(obj).attr("value") == "true") {
+            obj.src = PortalRoot + "/WFRes/images/unChecked.gif";
+            $(obj).attr("value", "false")
+            if (addIds.indexOf(";" + rowCode + ";") > -1) {
+                $("#AddSelectIds").val(addIds.replace(rowCode + ";", ""))
+            }
+            else
+                $("#DelSelectIds").val(delIds + delObjectID + ";");
+        }
+        else {
+            obj.src = PortalRoot + "/WFRes/images/checked.gif";
+            $(obj).attr("value", "true");
+
+            if (delIds.indexOf(";" + delObjectID + ";") > -1) {
+                $("#DelSelectIds").val(delIds.replace(delObjectID + ";", ""))
+            }
+            else
+                $("#AddSelectIds").val(addIds + rowCode + ";");
+
+        }
+    }
+
+    function SetChildStatus(obj) {
+        //debugger;
+        var delIds = $("#DelSelectIds").val();
+        var addIds = $("#AddSelectIds").val();
+        var filter = "img[parent*='" + obj.id + "']";
+        var childs = $(filter);
+        if ($(obj).attr("value") == "false") {
+            obj.src = PortalRoot + "/WFRes/images/checked.gif";
+            $(obj).attr("value", "true")
+            //获取子节点
+
+            $.each(childs, function (index, obj) {
+                if ($(obj).attr("value") == "false") {
+                    obj.src = PortalRoot + "/WFRes/images/checked.gif";
+                    $(obj).attr("value", "true");
+
+                    if (delIds.indexOf(";" + $(obj).attr("id") + ";") > -1) {
+                        $("#DelSelectIds").val(delIds.replace($(obj).attr("id") + ";", ""))
+                    }
+                    else
+                        $("#AddSelectIds").val(addIds + $(obj).attr("title") + ";");
+                }
+            });
+        }
+        else {
+            obj.src = PortalRoot + "/WFRes/images/unChecked.gif";
+            $(obj).attr("value", "false")
+            $.each(childs, function (index, obj) {
+                if ($(obj).attr("value") == "true") {
+                    obj.src = PortalRoot + "/WFRes/images/unChecked.gif";
+                    $(obj).attr("value", "false")
+
+                    if (addIds.indexOf(";" + $(obj).attr("title") + ";") > -1) {
+                        $("#AddSelectIds").val(addIds.replace($(obj).attr("title") + ";", ""))
+                    }
+                    else
+                        $("#DelSelectIds").val(delIds + $(obj).attr("id") + ";");
+                }
+            });
+        }
+    }
+
+    function GetValue() {
+        if ($("#AddSelectIds").val() == ";" && $("#DelSelectIds").val() == ";") {
+            $.H3Dialog.Success({ content: $.Lang("FunctionAcl.FunctionAclByUnit_Msg0") });
+            return false;
+        }
+        return true;
+    }
+
+    //保存设置
+    function SaveAcl() {
+        var addSelectIds = $("#AddSelectIds").val();
+        var delSelectIds = $("#DelSelectIds").val();
+        var unitid = getUrlParam("unitid");
+
+        var saveUrl = $.Controller.FunctionAcl.SetAcl;
+        if (GetValue()) {
+            $.ajax({
+                url: $.Controller.FunctionAcl.SetAcl,
+                type: 'post',
+                dataType: "json",
+                data: { addSelectedIds: addSelectIds, delSelectedIds: delSelectIds, unitID: unitid },
+                async: false,//同步执行
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                        $("#AddSelectIds").val(";");
+                        $("#DelSelectIds").val(";");
+                    } else {
+                        $.H3Dialog.Warn({ content: result.Message });
+                    }
+                }
+            });
+        }
+    }
+
+
+</script>
+<div id="H3ToolBar">
+    <a data-icon="fa fa-save" href="javascript:SaveAcl();" onclick="" data-lang="GlobalButton.Save"></a>
+</div>
+<div class="H3Panel">
+    <span data-lang="FunctionAcl.SetRole"></span>
+    <table class="tableList">
+        <tr>
+            <td data-lang="FunctionAcl.RoleName">
+                角色名称
+            </td>
+            <td>
+                <input name="roleName" disabled="disabled" type="text" id="roleName">
+                <!--存储使用-->
+                <input type="hidden" id="AddSelectIds" value=";" />
+                <input type="hidden" id="DelSelectIds" value=";" />
+            </td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>
+</div>
+<div class="H3Panel">
+    <span data-lang="FunctionAcl.FunctionAcl"></span>
+    <div id="RoleFunctionList"></div>
+</div>

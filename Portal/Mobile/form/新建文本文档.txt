@@ -1,0 +1,2659 @@
+﻿var formModule = angular.module('formApp.controllers', [])
+    // 全局Controller
+    .controller("mainCtrl", function ($rootScope, $scope, $state, $compile, $http, $ionicPopup, $timeout) {
+        $rootScope.dingMobile = {
+            isDingMobile: false, //是否钉钉移动端，如果是钉钉移动端，需要隐藏当前header，重写钉钉APP Header
+            dingHeaderClass: "has-header", //隐藏header后 subHeader ion-content需要修改相关样式
+            dingSubHeaderClass: "has-header has-subheader", //隐藏header后 subHeader ion-content需要修改相关样式
+            hideHeader: false                                //是否需要隐藏当前Header
+        }
+        // 设置左侧返回
+        $scope.SetDingDingLeft = function () {
+            //设置Header标题
+            if (dd) {
+                dd.biz.navigation.setLeft({
+                    control: true,//是否控制点击事件，true 控制，false 不控制， 默认false
+                    android: true, // 安卓端如果需要控制左上角返回事件加上这个字段，并设置为true
+                    text: '返回',//控制显示文本，空字符串表示显示默认文本
+                    onSuccess : function(result) {
+                        dd.biz.navigation.goBack({});
+                    },
+                    onFail : function(err) {
+                        dd.biz.navigation.goBack({});
+                    }
+                })
+            }
+        }
+        //update by ouyangsk 记录用户设置的语言
+        var lang = window.localStorage.getItem('H3.Language') || 'zh_cn';
+        if (lang == 'zh_cn' || lang == "null") {
+            $scope.sheetSettingLanguage = false;
+        } else {
+            $scope.sheetSettingLanguage = true;
+        }
+        //判断是否钉钉移动端
+        $scope.GetDingMobile = function () {
+            var loginfrom = "";
+            var source = "";
+            var reg = new RegExp("(^|&)loginfrom=([^&]*)(&|$)");
+            var r = top.window.location.search.substr(1).match(reg);
+            if (r != null)
+                loginfrom = unescape(r[2]);
+
+            reg = new RegExp("(^|&)source=([^&]*)(&|$)");
+            r = top.window.location.search.substr(1).match(reg);
+            if (r != null)
+                source = unescape(r[2]);
+            $rootScope.source = source;
+            if (loginfrom == "dingtalk" && dd && dd.version) {
+                $rootScope.dingMobile.isDingMobile = true;
+                $rootScope.dingMobile.dingHeaderClass = "";
+                $rootScope.dingMobile.dingSubHeaderClass = "has-subheader";
+                $rootScope.dingMobile.hideHeader = true;
+                // console.log($rootScope.dingMobile.hideHeader)
+                $scope.SetDingDingLeft(); // 设置左侧返回
+                //钉钉打开消息返回 测试只对android有效
+                document.addEventListener('backbutton', function () {
+                    if ($state.current.name == "form.detail" && loginfrom == "dingtalk" && dd) {
+                        // dd.biz.navigation.close({});
+                        dd.biz.navigation.goBack({});
+                    }
+                });
+            }
+            if (dd && dd.version) {
+                //if (loginfrom == "dingtalk" && dd && dd.version) {
+                $rootScope.dingMobile.isDingMobile = true;
+                $rootScope.dingMobile.dingHeaderClass = "";
+                $rootScope.dingMobile.dingSubHeaderClass = "has-subheader";
+                $rootScope.dingMobile.hideHeader = true;
+                // $scope.SetDingDingLeft(); // 设置左侧返回
+                dd.biz.navigation.setLeft({
+                    control: true,//是否控制点击事件，true 控制，false 不控制， 默认false
+                    android: true, // 安卓端如果需要控制左上角返回事件加上这个字段，并设置为true
+                    text: '返回',//控制显示文本，空字符串表示显示默认文本
+                    onSuccess : function(result) {
+                        dd.biz.navigation.goBack({});
+                    },
+                    onFail : function(err) {
+                        dd.biz.navigation.goBack({});
+                    }
+                })
+                $rootScope.loginfrom = "dingtalk";
+            } else if (loginfrom == "app") {
+                $rootScope.loginfrom = "app";
+            } else if (loginfrom == "wechat") {
+                $rootScope.loginfrom = "wechat";
+            }
+        }
+        $scope.GetDingMobile();
+        $scope.SetDingDingHeader = function (title) {
+            // console.log(title, 'title----------')
+            //设置Header标题
+            if (dd) {
+                dd.biz.navigation.setTitle({
+                    title: title, //控制标题文本，空字符串表示显示默认文本
+                    onSuccess: function (result) {
+                    },
+                    onFail: function (err) {
+                        alert(err);
+                    }
+                });
+            }
+        }
+
+        // 移动端重写alert方法
+        window.alert = function (msg, callback) {
+            if (msg.length >= 256) {
+                msg = msg.substr(0, 256) + "...";
+            }
+            if (!callback) {
+                var myPopup = $ionicPopup.show({
+                    cssClass: 'bpm-sheet-alert',
+                    template: '<span class="">' + msg + '<span>'
+                });
+
+                $timeout(function () {
+                    myPopup.close();
+                }, 2000);
+            } else {
+                $ionicPopup.show({
+                    cssClass: 'bpm-sheet-confirm',
+                    template: '<span class="bpm-sheet-confirm">' + msg + '<span>',
+                    buttons: [{
+                        text: '确定',
+                        type: 'button-clear',
+                        onTap: function (e) {
+                            callback();
+                        }
+                    }]
+                });
+            }
+        }
+        //微信表单返回逻辑参数
+        $rootScope.orgIndex = window.history.length;
+    })
+    // 过滤显示尺寸
+    formModule.filter('reverse', function() { //可以注入依赖
+        return function(size) {
+            if(size > 1024 * 1024)
+            {
+                size = (Math.round(size * 100 / (1024 * 1024)) / 100).toString() + 'MB';
+                return size
+            } else {
+                return (Math.round(size * 100 / 1024) / 100).toString() + 'KB';
+            }
+        }
+    })
+    .directive("fileread", [function ($rootScope, $scope) {
+        return {
+            $scope: {
+                fileread: "="
+            },
+            controller: function($scope) {
+                // console.log($scope,'$scope-controller')
+            },
+            link: function ($scope, element, attributes) {
+                element.bind("change", function (changeEvent) {
+                    $scope.$apply(function () {
+                        $scope.fileread = changeEvent.target.files;
+                        // console.log($scope.fileread, 'scope.fileread')
+                        // console.log($scope,'$scope-fileread')
+                        $scope.load($scope.fileread);
+                    });
+                });
+            }
+        }
+    }])
+    .controller("formSheetCtrl",  ['$rootScope', '$scope', '$state', '$timeout', '$compile', '$http', '$ionicPopup', '$ionicPlatform', '$ionicTabsDelegate',
+        '$cordovaDevice', '$cordovaAppVersion', '$cordovaNetwork', '$ionicScrollDelegate',
+        '$ionicActionSheet', '$ionicHistory', '$ionicModal', 'fcommonJS', '$ionicPopover', 'httpService', '$stateParams', '$ionicPosition', '$ionicLoading'
+        ,function ($rootScope, $scope, $state, $timeout, $compile, $http, $ionicPopup, $ionicPlatform, $ionicTabsDelegate,
+                   $cordovaDevice, $cordovaAppVersion, $cordovaNetwork, $ionicScrollDelegate, $ionicActionSheet, $ionicHistory,
+                   $ionicModal, fcommonJS, $ionicPopover, httpService, $stateParams, $ionicPosition, $ionicLoading) {
+        // 每次进入View时触发
+        $scope.$on("$ionicView.enter", function (scopes, states) {
+            // console.log($.MvcSheetUI.commonComent, '$.MvcSheetUI.commonComent')
+            if ($rootScope.fetchUserSelect) {
+                $rootScope.fetchUserSelect.ClearMobileChoices();
+                $rootScope.fetchUserSelect.SetMobileValue("");
+            }
+            if ($rootScope.dingMobile.isDingMobile && dd) {
+                //设置header 右边按钮
+                dd.biz.navigation.setRight({
+                    show: false
+                });
+                //ios的消息返回
+                dd.biz.navigation.setLeft({
+                    control: true,
+                    onSuccess: function (result) {
+                        if ($state.current.name == "form.detail") {
+                            dd.biz.navigation.goBack({});
+                        } else {
+                            window.history.back()
+                        }
+                    },
+                    onFail: function (err) {
+                    }
+                });
+            }
+        });
+        var upfileUrl = _PORTALROOT_GLOBAL?_PORTALROOT_GLOBAL:"/Portal";
+        $scope.SheetAttachmentHandler = upfileUrl+ "/FileUpload/UploadFile";
+        $scope.load = function(data){
+            // console.log(data, 'data')
+            if (!data.length){
+                return;
+            }
+            var SchemaCode = $.MvcSheetUI.SheetInfo.SchemaCode;
+            var url =  $scope.SheetAttachmentHandler + "?IsMobile=true" + "&" + "SchemaCode=" + encodeURI(SchemaCode) + "&fileid=";
+            // console.log(url, 'url----')
+            if(data.length) {
+                for(var i = 0; i < data.length; i++) {
+                    var fileid = $.MvcSheetUI.NewGuid();
+                    data[i].fileid = fileid;
+                    data[i].state = 0;
+                    data[i].Name = data[i].name;
+                    data[i].Size =  data[i].size;
+                    $scope.uploadFiles(data[i], url, fileid);
+                }
+            }
+        }
+        $scope.uploadFiles = function (data, url, fileid) {
+            console.log($scope.comment.files, '$scope.comment.files')
+            if ($scope.comment.files) {
+                if ($scope.comment.files.length || $scope.comment.files == []) {
+                    $scope.comment.files.push(data)
+                }
+            } else {
+                $scope.comment.files = []
+                $scope.comment.files.push(data)
+            }
+            // console.log(data, 'data------')
+            var fd = new FormData();
+            fd.append("fileToUpload",data);//文件追到到FormData
+            fd.append('MaxSize', 10*1024);
+            var xhr = new XMLHttpRequest();
+            xhr.upload.addEventListener("progress", uploadProgress, false);
+            xhr.addEventListener("load", uploadComplete, false);
+            xhr.addEventListener("error", uploadFailed, false);
+            xhr.addEventListener("abort", uploadCanceled, false);
+            xhr.open("POST", url + fileid);
+            xhr.send(fd);
+        }
+
+        //图片上传进度
+        function uploadProgress(evt) {
+            if (evt.lengthComputable) {
+                var percentComplete = Math.round(evt.loaded * 100 / evt.total);
+            }else {
+            }
+        }
+
+        //图片上传完成
+        function uploadComplete(evt) {
+            // console.log(evt.target);
+            if (evt.target.status === 200) {
+                var resultObj = eval('(' + evt.target.responseText + ')');
+                var resfileid = resultObj.FileId;
+                angular.forEach($scope.comment.files, function(value){
+                    if (value.fileid === resfileid) {
+                        value.AttachmentId = resultObj.AttachmentId;
+                        value.state = resultObj.State;
+                        value.Url = resultObj.Url;
+                    }
+                });
+                // console.log($scope.comment.files, '$scope.comment.files');
+                $scope.$apply();
+            }
+        }
+
+        function uploadFailed(evt) {
+            alert("上传失败");
+        }
+
+        function uploadCanceled(evt) {
+            alert("已经取消上传");
+        }
+        $scope.openFile = function (item) {
+            // console.log(item)
+            if (item.Url) {
+                $http({
+                    method: 'POST',
+                    contentType: "application/pdf;charset=utf-8",
+                    url: item.Url
+                }).then(function successCallback(response) {
+                    if (response && response.success && response.url) {
+                        var downloadUrl = response.url;
+                        window.open(downloadUrl)
+                    } else {
+                        alert("未获取到文件地址，预览失败!");
+                    }
+                }, function errorCallback(response) {
+                    alert("响应错误");
+                });
+            }
+        }
+        //PC端html内容
+        var _ChildNodes = document.getElementById("content-wrapper").childNodes;
+
+        //内容放置滚动div内，否则不能上下滚动
+        $("#mobile-content").prepend(_ChildNodes);
+
+        //支持移动端滚动
+        $(_ChildNodes).css("overflow", "hidden");
+
+        //移动端流程状态
+        // console.log(_PORTALROOT_GLOBAL, '_PORTALROOT_GLOBAL');
+        $scope.portalroot = _PORTALROOT_GLOBAL;
+        $scope.instanceInfo = {};
+        $scope.showMoreInfo = false;
+        $scope.showHide = function () {
+            $scope.showMoreInfo = !$scope.showMoreInfo;
+            $ionicScrollDelegate.resize();
+            if ($scope.showMoreInfo) {
+                $ionicScrollDelegate.scrollBottom();
+            }
+        };
+        $scope.comment = {
+            frequentCommentIndex: -1,// 常用意见下标
+            frequentComment: '',// 常用意见
+            CommentInput: '',// 审批意见
+            CommentData: '',// 审批意见
+            ProcessIds: [],
+            files: [],
+            uploadFiles: [],
+            SchemaCode: '',
+            DelAttachmentIds: []
+        }
+       $scope.getComment = function() {
+           // console.log($.MvcSheetUI.commonComent, '审批全局数据------')
+           $scope.comment.CommentData = $.MvcSheetUI.commonComent
+           $scope.comment.SchemaCode = $.MvcSheetUI.SheetInfo.SchemaCode
+           $scope.comment.files = $.MvcSheetUI.commonComent.Attachment
+           if($scope.comment.CommentData && $scope.comment.CommentData.Comments) {
+               if($scope.comment.CommentData.Comments.length) {
+                   $scope.comment.CommentData.Comments.forEach(function (item) {
+                       if (item.Approval == -1) {
+                           $scope.comment.ProcessIds = item.Process ? JSON.parse(item.Process):[];
+                           $scope.comment.CommentInput = item.Text
+                       }
+                   })
+               }
+           }
+       };
+        $scope.commentFunc = function () {
+            // console.log($scope.comment.CommentInput)
+            $.MvcSheetUI.commonComent.Text = $scope.comment.CommentInput
+        };
+        $scope.HasRject = function (data) {
+            if (data.length) {
+                var status = false;
+                angular.forEach(data, function (item, index) {
+                    if (item.actionKey == 'Reject') {
+                        status = true
+                    }
+                })
+                return status
+            }
+        }
+        // 新增评论
+        $scope.AddComment = function(action) {
+            // console.log($.MvcSheetUI.rejectBtn, '$.MvcSheet.Actions');
+            $scope.showReject = $scope.HasRject($.MvcSheetUI.rejectBtn);
+            // console.log($scope.showReject, '$scope.showReject')
+            $scope.getComment();
+            $ionicModal.fromTemplateUrl('Mobile/form/templates/add_comment.html?v=201803121505', {
+                scope: $scope
+            })
+                .then(function (popover) {
+                    // console.log(popover,'popover')
+                    $scope.modal = popover;
+                    $scope.modal.showRejectList = false;
+                    $scope.modal.RejectActivities=$.MvcSheetUI.SheetInfo.RejectActivities;
+                    $scope.modal.show();
+                    $scope.modal.hideProper = function () {
+                        $.MvcSheetUI.commonComent = submit()
+                        $scope.modal.hide()
+                    }
+                    if(action=="Reject"){
+                        $scope.modal.hideSubmit = true;
+                    }
+                    $(document).unbind("click.rejectAction").bind("click.rejectAction",function(e){
+                        if($(e.target).closest(".rejectContainer").length == 0&&$(e.target).closest(".btn-right").length == 0){
+
+                            $scope.$apply(function(){
+                                $scope.modal.showRejectList = false;
+                            })
+
+                        }
+
+                    })
+
+
+                    // 保存评论
+                    $scope.modal.saveComment = function() {
+                        var actionControl = {
+                            Action: "Save",
+                            CloseAfterAction: false,
+                            SheetInfo: $.MvcSheetUI.SheetInfo,
+                            IsMobile: true,
+                            Text: "保存",
+                            Visible: true
+                        };
+                        submit();
+                        $.MvcSheet.Save(actionControl, submit())
+                        $scope.modal.hide()
+                    }
+                    // 提交评论
+                    $scope.modal.submitComment = function() {
+                        var actionControl = {
+                            Action: "Submit",
+                            CloseAfterAction: false,
+                            SheetInfo: $.MvcSheetUI.SheetInfo,
+                            IsMobile: true,
+                            Text: "提交",
+                            Visible: true
+                        }
+                        submit()
+                        var text = '提交'
+                        var destActivity = null
+                        var postValue = null
+                        $.MvcSheet.Submit(actionControl, text, destActivity, postValue, submit())
+                        // $scope.modal.hide()
+                    }
+                    // 驳回
+                    $scope.modal.rejectClick = function(){
+                        if($.MvcSheetUI.SheetInfo.RejectActivities.length>0){
+                            $scope.modal.showRejectList = true;
+                        }else {
+                            $scope.modal.rejectComment(null)
+                        }
+                    }
+                    $scope.modal.rejectComment = function(destActivity) {
+                        var actionControl = {
+                            Action: "Reject",
+                            CloseAfterAction: false,
+                            SheetInfo: $.MvcSheetUI.SheetInfo,
+                            IsMobile: true,
+                            Text: "驳回",
+                            Visible: true
+                        }
+
+                        // var text = '驳回'
+
+
+                        // var destActivity = $scope.rejectAction;
+
+                        // var postValue = null
+                        $.MvcSheet.Reject(actionControl, destActivity, submit())
+                        // $scope.modal.hide()
+                    }
+                    function submit() {
+                        // 流程id
+                        var list = "";
+                        var arr = [];
+                        angular.forEach($scope.comment.ProcessIds,function (item) {
+                            arr.push({InstanceTitle: item.InstanceTitle, Url: item.Url, InstanceId: item.InstanceId})
+                        })
+                        list = JSON.stringify(arr);
+                        // 附件id
+                        var fileslist = []
+                        angular.forEach($scope.comment.files,function (item) {
+                            fileslist.push(item.AttachmentId)
+                        })
+                        var filesarr = fileslist.join(';')
+                        // 删除id
+                        var filesDelete = []
+                        angular.forEach($scope.comment.DelAttachmentIds,function (item) {
+                            filesDelete.push(item)
+                        })
+                        var filesDeleteList = filesDelete.join(';')
+                        var datas = {
+                            Process: list, // 流程
+                            FilesIds: filesarr, // 附件
+                            DelAttachmentIds: filesDeleteList, // 附件删除
+                            Text: $scope.comment.CommentInput, // 意见
+                            FrequentComment: $scope.comment.frequentComment, // 常用意见
+                        }
+                        return datas
+                    }
+                })
+        }
+        $scope.submitComment = function() {
+            $scope.getComment();
+            var actionControl = {
+                Action: "Submit",
+                CloseAfterAction: false,
+                SheetInfo: $.MvcSheetUI.SheetInfo,
+                IsMobile: true,
+                Text: "提交",
+                Visible: true
+            }
+            submit();
+            var text = '提交';
+            var destActivity = null;
+            var postValue = null;
+            setTimeout(function () {
+                $.MvcSheet.Submit(actionControl, text, destActivity, postValue, submit())
+            }, 100)
+            }
+        function submit() {
+                // 流程id
+                var list = "";
+                var arr = [];
+                angular.forEach($scope.comment.ProcessIds,function (item) {
+                    arr.push({InstanceTitle: item.InstanceTitle, Url: item.Url, InstanceId: item.InstanceId})
+                })
+                list = JSON.stringify(arr);
+                // 附件id
+                var fileslist = []
+                angular.forEach($scope.comment.files,function (item) {
+                    fileslist.push(item.AttachmentId)
+                })
+                var filesarr = fileslist.join(';')
+                // 删除id
+                var filesDelete = []
+                angular.forEach($scope.comment.DelAttachmentIds,function (item) {
+                    filesDelete.push(item)
+                })
+                var filesDeleteList = filesDelete.join(';')
+                var datas = {
+                    Process: list, // 流程
+                    FilesIds: filesarr, // 附件
+                    DelAttachmentIds: filesDeleteList, // 附件删除
+                    Text: '同意。', // 意见
+                    FrequentComment: $scope.comment.frequentComment, // 常用意见
+                }
+                return datas
+            }
+        // 常用意见
+        $scope.selectUseComment = function() {
+            $ionicModal.fromTemplateUrl('Mobile/form/templates/radio_popover2.html?v='+ new Date(), {
+                scope: $scope
+            })
+                .then(function (popover) {
+                    var that = this
+                    that.Modal = popover;
+                    that.Modal.show();
+                    popover.scope.header = SheetLanguages.Current.FreComments;
+                    popover.scope.data = {};
+                    var findex = $scope.comment.frequentCommentIndex;
+                    popover.scope.data.RadioListValue = findex;
+                    popover.scope.RadioListDisplay = $scope.comment.CommentData.FrequentlyUsedComments
+                    popover.scope.hide = function () {
+                        popover.hide();
+                    }
+                    // //常用意见重置事件绑定 add by ousihang
+                    // popover.scope.reset = function () {
+                    //     popoverScope = this.$parent;
+                    //     var RadioListDisplay = popoverScope.RadioListDisplay;
+                    //     if (RadioListDisplay.length > 0) {
+                    //         popoverScope.data.RadioListValue = -1;
+                    //         that.CommentInput.val("");
+                    //         mobileFreCommentValue.find("span").text(SheetLanguages.Current.PleaseSelect);
+                    //     } else {
+                    //         var value = RadioListDisplay[0].id;
+                    //         var img = RadioListDisplay[0].SignatureImg;
+                    //         popoverScope.radioValue = value;
+                    //         SignatureSel.val(value);
+                    //         SignatureSel.parents(".SignaturePanel").find('.detail.item-icon-right').html("<img src=" + img + " />");
+                    //     }
+                    // }
+                    popover.scope.clickRadio = function (value, index) {
+                        // that.CommentInput.val(value);
+                        // //update by ousihang 选中常用意见提示已经选中
+                        // popover.scope.data.textValue = value;
+                        // var selectedStatus = popover.scope.data.textValue || SheetLanguages.Current.hasBeenSelected;
+                        // mobileFreCommentValue.find("span").text(selectedStatus);
+                        // that.Validate();
+                        $scope.comment.frequentComment = value
+                        $scope.comment.CommentInput = value
+                        $scope.comment.frequentCommentIndex = index;
+                    };
+                    // popover.scope.searchFocus = false;
+                    // popover.scope.searchAnimate = function () {
+                    //     //update by ousihang 如果搜索框中没有你内容才变换样式
+                    //     if (popover.$el.find("ion-header-bar").eq(1).find("input").val() == "") {
+                    //         popover.scope.searchFocus = !popover.scope.searchFocus;
+                    //     }
+                    // };
+                    // popover.scope.searChange = function () {
+                    //     popover.scope.searchNum = $(".active .popover .list").children('label').length;
+                    // };
+                });
+        }
+        // 关联流程
+        $scope.selectUseProcess = function() {
+            var appro = window.localStorage.getItem('OThinker.H3.Mobile.User');
+            var approerId = appro ? JSON.parse(appro).ObjectID: '';
+            $ionicModal.fromTemplateUrl('Mobile/form/templates/process.html?v=201803121505', {
+                scope: $scope
+            })
+                .then(function (popover) {
+                    var that = this
+                    that.ProcessModal = popover;
+                    that.ProcessModal.show();
+                    var pageNo = 1;
+                    var startime = moment();
+                    var starT = moment(startime).add(-180, 'days').format('YYYY-MM-DD');
+                    var endT = moment().format('YYYY-MM-DD');
+                    popover.scope.header = SheetLanguages.Current.Process;
+
+                    popover.scope.refreshText = '';
+                    popover.scope.data = {};
+                    popover.scope.searchText = '';
+                    popover.scope.RadioListDisplay = [];
+                    popover.scope.slectedList = [];
+                    popover.scope.slectedList = $scope.comment.ProcessIds;
+                    popover.scope.loadCompleted = false;
+                    popover.scope.searchFocus = false;
+                    function loadList(pageNo) {
+                        $.ajax({
+                            url: "/Portal/MvcDefaultSheet/queryAssociationInstance",
+                            type: "Post",
+                            dataType: "json",
+                            data: {
+                                startTime: starT,
+                                endTime: endT,
+                                userId: '',
+                                approver: approerId || '',
+                                instanceId: '',
+                                InstanceTitle: '',
+                                workflowCode: '',
+                                otherSys: false,
+                                pageNo: pageNo,
+                                pageSize: 10
+                            },
+                            success: function (res) {
+                                if(res.Rows) {
+                                    var data = res.Rows;
+                                    data.map(function (item) {
+                                        item.checked = false;
+                                    });
+                                    // console.log(data, 'data');
+                                    data.forEach(function (inner) {
+                                        $scope.comment.ProcessIds.forEach(function (item) {
+                                            if (inner.InstanceId.trim() === item.InstanceId.trim()) {
+                                                inner.checked = true;
+                                            }
+                                        });
+                                    });
+                                    // popover.scope.RadioListDisplay = Object.assign(data, that.ProcessIds);
+                                    popover.scope.RadioListDisplay = data;
+                                    popover.scope.$broadcast('scroll.refreshComplete');
+                                    popover.scope.refreshText = '刷新成功';
+                                    popover.scope.loadCompleted = false;
+                                    popover.scope.$broadcast('scroll.infiniteScrollComplete');
+                                }else {
+                                    popover.scope.$broadcast('scroll.refreshComplete');
+                                    popover.scope.refreshText = '刷新成功';
+
+                                    popover.scope.loadCompleted = true;
+                                    popover.scope.$broadcast('scroll.infiniteScrollComplete');
+                                }
+                            },
+                            error: function () {
+                                popover.scope.loadCompleted = true;
+                                popover.scope.$broadcast('scroll.infiniteScrollComplete');
+
+                                popover.scope.$broadcast('scroll.refreshComplete');
+                                popover.scope.refreshText = '刷新失败';
+                            }
+                        });
+                    }
+
+                    loadList(pageNo);
+
+                    // popover.show();
+                    popover.scope.hide = function () {
+                        popover.hide();
+                        $scope.comment.ProcessIds = popover.scope.slectedList;
+                        console.log($scope.comment.ProcessIds, 'popover.scope.slectedList');
+                    };
+                    //常用意见重置事件绑定 add by ousihang
+                    popover.scope.reset = function () {
+                        popover.scope.slectedList = [];
+                        popover.scope.RadioListDisplay.map(function (item) {
+                            item.checked = false;
+                        });
+                    };
+                    // 下拉
+                    popover.scope.doRefresh = function () {
+                        // console.log('下拉');
+                        pageNo = 1;
+                        loadList(pageNo);
+                    };
+                    //上拉
+                    popover.scope.$on('stateChangeSuccess', function() {
+                        // console.log('上拉-stateChangeSuccess');
+                    });
+                    $scope.loadMoreData = function () {
+                        // console.log('上拉');
+                        pageNo = pageNo + 1;
+                        // console.log(pageNo,'pageNo');
+                        setTimeout(function() {
+                            $.ajax({
+                                url: "/Portal/MvcDefaultSheet/queryAssociationInstance",
+                                type: "Post",
+                                dataType: "json",
+                                data: {
+                                    startTime: starT,
+                                    endTime: endT,
+                                    userId: '',
+                                    approver: approerId || '',
+                                    instanceId: '',
+                                    InstanceTitle: '',
+                                    workflowCode: '',
+                                    otherSys: false,
+                                    pageNo: pageNo,
+                                    pageSize: 10
+                                },
+                                success: function (res) {
+                                    if(res.Rows&&res.Rows.length) {
+                                        var list = [];
+                                        var data = res.Rows;
+                                        data.map(function (item) {
+                                            item.checked = false;
+                                        });
+                                        data.forEach(function (inner) {
+                                            $scope.comment.ProcessIds.forEach(function (item) {
+                                                if (inner.InstanceId.trim() === item.InstanceId.trim()) {
+                                                    inner.checked = true;
+                                                }
+                                            });
+                                        });
+                                        popover.scope.RadioListDisplay = popover.scope.RadioListDisplay.concat(data);
+
+                                        if(popover.scope.RadioListDisplay.length === res.iTotalRecords) {
+                                            popover.scope.loadCompleted = true;
+                                            popover.scope.$broadcast('scroll.infiniteScrollComplete');
+                                        } else {
+                                            popover.scope.loadCompleted = false;
+                                            popover.scope.$broadcast('scroll.infiniteScrollComplete');
+                                        }
+                                    } else {
+                                        popover.scope.loadCompleted = true;
+                                        popover.scope.$broadcast('scroll.infiniteScrollComplete');
+                                    }
+                                },
+                                error: function () {
+                                    popover.scope.loadCompleted = true;
+                                    popover.scope.$broadcast('scroll.infiniteScrollComplete');
+                                }
+                            });
+                        },300)
+                    };
+                    // 选中
+                    popover.scope.clickSelect = function (value, index) {
+                        // ionic.$scope.frequentCommentIndex = index;
+                        // console.log(value, index);
+                        if (value.checked) {
+                            popover.scope.slectedList.push(value)
+                        } else {
+                            popover.scope.slectedList.splice(popover.scope.slectedList.indexOf(value), 1)
+                        }
+                    };
+
+                    popover.scope.searchAnimate = function () {
+                        //update by ousihang 如果搜索框中没有你内容才变换样式
+                        if (popover.$el.find("ion-header-bar").eq(1).find("input").val() == "") {
+                            popover.scope.searchFocus = !popover.scope.searchFocus;
+                        }
+                    };
+                    popover.scope.searChange = function () {
+                        // console.log(popover.scope.searchText)
+                        popover.scope.searchNum = $(".active .popover .list").children('label').length;
+                    };
+                });
+        }
+        // 删除流程
+        $scope.removeProcess = function(value, index) {
+            $scope.comment.ProcessIds.splice($scope.comment.ProcessIds.indexOf(value), 1);
+        }
+        // 删除文件
+        $scope.removeUploadFile = function(value, index) {
+            $scope.comment.files.splice($scope.comment.files.indexOf(value), 1);
+            console.log(value)
+            if(value.Code) {
+                $scope.comment.DelAttachmentIds.push(value.Code)
+            }
+        }
+        //随机头像颜色
+        $scope.getRandom = function () {
+            var num = Math.floor(Math.random() * 4);
+            return num;
+        };
+        $scope.randomNumbers = [];
+
+        for (var i = 0; i < 5; i++) {
+            $scope.randomNumbers.push($scope.getRandom());
+        }
+
+        //在移动端删除PC框架
+        $("div[id*=sheetContent]:first").remove();
+        $scope.showCirculate = true;
+        $scope.showCirculateHide = function () {
+            $scope.showCirculate = !$scope.showCirculate;
+        };
+        //$("div.row").removeClass("row").addClass("list");
+        //add by luwei : 将一行多列的全部转换成一行两列的
+        //TODO 只能处理偶数列且必须按照label-value的顺序排列
+        $("div.row").each(function () {
+            $(this).removeClass("row").addClass("list");
+
+            var rowSelf = $(this);
+            var childrenLen = $(this).children().length;
+
+            var emptyRow = $(this).clone().empty();
+
+            $(this).children().each(function (index, element) {
+                var bootstrapClass = $(this).attr("class");
+                var isFirstCol = index % 2 == 0;
+                var indexOfLastDash = bootstrapClass.lastIndexOf("-");
+                var prefix = bootstrapClass.substring(0, indexOfLastDash + 1);
+                var newClass = isFirstCol ? prefix + "2" : prefix + "10";
+                if (bootstrapClass.indexOf("col-") > -1) { //包含栅栏样式
+                    var classArray = bootstrapClass.split(" ");
+                    for (x in classArray) {
+                        if (classArray[x].indexOf("col-") > -1) {
+                            $(this).removeClass(classArray[x]);
+                            break;
+                        }
+                    }
+                    $(this).addClass(newClass);
+                    emptyRow.append($(this));
+                    if (!isFirstCol) {
+                        rowSelf.before(emptyRow);
+                        emptyRow = emptyRow.clone().empty()
+                    } else if (isFirstCol && childrenLen - 1 == index) {
+                        //FIXME 奇数列的处理
+                        rowSelf.before(emptyRow);
+                        emptyRow = emptyRow.clone().empty()
+                    }
+                } else {
+                    return true;
+                }
+            });
+            rowSelf.remove();
+        });
+
+        //传入ionic 服务
+        $.MvcSheetUI.IonicFramework = {
+            $rootScope: $rootScope,
+            $scope: $scope,
+            $state: $state,
+            $timeout: $timeout,
+            $compile: $compile,
+            $ionicActionSheet: $ionicActionSheet,
+            $ionicScrollDelegate: $ionicScrollDelegate,
+            $ionicPosition: $ionicPosition,
+            $compile: $compile,
+            $ionicPopup: $ionicPopup,
+            $ionicModal: $ionicModal,
+            $ionicPlatform: $ionicPlatform,
+            $ionicLoading: $ionicLoading,
+            fcommonJS: fcommonJS,
+            $ionicPopover: $ionicPopover//单选多选效果改为侧滑
+        };
+
+        //执行入口
+        $.MvcSheet.Init(function () {
+            try {
+                //Header 标题
+
+                var _InstanceTitle = $.MvcSheetUI.SheetInfo.BizObject.DataItems["Sheet__DisplayName"].V;
+
+                $rootScope.InstanceId = $.MvcSheetUI.SheetInfo.InstanceId;
+                $rootScope.SheetMode = $.MvcSheetUI.SheetInfo.SheetMode;
+                $rootScope.WorkflowCode = $.MvcSheetUI.SheetInfo.WorkflowCode;
+                $rootScope.WorkflowVersion = $.MvcSheetUI.SheetInfo.WorkflowVersion;
+                $rootScope.InstanceTitle = _InstanceTitle;
+                $scope.DisplayName = $.MvcSheetUI.SheetInfo.InstanceName;
+                // console.log($rootScope.InstanceTitle, '$rootScope.InstanceTitle')
+                //标签名中英文切换
+                $rootScope.names = {
+                    Back: SheetLanguages.Current.Back,
+                    Spread: SheetLanguages.Current.Spread,
+                    Retract: SheetLanguages.Current.Retract,
+                    WorkflowCharts: SheetLanguages.Current.WorkflowCharts,
+                    Close: SheetLanguages.Current.Close,
+                    OK: SheetLanguages.Current.OK,
+                    SelectAll: SheetLanguages.Current.SelectAll,
+                    UnselectAll: SheetLanguages.Current.UnselectAll,
+                    Search: SheetLanguages.Current.Search,
+                    Day: SheetLanguages.Current.Day,
+                    Hour: SheetLanguages.Current.Hour,
+                    Minute: SheetLanguages.Current.Minute,
+                    Second: SheetLanguages.Current.Second,
+                    State: SheetLanguages.Current.State,
+                    SheetUser: SheetLanguages.Current.SheetUser,
+                    Approve: SheetLanguages.Current.Approver,
+                    Waiting: SheetLanguages.Current.Waiting,
+                    Confirm: SheetLanguages.Current.Confirm,
+                    Cancel: SheetLanguages.Current.Cancel,
+                    PleaseSelect: SheetLanguages.Current.PleaseSelect,
+                    Query: SheetLanguages.Current.Query,
+                    AssociatedSheet: SheetLanguages.Current.AssociatedSheet,
+                    Reset: SheetLanguages.Current.Reset,
+                    NoMoreData: SheetLanguages.Current.NoMoreData,
+                    States: SheetLanguages.Current.States
+                };
+                // console.log($rootScope.names);
+                //修改样式为每个item加上下划线
+                $("#masterContent_divContent .list>div.item").addClass('hasBorderBottom');
+                $(".process-container.item").removeClass("hasBorderBottom");
+                $(".slider-slides .item").removeClass("hasBorderBottom");
+                $(".SheetGridView").addClass('hasBorderBottom');
+                $(".SignaturePanel").addClass("hasBorderBottom");
+                $(".InputPanel").addClass("hasBorderBottom");
+
+                /*$scope.DisplayName = _InstanceTitle;*/
+                $scope.createBy = $.MvcSheetUI.SheetInfo.BizObject.DataItems["CreatedBy"].V.Name;
+                $scope.createTime = $.MvcSheetUI.SheetInfo.BizObject.DataItems["CreatedTime"].V;
+                $scope.State = $.MvcSheetUI.SheetInfo.State;
+              //  $("#divBasicInfo-title").hide();
+               // $(".divContent-title").hide();
+
+                setTimeout(function(){
+                    $("#mobile-content>div").prepend($("#sheetHead"));
+                    $("#mobile-content>div").append($(".sheet-comment-list"));
+                })
+                $scope.pageIndex=1;
+                //$("#divSheetInfo-title").removeClass("fa-chevron-down").removeClass("fa-chevron-right").addClass("fa-angle-down");
+                $(".bannerTitle.fa-chevron-down").removeClass("fa-chevron-down").addClass("fa-angle-down");
+                $(".bannerTitle.fa-chevron-right").removeClass("fa-chevron-right").addClass("fa-angle-right");
+                $("#commentTitle").remove();
+
+               // $(".sheet-card-item").html($("#mobile-content").height()+"  "+$("#mobile-content").css("top")+"  "+$("#mobile-content").css("bottom"));
+                $("#mobile-content").height($("#mobile-content").height());
+
+
+                new BScroll("#mobile-content");
+                //流程状态初始化
+                // console.log($rootScope.InstanceId);
+                httpService.get('Mobile/LoadMobileApprovalInfo', {instanceId: $rootScope.InstanceId,workItemId:$.MvcSheetUI.SheetInfo.WorkItemId}).then(function (res) {
+                    // console.log(res, '流程状态初始化');
+                    // Fixed: ZAF-2019年1月14日 后台接口改变 导致审批流程无法显示
+                    if (res.Success) {
+
+
+                            $scope.actives = res.approvalRecordList;
+
+                            for (var i = 0; i < $scope.actives.length; i++) {
+                                $scope.actives[i].openState = true
+                                if ($scope.actives[i].comments.length > 0) {
+                                    for (var j = 0; j < $scope.actives[i].comments.length; j++) {
+                                        if ($scope.actives[i].state !== null && $scope.actives[i].comments.length > 1) {
+                                            if ($scope.actives[i].comments[j].operation == 1 || $scope.actives[i].comments[j].operation == 2 || $scope.actives[i].comments[j].operation == 6 || $scope.actives[i].comments[j].operation == 10) {
+                                                $scope.actives[i].comments[j].showStatus = true
+                                            } else {
+                                                $scope.actives[i].comments[j].showStatus = false
+                                            }
+                                        } else {
+                                            $scope.actives[i].comments[j].showStatus = true
+                                        }
+                                        if ($scope.actives[i].comments[j].duringTime) {
+                                            if ($scope.actives[i].comments[j].duringTime.indexOf('[来自Mobile端]') == -1) {
+                                                $scope.actives[i].comments[j].duringTime = $scope.actives[i].comments[j].duringTime + ' [来自PC端]'
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+
+                    } else {
+                        $scope.instanceInfo = false;
+                    }
+
+
+                   // $.LoadingMask.Hide();
+                }, function (reason) {
+                    fcommonJS.showShortTop(reason);
+                });
+            }
+            catch (e) {
+            }
+        });
+
+        $scope.showItems = function(data) {
+            for (var j = 0; j < data.comments.length; j++) {
+                if (data.comments[j].operation == 1 || data.comments[j].operation == 2 || data.comments[j].operation == 6 || data.comments[j].operation == 10) {
+                    data.comments[j].showStatus = true
+                } else {
+                    if (data.comments[j].showStatus == false) {
+                        data.comments[j].showStatus = true
+                        data.openState = false
+                    } else  {
+                        data.comments[j].showStatus = false
+                        data.openState = true
+                    }
+                }
+            }
+        }
+
+        $scope.activeCard = function(pageIndex){
+            $scope.pageIndex = pageIndex;
+            if($scope.pageIndex == 1)
+            {
+                $(".sheetContainer").show();
+                $(".sheet-comment-list").hide();
+            }
+            else
+            {
+                $(".sheetContainer").hide();
+                $(".sheet-comment-list").show();
+            }
+        }
+        //打开流程图
+        $scope.openFlowChart = function (e) {
+            $state.go("form.instancestate", {
+                Mode: $rootScope.SheetMode,
+                InstanceID: $rootScope.InstanceId,
+                WorkflowCode: $rootScope.WorkflowCode,
+                WorkflowVersion: $rootScope.WorkflowVersion
+            })
+        }
+
+        //SheetUser完成事件
+        $rootScope.$on('sheetUserFinished', function (event, data) {
+
+            if (data.dataField == "fetchUserSelectundefined") {
+                var ngmodel = data.dataField;
+                var the = $scope[ngmodel];
+                if (!the)
+                    return;
+                the.ClearMobileChoices();
+                the.SetMobileValue(data.obj);
+                var tagName = ngmodel;
+                if (tagName.indexOf('.') > -1) {
+                    tagName = tagName.replace('.', '_');
+                }
+                $scope["sheetUsers" + tagName] = data.SelectItems;
+            } else {
+                var ngmodel = data.dataField + data.rowNum;
+                var the = $scope[ngmodel];
+                 the.ClearMobileChoices();
+                 the.SetMobileValue(data.obj);
+            }
+        });
+
+        $scope.delUserItem = function (index, tagName) {
+            var deleteItem = $scope["sheetUsers" + tagName][index];
+            $scope["sheetUsers" + tagName].splice(index, 1);
+            if (tagName.indexOf('_') > -1) {
+                tagName = tagName.replace('_', '.').replace('_', '.').replace('.', '_');
+            }
+            $scope[tagName].RemoveChoice(deleteItem.id);
+        };
+
+        //表单上的返回按钮
+        $scope.ClosePage = function () {
+            if ($rootScope.dingMobile.isDingMobile) {
+                $ionicHistory.clearCache();
+                $ionicHistory.clearHistory();
+                window.history.back();
+                //钉钉的已隐藏
+            } else if (typeof (WeixinJSBridge) != "undefined") {
+                //微信关闭
+                if ($rootScope.source == "message") {
+                    WeixinJSBridge.call("closeWindow");
+                } else {
+                    //update by ouyangsk 微信中点击返回按钮会出现点击无效的情况，所以注释
+                    window.history.back();
+                }
+            } else {
+                //update by ouyangsk 判断PC端还是app
+                if (window.cordova) {
+                    //app关闭
+                    window.open($.MvcSheetUI.PortalRoot + "/Mobile/index.html/tab.home", '_self');
+                } else {
+                    $ionicHistory.clearCache();
+                    $ionicHistory.clearHistory();
+                    setTimeout(() => {
+                        window.history.back();
+                        // $ionicHistory.goBack();
+                    },200)
+                    // window.open($.MvcSheetUI.PortalRoot + "/Mobile/index.html/tab.home", '_self');
+                }
+            }
+        }
+    }])
+    //选人控件
+    .controller('sheetUserCtrl', function ($http,$rootScope, $scope, $ionicActionSheet, $state, $stateParams, $ionicBackdrop, $timeout, $ionicModal, $ionicSideMenuDelegate, $ionicHistory, sheetUserService, $ionicScrollDelegate) {
+        $scope.sheetUserHandler = "SheetUser/LoadOrgTreeNodes";
+      //  $scope.SelectFormStructure = !($.MvcSheetUI.sheetUserParams.loadOptions.indexOf("RootUnitID") < 0 && $.MvcSheetUI.sheetUserParams.options.UserVisible && $.MvcSheetUI.sheetUserParams.loadOptions.indexOf("VisibleUnits") < 0);
+        $scope.SelectFormStructure = true;
+        $scope.init = function () {
+            $scope.UserOUMembers = [];//所在部门人员
+            $scope.Organizations = []; //部门成员
+            $scope.deptNav = [];  //导航数据项  { id;"",name:"",index:""}
+            $scope.showDeptID = "";//当前部门id
+            $scope.CacheData = {};//缓存数据
+            $scope.SelectItems = [];//已选
+            $scope.checkedstetus = false;//全选
+            //搜索相关
+            $scope.searchKey = "";
+            $scope.SearchMode = false;
+            $scope.searchedKeys = [];
+            $scope.searchItems = [];//搜索结果
+            $scope.searchedItems = [];//搜索缓存数据
+            //搜索展示人员还是部门
+            $scope.SearchEmp = false;
+            $scope.SearchDep = false;
+            //是否进行过搜索标记
+            $scope.searchOver = false;
+
+        };
+        $scope.$on("$ionicView.enter", function (scopes, states) {
+            $scope.sheetUserParams = $.MvcSheetUI.sheetUserParams;
+            // $scope.sheetUserParams.isMutiple = false;
+            // console.log($scope.sheetUserParams, 'scope.sheetUserParams');
+           // $scope.ShowCurrentDept = $scope.sheetUserParams.loadOptions.indexOf("RootUnitID") < 0 && $scope.sheetUserParams.options.UserVisible && $scope.sheetUserParams.loadOptions.indexOf("VisibleUnits") < 0;
+            $scope.ShowCurrentDept = false;
+            $scope.init();
+            $scope.SelectItems = sheetUserService.initItems($scope.sheetUserParams.initUsers);
+            //设置已选-从组织架构中选择
+            $scope.selectedName = sheetUserService.getSelectedName($scope.SelectItems);
+            $scope.initHistoryUser();
+            $scope.frequentUserShow = true;
+            $(".MvcPopover2 .title").css("left","59px")
+           // $scope.InitOUMembers();
+            
+           // if (!$scope.ShowCurrentDept) {
+                $scope.SelectStructure(true);
+            // } else {
+            //     $scope.SelectFormStructure = false;
+            //     $scope.checkedpagestaue();//检测组织页面是否选中
+            //     $scope.checkedstetus = true;
+            // }
+        });
+
+        $scope.showFrequentUsers = function(){
+            $scope.frequentUserShow = !$scope.frequentUserShow;
+        }
+        //初始化本部门人员
+        $scope.InitOUMembers = function () {
+            //if (!$.MvcSheetUI.SheetInfo.UserOUMembers && $scope.sheetUserParams.options.UserVisible) {
+            $.MvcSheetUI.SheetInfo.UserOUMembers = [];
+            var parentUnits = $.MvcSheetUI.SheetInfo.DirectParentUnits;
+            //update by luxm
+            //选人控件进入时设置了UserCodes的情况
+            var querystr = $scope.sheetUserParams.loadOptions.replace("&VisibleUnits=", "&V=");
+            var UserCodes = '';
+            if (querystr) {
+                var str = querystr.split('&');
+                var strlist = null;
+                for (var query in str) {
+                    if (str[query].indexOf('UserCodes') != -1) {
+                        strlist = str[query].split('=');
+                        UserCodes = strlist[1];
+                    }
+                }
+            }
+            // console.log("查询字符串" + querystr);
+            // console.log(parentUnits, 'parentUnits');
+            for (var key in parentUnits) {
+                sheetUserService.loadData($scope.sheetUserHandler + "?IsMobile=true&ParentID=" + key + "&o=U&UserCodes=" + UserCodes, null).then(function (res) {
+                    //删除虚拟用户
+                    for(var i = 0; i < res.length; ++i){
+                        if (res[i].ExtendObject && res[i].ExtendObject.IsVirtualUser) {
+                            res.splice(i, 1); // 将使后面的元素依次前移，数组长度减1
+                            i--; // 如果不减，将漏掉一个元素
+                        }
+                    }
+                    // console.log(res,'InitOUMembers')
+                    var filterdata = $.grep(res, function (value) {
+                        if (value.ExtendObject.UnitType == "U") {
+                            return value;
+                        }
+                    });
+                    $.MvcSheetUI.SheetInfo.UserOUMembers = $.MvcSheetUI.SheetInfo.UserOUMembers.concat(filterdata);
+                    //获取所在部门人员
+                    $scope.UserOUMembers = sheetUserService.sheetUserAdapter($.MvcSheetUI.SheetInfo.UserOUMembers, $scope.sheetUserParams.selecFlag);
+                    //update by luxm
+                    //钉钉有缓存会导致计数错误需要初始化
+                    checkedUI = 0;
+                    checkedNumber = 0;
+                    //所在部门设置已选-所在部门
+                    $scope.UserOUMembers = sheetUserService.checkItems($scope.UserOUMembers, $scope.SelectItems);
+                    angular.forEach($scope.SelectItems, function (obj) {
+                        if (obj.type == "G" || obj.type == "O") {
+                            checkedUI++;
+                        } else {
+                            if (obj.type == "U") {
+                                checkedNumber++;
+                            }
+                        }
+                    })
+                    $scope.countNumber();
+                })
+            }
+
+        };
+        $scope.initHistoryUser = function(){
+            $scope.isHistoryList = true;
+            var querystr = $scope.sheetUserParams.loadOptions.replace("&VisibleUnits=", "&V=");
+            checkedUI = 0;
+            checkedNumber = 0;
+            $http({
+                method: 'get',
+                url: "/Portal/SheetUser/getHistoryUnits?"+querystr,
+                timeout: 30000
+            }).success(function (data) {
+                if (data.code==200) {
+
+                    $scope.historyMobileUserList = data.data.user;//历史选人
+
+                    $($scope.historyMobileUserList).each(function(){
+                        this.id=this.UnitId;
+                        this.name = this.UnitName;
+                        this.orgInfo = this.ParentFullName;
+                        this.type = "U";
+
+                    })
+                    $scope.historyMobileUserList = sheetUserService.checkItems($scope.historyMobileUserList, $scope.SelectItems);
+
+
+                    angular.forEach($scope.SelectItems, function (obj) {
+                        if (obj.type == "G" || obj.type == "O") {
+                            checkedUI++;
+                        } else {
+                            if (obj.type == "U") {
+                                checkedNumber++;
+                            }
+                        }
+                    })
+                    $scope.countNumber();
+
+                }
+            })
+
+        }
+
+        $scope.saveHistoryList = function(item){
+            var that = this;
+            if(!this.selectChace){
+                this.selectChace = [];
+            }
+            if(Object.prototype.toString.call(item)=="[object Array]"){
+                this.selectChace= this.selectChace.concat(item);
+            }else {
+                this.selectChace.unshift(item);
+            }
+
+            clearTimeout(this.saveChaceTimes);
+            this.saveChaceTimes = setTimeout(function(){
+                var param = {
+                    user:[],
+                    org:[]
+                }
+                $(that.selectChace).each(function(){
+                    if(this.type=="O"&&$scope.sheetUserParams.selecFlag.indexOf('O')!=-1){
+                        param.org.push(this.id);
+                    }
+                    else if(this.type=="U"&&$scope.sheetUserParams.selecFlag.indexOf('U')!=-1){
+                        param.user.push(this.id);
+                    }
+                })
+                param.user = param.user.splice(0,10)
+                param.org = param.org.splice(0,10)
+                that.selectChace = null;
+                $scope.saveHistoryInLocal(param)
+            })
+
+
+
+        }
+
+        $scope.CancelSearch = function(){
+            $scope.searchKey="";
+            $scope.SearchMode=false;
+        }
+        $scope.searchBlur = function(){
+            if($scope.searchKey==''){
+                $scope.SearchMode=false;
+                $scope.focus=false;
+            }else{
+                $scope.SearchMode=true;
+                $scope.focus=true;
+            }
+        }
+        $scope.saveHistoryInLocal = function(param){
+            $.ajax({
+                type: "post",
+                url:"/Portal/SheetUser/saveHistoryUnits",
+                contentType:'application/json',
+                data: JSON.stringify(param),
+                dataType: "json",
+                success: function (data) {
+
+                }
+            });
+        }
+        //从组织架构中选择
+        $scope.SelectStructure = function (SelectFormStructure) {
+            $scope.SelectFormStructure = SelectFormStructure;
+            //获取根节点信息
+            var querystr = $scope.sheetUserParams.loadOptions.replace("&VisibleUnits=", "&V=");
+            sheetUserService.loadData($scope.sheetUserHandler + "?LoadTree=true&Recursive=true&isMobile=true&" + querystr, null).then(function (res) {
+                //update by luxm
+                if (querystr.indexOf("UserCodes") < 0) {
+                    name = res[0].Text;
+                    if($scope.deptNav.length==0){
+                        var name = "根目录";
+                    }
+                    $scope.showDeptID = res[0].ObjectID;
+                    $scope.deptNav.push({
+                        id: res[0].ObjectID,
+                        // name: sheetUserService.decrypt(res[0].Text),
+                        name: name,
+                        pid: "",
+                        index: "0"
+                    });
+                }
+            });
+            //加载数据
+            if ($scope.CacheData[""]) {
+                $scope.getCacheData("");
+            } else {
+                $scope.getData("d8a2d226-9037-6f48-9cdf-cb77ac2c2281");
+            }
+        };
+        //
+        $scope.itemClick = function (e, org) {
+
+                $scope.addItem(e, org)
+            
+        };
+        $scope.clickDepLine = function(e, org){
+            var Percent = e.clientX / screen.availWidth * 100;
+            if(org.canSelect&&Percent<30){
+
+                $scope.itemClick(e,org);
+            }
+            else {
+                $scope.clickDep(org);
+            }
+
+        }
+        $scope.clickDep = function(org){
+            if (org.type != "U" && org.root != true && !$scope.SearchMode ) {
+                //展开部门
+                $ionicScrollDelegate.scrollTop();
+                org.checked = !org.checked;
+                $scope.deptNav.push({
+                    id: org.id,
+                    name: org.name,
+                    pid: $scope.showDeptID,
+                    index: "1"
+                });
+                $scope.showDeptID = org.id;
+                //加载数据
+                if ($scope.CacheData[org.id]) {
+                    $scope.getCacheData(org.id);
+                } else {
+                    $scope.getData(org.id)
+                }
+            } 
+        }
+        //添加
+        $scope.addItem = function (e, item, type) {
+            var i = item;
+            if (e.target.tagName.toLowerCase() != "input") {
+                item.checked = !item.checked;
+            }
+            if (item.checked) {
+                if (!$scope.sheetUserParams.isMutiple) {
+                    if (item.type == "U") {
+                        checkedNumber++;
+                    } else {
+                        checkedUI++;
+                    }
+                    $scope.countNumber();
+                    $scope.SelectItems = new Array();
+                    $scope.SelectItems.push(i);
+                    $scope.sheetUserFinished();
+                } else {
+                    if (item.type == "U") {
+                        checkedNumber++;
+                    } else {
+                        checkedUI++;
+                    }
+
+                    $scope.countNumber(i, type);
+                    if (!type) {
+                        $scope.SelectItems.push(i);
+                    }
+                }
+                $scope.saveHistoryList(item);
+            } else {
+                //删除已选
+                if (item.type == "U") {
+                    checkedNumber>0&&checkedNumber--;
+                } else {
+                    checkedUI>0&&checkedUI--;
+                }
+                $scope.countNumber();
+                $scope.SelectItems = sheetUserService.removeItem($scope.SelectItems, item);
+
+
+            }
+            $scope.updateChecked(item);
+            $scope.initcheckedStetus($scope.Organizations, $scope.SelectItems.length);//改变全选按钮状态
+            $scope.selectedName = sheetUserService.getSelectedName($scope.SelectItems);
+            if (!$scope.SelectFormStructure) {
+                $scope.checkedpagestaue();
+            }
+            $scope.countNumber();
+        };
+
+        $scope.updateChecked = function(item){
+            $($scope.Organizations).each(function(){
+                if(item.id == this.id)
+                {
+                    this.checked = item.checked;
+                }
+            })
+            $($scope.historyMobileUserList).each(function(){
+                if(item.id == this.id)
+                {
+                    this.checked = item.checked;
+                }
+            })
+
+        }
+        //删除已选
+        $scope.delItem = function (index) {
+            var deleteItem = $scope.SelectItems[index];
+            if (deleteItem.type == "U") {
+                checkedNumber>0&&checkedNumber--;
+            } else {
+                checkedUI>0&&checkedUI--;
+            }
+            $scope.countNumber();
+            $scope.SelectItems.splice(index, 1);
+            //更新当前页面数据
+            $scope.Organizations = sheetUserService.deleteSelectItem($scope.Organizations, $scope.SelectItems);
+            $scope.UserOUMembers = sheetUserService.deleteSelectItem($scope.UserOUMembers, $scope.SelectItems);
+            $scope.SelectItems = sheetUserService.removeItem($scope.SelectItems, deleteItem);
+            $scope.selectedName = sheetUserService.getSelectedName($scope.SelectItems);
+            $scope.initcheckedStetus($scope.Organizations, $scope.SelectItems.length);//改变全选按钮状态
+        };
+        //部门导航点击事件
+        $scope.navClick = function (deptId, index) {
+            $scope.deptNav = $scope.deptNav.slice(0, index + 1);
+            //加载数据
+            if ($scope.CacheData[deptId]) {
+                $scope.getCacheData(deptId);
+            } else {
+                $scope.getData(deptId);
+            }
+            $scope.showDeptID = deptId;
+        };
+        //加载数据
+        $scope.getData = function (parentid) {
+            // console.log(parentid, 'parentid')
+            var querystr = $scope.sheetUserParams.loadOptions.replace("&VisibleUnits=", "&V=");
+            sheetUserService.loadData($scope.sheetUserHandler + "?ParentID=" + parentid + "&isMobile=true&" + querystr, null).then(function (res) {
+                //删除虚拟用户
+                for(var i = 0; i < res.length; ++i){
+                    if (res[i].ExtendObject && res[i].ExtendObject.IsVirtualUser) {
+                        res.splice(i, 1); // 将使后面的元素依次前移，数组长度减1
+                        i--; // 如果不减，将漏掉一个元素
+                    }
+                }
+                // console.log(res, 'getData')
+                $scope.Organizations = sheetUserService.sheetUserAdapter(res, $scope.sheetUserParams.selecFlag);
+
+                // console.log($scope.Organizations, '$scope.Organizations')
+                //是否加根节点
+                //update by luxm
+                //如果设置了sheetusercode则不加载组织根节点
+                if (parentid == "" && $scope.sheetUserParams.options.RootSelectable &&
+                    $scope.sheetUserParams.options.OrgUnitVisible == "true" &&
+                    !$scope.sheetUserParams.options.UserCodes) {
+                    // console.log($scope.deptNav,'$scope.deptNav')
+                    var root = {
+                        Icon: "icon-zuzhitubiao",
+                        canSelect: true,
+                        checked: false,
+                        code: $scope.deptNav.length?$scope.deptNav[0].id: '',
+                        id: $scope.deptNav.length?$scope.deptNav[0].id: '',
+                        name: $scope.deptNav.length?$scope.deptNav[0].name: '',
+                        type: "O",
+                        root: true
+                    };
+                  //  $scope.Organizations.unshift(root);
+                }
+                $scope.checkedstetus = true;//是否全选
+                $scope.Organizations = sheetUserService.checkItems($scope.Organizations, $scope.SelectItems);
+                $scope.initcheckedStetus($scope.Organizations, $scope.SelectItems.length);//改变全选按钮状态
+                // console.log($scope.Organizations, '$scope.Organizations')
+                if (parentid == "" && $scope.sheetUserParams.options.RootSelectable && $scope.sheetUserParams.options.OrgUnitVisible == "true") {
+                    //update by luxm
+                    if (!$scope.sheetUserParams.options.UserCodes) {
+                        if($scope.deptNav.length) {
+                            $scope.CacheData[$scope.deptNav[0].id] = $scope.Organizations;
+                        }
+                    }
+                } else {
+                    $scope.CacheData[parentid] = $scope.Organizations;
+                }
+                $scope.Orgs = [];
+                $scope.Users = [];
+                $($scope.Organizations).each(function(){
+                    if(this.type=="U"){
+                        $scope.Users.push(this)
+                    }
+                    else {
+                        $scope.Orgs.push(this);
+                    }
+                })
+            })
+        };
+        //加载缓存数据
+        $scope.getCacheData = function (deptId) {
+            $scope.Organizations = $scope.CacheData[deptId];
+            $scope.Organizations = sheetUserService.checkItems($scope.Organizations, $scope.SelectItems);
+            $scope.Organizations = sheetUserService.deleteSelectItem($scope.Organizations, $scope.SelectItems);
+
+            $scope.Orgs = [];
+            $scope.Users = [];
+            $($scope.Organizations).each(function(){
+                if(this.type=="U"){
+                    $scope.Users.push(this)
+                }
+                else {
+                    $scope.Orgs.push(this);
+                }
+            })
+
+
+            $scope.initcheckedStetus($scope.Organizations, $scope.SelectItems.length);//改变全选按钮状态
+        }
+
+
+        //选择完成，回到表单页面
+        $scope.sheetUserFinished = function () {
+
+            console.log($scope.SelectItems)
+            var objs = sheetUserService.convertItems($scope.SelectItems);
+            var rowNum = $scope.sheetUserParams.options.RowNum;
+         //   $rootScope.$broadcast("sheetUserFinished", { dataField: $scope.sheetUserParams.dataField, obj: objs, rowNum: rowNum });
+            $rootScope.$broadcast("sheetUserFinished", {
+                dataField: $scope.sheetUserParams.dataField,
+                obj: objs,
+                rowNum: rowNum,
+                SelectItems: $scope.SelectItems,
+                scope: $scope
+            });
+            $scope.init();
+            //update by ouyangsk 因为ionic控件goBack会导致后退循环，故此处改用history.back
+            //$ionicHistory.goBack();
+            window.history.back();
+        };
+        //搜索
+        $scope.goToSeach = function () {
+            $scope.SearchMode = true;
+        };
+        //清理缓存数据
+        $scope.$watch('SearchMode', function (n, o) {
+            if (n != true) {
+                $scope.searchItems = [];
+            }
+        })
+        //添加
+        $scope.addSearchItem = function (e, item) {
+            $scope.addItem(e, item);
+            if (item.checked) {
+                if (!$scope.sheetUserParams.isMutiple) {
+                    $scope.closeSearchModal();
+                }
+            }
+        };
+        //清除
+        $scope.resetSearchKey = function (e) {
+            var Percent = e.clientX / screen.availWidth * 100;
+            if ($scope.searchKey != "" && Percent > 90) {
+                //清除搜索关键词
+                $scope.searchKey = "";
+            }
+        };
+        var timer = null;
+        $scope.doSearch = function (key) {
+            $timeout.cancel(timer);
+            //搜索展示人员还是部门
+            $scope.SearchEmp = false;
+            $scope.SearchDep = false;
+            $scope.searchOver = false;
+            if (!key)
+                return;
+            var cacheKey = key + ($scope.showDeptID || "");
+            $scope.searchItems = [];
+            //查询是否已经缓存
+            var isSearched = $scope.searchedKeys.some(function (n) {
+                return n === cacheKey;
+            });
+            //已经缓存，从缓存中获取
+            if (isSearched) {
+                $scope.searchedItems.forEach(function (currentItem) {
+                    if (currentItem.key === cacheKey) {
+                        if (currentItem.type == "U") {
+                            $scope.SearchEmp = true;
+                        }
+                        if (currentItem.type == "O" || currentItem.type == "G") {
+                            $scope.SearchDep = true;
+                        }
+                        var text = currentItem.name;
+                        var regExp = new RegExp(cacheKey, 'g');
+                        var result = text.replace(regExp, '<b class="userSearched">' + cacheKey + '</b>');
+                        currentItem.names = result;
+                        $scope.searchItems.push(currentItem);
+                    }
+                });
+                $scope.searchItems = sheetUserService.checkItems($scope.searchItems, $scope.SelectItems);
+                $scope.searchOver = true;
+            } else { //从服务器端获取数据
+                //延迟加载数据
+                timer = $timeout(function () {
+                    $scope.searchedKeys.push(cacheKey);
+                    var querystr = $scope.sheetUserParams.loadOptions.replace("&VisibleUnits=", "&V=");
+                    var loadUrl = $scope.sheetUserHandler + "?" + querystr;
+                    var params = {
+                        ParentID: $scope.showDeptID || "",
+                        SearchKey: encodeURI(key),
+                        IsMobile: true
+                    };
+                    sheetUserService.loadData(loadUrl, params).then(function (res) {
+                        var users = sheetUserService.sheetUserAdapter(res);
+                        users.forEach(function (currentItem) {
+                            if (currentItem.type == "U") {
+                                $scope.SearchEmp = true;
+                                if(currentItem.IsVirtualUser == true){
+                                    return;
+                                }
+                            } else if (currentItem.type == "O" || currentItem.type == "G") {
+                                $scope.SearchDep = true;
+                            }
+                            currentItem.key = cacheKey;
+                            var text = currentItem.name;
+                            var regExp = new RegExp(cacheKey, 'g');
+                            var result = text.replace(regExp, '<b class="userSearched">' + cacheKey + '</b>');
+                            currentItem.names = result;
+                            $scope.searchedItems.push(currentItem)
+                            $scope.searchItems.push(currentItem);
+                        });
+                        $scope.searchItems = sheetUserService.checkItems($scope.searchItems, $scope.SelectItems);
+                        $scope.searchOver = true;
+                    });
+                }, 500);
+            }
+
+        };
+        //关闭
+        $scope.cancel = function () {
+            $scope.sheetUserFinished();
+            //$(".detail").filter(".item-icon-right").children("span");
+        };
+        //全选按钮状态
+        /*$scope.checkedstetus = true;标识全选按钮不选中
+         *objs：当前能选的数据
+         *stetus：已经选中的数组的长度
+         */
+        $scope.initcheckedStetus = function (objs, len) {//$scope.SelectItems.length
+            // console.log(objs, len, 'objs----------')
+            if ($scope.Organizations.length == 0 || !$scope.SelectFormStructure) {
+                objs = $scope.UserOUMembers;
+            }
+            if (len == 0) {
+                $scope.checkedstetus = true;
+                return false;
+            }
+            var going = true;
+            angular.forEach(objs, function (obj) {
+                if (going) {
+                    if (obj.canSelect && obj.checked) {//已经选中则跳过
+                        $scope.checkedstetus = false;
+                    } else if (obj.canSelect && !obj.checked) {//能选但是未选中则直接返回
+                        $scope.checkedstetus = true;
+                        going = false;
+                    }
+                }
+            });
+        };
+        //用于检测组织结构页面的数据是否选中
+        $scope.checkedpagestaue = function () {
+            if (!$scope.SelectFormStructure && $scope.SelectItems.length != 0) {//组织结构的页面
+                var i = 0;
+                angular.forEach($scope.UserOUMembers, function (obj) {
+                    var going = true;
+                    angular.forEach($scope.SelectItems, function (SelectItem) {
+                        if (going) {
+                            if (obj.id == SelectItem.id) {//选中
+                                i = i + 1;
+                                obj.checked = true;
+                                going = false;
+                            } else {
+                                obj.checked = false;
+                            }
+                        }
+                    });
+                });
+                if (i == $scope.UserOUMembers.length) {
+                    $scope.checkedstetus = false;//全选按钮选中
+                } else {
+                    $scope.checkedstetus = true;//全选按钮B部选中
+                }
+            } else if (!$scope.SelectFormStructure && $scope.SelectItems.length == 0) {//当没有选中的情况下，相当于要把当前部门取消全选
+                $scope.checkedObj($scope.UserOUMembers, false);//取消选中
+            }
+        }
+        //全选
+        $scope.checkedObj = function (objs, stetus) {
+            $timeout(function () {
+                angular.forEach(objs, function (obj) {
+                    if (obj.canSelect && stetus) {//选中
+                        var i = obj;
+                        if (!obj.checked) {//没有选中的要选中
+                            obj.checked = true;
+                            if (!$scope.sheetUserParams.isMutiple) {//单选
+                                $scope.SelectItems = new Array();
+                                $scope.SelectItems.push(i);
+                                $scope.sheetUserFinished();
+                            } else {
+                                $scope.SelectItems.push(i);
+                            }
+                        }
+                    } else if (obj.canSelect && !stetus) {
+                        obj.checked = false;
+                        $scope.SelectItems = sheetUserService.removeItem($scope.SelectItems, obj);
+                    }
+                });
+
+                angular.forEach($scope.SelectItems, function (obj) {
+                    if (obj.type == "G" || obj.type == "O") {
+                        checkedUI++;
+                    } else {
+                        checkedNumber++;
+                    }
+                })
+              //  $scope.checkAllHistory(stetus);
+
+
+                $scope.countNumber();
+            });
+        }
+        //前端展示已选人的数目
+        var checkedNumber = 0;
+        //前端展示已选组和部门数
+        var checkedUI = 0;
+        $scope.checkedAll = function ($event) {
+            if ($scope.checkedstetus) {//全选
+                if ($scope.Organizations.length == 0 || !$scope.SelectFormStructure) {
+                    checkedNumber = 0;
+                    checkedUI = 0;
+                    $scope.checkedObj($scope.UserOUMembers, true);
+                } else {
+                    checkedNumber = 0;
+                    checkedUI = 0;
+                    $scope.checkedObj($scope.Organizations, true);
+
+                    /*angular.forEach($scope.SelectItems,function(obj){
+                     if(obj.type=="G" || obj.type=="O"){
+                     checkedUI++ ;
+                     }else {
+                     checkedNumber++;
+                     }
+                     })
+                     $scope.countNumber();*/
+                }
+                $scope.checkedstetus = false;
+            }
+            else {
+                if ($scope.Organizations.length == 0 || !$scope.SelectFormStructure) {
+                    checkedNumber = 0;
+                    checkedUI = 0;
+                    $scope.checkedObj($scope.UserOUMembers, false);
+                    /*angular.forEach($scope.SelectItems,function(obj){
+                     if(obj.type=="G" || obj.type=="O"){
+                     checkedUI++ ;
+                     }else {
+                     checkedNumber++;
+                     }
+                     })
+                     $scope.countNumber();*/
+                } else {
+                    checkedNumber = 0;
+                    checkedUI = 0;
+                    $scope.checkedObj($scope.Organizations, false);
+                    /* angular.forEach($scope.SelectItems,function(obj){
+                     if(obj.type=="G" || obj.type=="O"){
+                     checkedUI++ ;
+                     }else {
+                     checkedNumber++;
+                     }
+                     })
+                     $scope.countNumber();*/
+                }
+                $scope.checkedstetus = true;
+            }
+
+            $scope.countNumber();
+        };
+        $scope.checkAllHistory = function(checked){
+            $($scope.historyMobileUserList).each(function(){
+                this.checked = checked;
+                var self = this;
+                var flag = false;
+                var index = 0;
+                $($scope.SelectItems).each(function(i){
+                    if(self.id == this.id){
+                        flag = true;
+                        index = i;
+                    }
+                })
+                if(checked&&!flag){
+                    $scope.SelectItems.push(self);
+                }
+                if(!checked&&flag){
+                    $scope.SelectItems.splice(index,1);
+                }
+            })
+
+        }
+        //update by luxm前端展示选中数量
+        $scope.countNumber = function (user, type) {
+            var checkedNumber = 0,checkedUI=0;
+
+            if (type) {
+                $($scope.historyMobileUserList).each(function () {
+                    if (this.type == "U" && this.checked) {
+                        checkedNumber++;
+                    } else if (this.type !== "U" && this.checked) {
+                        checkedUI++;
+                    }
+                })
+            }
+
+            $($scope.SelectItems).each(function(){
+                if(this.type == "U"){
+                    checkedNumber++;
+                }
+                else
+                {
+                    checkedUI++;
+                }
+            })
+            angular.element($('#selectAll').children("span")).remove();
+            //update by ouyangsk
+            var lang = window.localStorage.getItem('H3.Language') || 'zh_cn';
+            if (lang == 'en_us') {
+                angular.element($('#selectAll')).append("<span>All(People" + checkedNumber + ",Dept" + checkedUI + ")</span>");
+                angular.element($('#confirm')).empty();
+                angular.element($('#confirm')).append("OK");
+            } else {
+                angular.element($('#selectAll')).append("<span>全选(已选" + checkedNumber + "人,部门" + checkedUI + ")</span>");
+                angular.element($('#confirm')).empty();
+                angular.element($('#confirm')).append("确定");
+            }
+            $scope.checkedNumber = checkedNumber;
+            $scope.checkedUI = checkedUI;
+            if (type) {
+                $scope.SelectItems.push(user)
+            }
+        };
+        //返回上级组织
+        $scope.goBack = function () {
+            $ionicScrollDelegate.scrollTop();
+            if ($scope.SearchMode) {
+                $("input[type='search']").blur();
+                $scope.SearchMode = false;
+                $scope.searchItems = [];
+                $scope.searchKey = "";
+                $scope.Organizations = sheetUserService.checkItems($scope.Organizations, $scope.SelectItems);
+                $scope.UserOUMembers = sheetUserService.checkItems($scope.UserOUMembers, $scope.SelectItems);
+
+                $scope.Organizations = sheetUserService.deleteSelectItem($scope.Organizations, $scope.SelectItems);
+                $scope.UserOUMembers = sheetUserService.deleteSelectItem($scope.UserOUMembers, $scope.SelectItems);
+                //update by luxm
+                if ($scope.deptNav && $scope.deptNav.length > 0) {
+                    var id = $scope.deptNav[$scope.deptNav.length - 1].id;
+                    if ($scope.CacheData[id]) {
+                        $scope.getCacheData(id);
+                    } else {
+                        $scope.getData(id);
+                    }
+                    $scope.showDeptID = id;
+                }
+                $scope.SearchMode = false;
+                return;
+            }
+            if ($scope.deptNav.length == 0 || ($scope.deptNav.length == 1 && !$scope.ShowCurrentDept)) {
+                $scope.sheetUserFinished();
+                //update by ouyangsk
+                //$ionicHistory.goBack();
+            } else {
+                $scope.deptNav = $scope.deptNav.slice(0, $scope.deptNav.length - 1);
+                if ($scope.deptNav.length == 0) {
+                    $scope.SelectFormStructure = false;
+                    $scope.checkedpagestaue();//组织结构页面
+                } else {
+                    var id = $scope.deptNav[$scope.deptNav.length - 1].id;
+                    if ($scope.CacheData[id]) {
+                        //$scope.Organizations = $scope.CacheData[id];
+                        $scope.getCacheData(id);
+                    } else {
+                        $scope.getData(id);
+                    }
+                    $scope.showDeptID = id;
+                }
+            }
+            $scope.countNumber();
+            //$(".detail").filter(".item-icon-right").children("span").removeAttr("style");
+        };
+
+    })
+
+    //查询列表
+    .controller("sheetQueryCtrl", function ($rootScope, $scope, $state, $stateParams, $http, $ionicActionSheet, $ionicHistory, fcommonJS, $SheetQuery) {
+        // console.log($stateParams);
+        $scope.choosedObjectId = $stateParams.objectid;
+        //查询需要参数
+        var sheetQuery = {
+            controlManager: {}, //父控件实例
+            dataField: "",
+            rowNum: "",
+            schemaCode: "",
+            queryCode: "",
+            filter: [],
+            inputMappings: "",
+            outputMappings: ""
+        }
+        $scope.OutputMapJson = {};
+        $scope.InputMapJson = {};
+        $scope.viewModel = [];
+        $scope.displayColumns = [];
+        $scope.columnNames = [];
+        $scope.PageSize = 10; //分页数据
+        $scope.NextPageIndex = 0; //当前页数，
+        $scope.LoadFinished = false; //是否加载完成
+        $scope.IsBindInputVlues = false;
+        $scope.HasBindFilters = false;
+
+        //初始化参数
+        $scope.initParams = function () {
+            sheetQuery.dataField = $stateParams.datafield;
+            sheetQuery.rowNum = $stateParams.rownum;
+            sheetQuery.controlManager = $.MvcSheetUI.GetElement(sheetQuery.dataField, sheetQuery.rowNum).SheetUIManager();
+            if (sheetQuery.controlManager) {
+                sheetQuery.schemaCode = sheetQuery.controlManager.SchemaCode;
+                sheetQuery.queryCode = sheetQuery.controlManager.QueryCode;
+                if (sheetQuery.controlManager.InputMappings) {
+                    sheetQuery.inputMappings = sheetQuery.controlManager.InputMappings;
+                }
+                if (sheetQuery.controlManager.OutputMappings) {
+                    sheetQuery.outputMappings = sheetQuery.controlManager.OutputMappings;
+                }
+            }
+        }
+
+        $scope.SetQueryValue = function (item) {
+            // console.log(item);
+            //选中效果
+            $scope.choosedObjectId = item.oldItem.ObjectID;
+            // console.log($scope.OutputMapJson);
+            for (var key in $scope.OutputMapJson) {
+                if (key == sheetQuery.dataField) {
+                    var objValue = $scope.OutputMapJson[key];
+                    var objArry = objValue.split(';');
+                    if (objArry && objArry.length > 0) {
+                        var dataArry = [];
+                        for (var j = 0; j < objArry.length; j++) {
+                            dataArry[j] = item.oldItem[objArry[j]];
+                        }
+                        // console.log(dataArry);
+                        sheetQuery.controlManager.SetValue(dataArry);
+                    } else {
+                        // console.log(item.oldItem[$scope.OutputMapJson[key]]);
+                        sheetQuery.controlManager.SetValue(item.oldItem[$scope.OutputMapJson[key]])
+                    }
+                    //当前控件，直接赋值
+                    //赋值后自动验证
+                    try {
+                        sheetQuery.controlManager.Validate()
+                    } catch (e) {
+                    }
+                } else {
+                    var e = $.MvcSheetUI.GetElement(key, sheetQuery.rowNum);
+                    if (e != null && e.data($.MvcSheetUI.SheetIDKey)) {
+                        e.SheetUIManager().SetValue(item.oldItem[$scope.OutputMapJson[key]]);
+                        if (e.SheetUIManager().Validate) {
+                            e.SheetUIManager().Validate();
+                        }
+                    }
+                }
+            }
+            //$ionicHistory.goBack();
+        }
+
+        //读取inputmapping映射值
+        $scope.GetInputMappings = function () {
+            var inputJson = {};
+            if ($scope.InputMapJson) {
+                for (var key in $scope.InputMapJson) {
+                    if ($scope.InputMapJson[key])
+                        if ($scope.InputMapJson[key].GetValue() !== "") {
+                            inputJson[key] = $scope.InputMapJson[key].GetValue();
+                        }
+                }
+            }
+            return JSON.stringify(inputJson);
+        }
+        //处理传入参数映射配置，对应的值是控件的实例
+        $scope.InputMappingSetting = function () {
+            var mapping = sheetQuery.inputMappings.split(',');
+            if (!mapping) {
+                $scope.InputMapJson = null;
+            }
+            for (var i = 0; i < mapping.length; i++) {
+                var map = mapping[i].split(':');
+                var targetDataField = map[0];
+                var e = $.MvcSheetUI.GetElement(targetDataField, sheetQuery.rowNum);
+                if (e != null) {
+                    $scope.InputMapJson[map[1]] = e.SheetUIManager();
+                }
+            }
+        }
+        //处理映射配置
+        $scope.MappingSetting = function () {
+            var mapping = sheetQuery.outputMappings.split(',');
+
+            for (var i = 0; i < mapping.length; i++) {
+                var map = mapping[i].split(':');
+                $scope.OutputMapJson[map[0]] = map[1];
+            }
+            $scope.InputMappingSetting();
+        }
+
+        //初始化参数
+        $scope.initParams();
+        $scope.MappingSetting();
+
+        $scope.GetDisplayName = function (key) {
+            if (!$scope.columnNames)
+                return key;
+            return $scope.columnNames[key] || key;
+        }
+
+        /// <summary>
+        /// 控件类型
+        /// </summary>
+        $scope.ControlType = {
+            /// <summary>
+            /// 文本框类型
+            /// </summary>
+            TextBox: 0,
+            /// <summary>
+            /// 下拉框类型
+            /// </summary>
+            DropdownList: 1,
+            /// <summary>
+            /// 单选框类型
+            /// </summary>
+            RadioButtonList: 2,
+            /// <summary>
+            /// 复选框类型
+            /// </summary>
+            CheckBoxList: 3,
+            /// <summary>
+            /// 长文本框类型
+            /// </summary>
+            RichTextBox: 4
+        }
+
+        //绑定过滤条件控件
+        $scope.BindFilter = function () {
+            $scope.HasBindFilters = true;
+            if (!sheetQuery.filter || sheetQuery.filter.length == 0)
+                return;
+            $scope.FilterPanelID = $.MvcSheetUI.NewGuid();
+            this.FilterPanel = $("#divFilter");
+            //添加过滤项
+            var ulElement = $("<ul>").addClass("list").appendTo(this.FilterPanel);
+            for (var i = 0; i < sheetQuery.filter.length; i++) {
+                var filterItem = sheetQuery.filter[i];
+                if (!filterItem.Visible)
+                    continue; //不可见
+                if (filterItem.FilterType == 3)
+                    continue; //系统参数
+
+                var defaultVal = filterItem.DefaultValue;
+                if (this.InputMapJson[filterItem.PropertyName]) {
+                    //传入参数
+                }
+                var liElement = $("<li>").appendTo(ulElement).addClass("item item-input");
+                var label = $("<label for='" + $scope.FilterPanelID + filterItem.PropertyName + "'>" + $scope.GetDisplayName(filterItem.PropertyName) + "</label>").addClass("input-label");
+                liElement.append(label);
+                switch (filterItem.DisplayType) {
+                    case $scope.ControlType.DropdownList:
+                        var input = $("<select id='" + $scope.FilterPanelID + filterItem.PropertyName + "' data-property='" + filterItem.PropertyName + "'>");
+                        input.append("<option value=''>" + SheetLanguages.Current.All + "</option>");
+                        var vals = filterItem.SelectedValues.split(";");
+                        for (var j = 0; j < vals.length; j++) {
+                            if (vals[j] != "") {
+                                input.append("<option value='" + vals[j] + "'>" + vals[j] + "</option>");
+                            }
+                        }
+                        input.val(filterItem.DefaultValue);
+                        liElement.append(input);
+                        break;
+
+                    case $scope.ControlType.RadioButtonList:
+                        var vals = filterItem.SelectedValues.split(";");
+                        for (var j = 0; j < vals.length; j++) {
+                            if (vals[j] != "") {
+                                var newid = $.MvcSheetUI.NewGuid();
+                                liElement.append("<input id='" + newid + "' type='radio' name='" + filterItem.PropertyName + "' value='" + vals[j] + "'></input>");
+                                liElement.append("<label for='" + newid + "'>" + vals[j] + "</label>");
+                            }
+                        }
+                        $("input[name='" + filterItem.PropertyName + "'][value='" + filterItem.DefaultValue + "']").attr("checked", "checked")
+                        liElement.append("<br style='clear: both;'></br>");
+                        break;
+
+                    case $scope.ControlType.CheckBoxList:
+                        var vals = filterItem.SelectedValues.split(";");
+                        for (var j = 0; j < vals.length; j++) {
+                            if (vals[j] != "") {
+                                var newid = $.MvcSheetUI.NewGuid();
+                                liElement.append("<input id='" + newid + "' type='checkbox' name='" + filterItem.PropertyName + "' value='" + vals[j] + "'></input>");
+                                liElement.append("<label for='" + newid + "'>" + vals[j] + "</label>");
+                            }
+                        }
+                        $("input[name='" + filterItem.PropertyName + "'][value='" + filterItem.DefaultValue + "']").attr("checked", "checked")
+                        liElement.append("<br style='clear: both;'></br>");
+                        break;
+
+                    default:
+                        //Error:文本类型，需要判断FilterType 和 LogicType,日期、数字 范围
+                        liElement.append("<input type='text' id='" + $scope.FilterPanelID + filterItem.PropertyName + "' data-property='" + filterItem.PropertyName + "' placeholder='" + $scope.GetDisplayName(filterItem.PropertyName) + "' autocomplete='off'></input>");
+                        $("#" + filterItem.PropertyName).val(filterItem.DefaultValue);
+                        break;
+                }
+            }
+        }
+        //绑定过滤条件的传入数据,显示时
+        $scope.BindFilterInputValues = function () {
+            $scope.IsBindInputVlues = true;
+            for (var i = 0; i < sheetQuery.filter.length; i++) {
+                var filterItem = sheetQuery.filter[i];
+                if (!filterItem.Visible)
+                    continue; //不可见
+                if (filterItem.FilterType == 3)
+                    continue; //系统参数
+                if (!$scope.InputMapJson[filterItem.PropertyName])
+                    continue;
+                switch (filterItem.DisplayType) {
+                    case $scope.ControlType.RadioButtonList:
+                    case $scope.ControlType.CheckBoxList:
+                        $scope.FilterPanel.find("input[name='" + filterItem.PropertyName + "'][value='" + $scope.InputMapJson[filterItem.PropertyName].GetValue() + "']").attr("checked", "checked");
+                        break;
+                    default:
+                        $("#" + $scope.FilterPanelID + filterItem.PropertyName).val($scope.InputMapJson[filterItem.PropertyName].GetValue());
+                        break;
+                }
+            }
+        }
+
+        //读取过滤数据，查询时
+        $scope.GetFilters = function () {
+            var filters = {};
+            for (var i = 0; i < sheetQuery.filter.length; i++) {
+                var filterItem = sheetQuery.filter[i];
+                if (!filterItem.Visible)
+                    continue; //不可见
+                if (filterItem.FilterType == 3)
+                    continue; //系统参数
+                switch (filterItem.DisplayType) {
+                    case $scope.ControlType.RadioButtonList:
+                    case $scope.ControlType.CheckBoxList:
+                        if ($scope.FilterPanel.find("input[name='" + filterItem.PropertyName + "']:checked").val()) {
+                            filters[filterItem.PropertyName] = $("input[name='" + filterItem.PropertyName + "']:checked").val();
+                        }
+                        break;
+                    default:
+                        if ($("#" + $scope.FilterPanelID + filterItem.PropertyName).val()) {
+                            filters[filterItem.PropertyName] = $("#" + this.FilterPanelID + filterItem.PropertyName).val();
+                        }
+                        break;
+                }
+            }
+            return JSON.stringify(filters);
+        }
+
+        $scope.getPropertyNameFromData = function (bizObject, propertyName) {
+            for (var k in bizObject) {
+                if (k.toLocaleLowerCase() == propertyName.toLocaleLowerCase()) {
+                    return k;
+                }
+            }
+        }
+
+        //从后台读取数据后，绑定到前端
+        $scope.BindData = function (data) {
+            // console.log(data);
+            //列显示
+            if (data) {
+                //需要显示的列
+                if (data.QuerySetting) {
+                    for (var index in data.QuerySetting.Columns) {
+                        if (data.QuerySetting.Columns[index].Visible == 1) {
+                            $scope.displayColumns.push(data.QuerySetting.Columns[index].PropertyName);
+                        }
+                    }
+                }
+                //列编码和显示名称
+                $scope.columnNames = data.Columns;
+                //当前数据项需要显示的字段
+                var NameKey = $scope.OutputMapJson[sheetQuery.dataField];
+                var tmpArray = [];
+                //显示视图
+                for (var index in data.QueryData) {
+                    var itemName;
+                    var i = 0;
+                    var d = data.QueryData[index];
+                    var summary = "";
+                    for (var key in d) {
+                        if ($scope.displayColumns.indexOf(key) > -1) {
+                            //if (!NameKey && i == 0) {
+                            //    itemName = d[key];
+                            //    continue;
+                            //} else if (key == NameKey) {
+                            //    itemName = d[key];
+                            //    continue;
+                            //}
+                            var val = d[key] == null ? "" : d[key];
+                            summary += $scope.columnNames[key] + ":" + val + "<br/>";
+                            i++;
+
+                        }
+                    }
+
+                    tmpArray.push({itemName: itemName, summary: summary, oldItem: d});
+                }
+                $scope.LoadFinished = data.LoadFinished;
+                //合并数组
+                $scope.viewModel.splice($scope.NextPageIndex * 10, tmpArray.length);
+                for (var i = $scope.NextPageIndex * 10, j = 0; i < $scope.NextPageIndex * 10 + tmpArray.length; i++, j++) {
+                    $scope.viewModel.splice(i, 0, tmpArray[j]);
+                }
+                //页数加1,改变NetWorkFlag的状态##
+                if (!data.LoadFinished) {
+                    $scope.NextPageIndex += 1;
+                    $scope.NetWorkFlag.index = $scope.NextPageIndex;
+                    $scope.NetWorkFlag.status = false;
+                }
+
+                sheetQuery.filter = data.QuerySetting.QueryItems;
+                if (!$scope.HasBindFilters) {
+                    $scope.BindFilter();
+                }
+
+                if (!$scope.IsBindInputVlues) {
+                    $scope.BindFilterInputValues();
+                }
+            }
+        };
+        //从后台读取数据
+        $scope.NextPageIndex = 0;
+        //防止发送重复的请求##
+        $scope.NetWorkFlag = {
+            index: 0,
+            status: false
+        };
+        $scope.viewModel = [];
+        $scope.LoadQueryData = function (isSearch, InputMapping) {
+            var localInpuptMapping
+            if (InputMapping) {
+                localInpuptMapping = InputMapping;
+            } else {
+                localInpuptMapping = $scope.GetInputMappings();
+            }
+            if (!isSearch) {
+                localInpuptMapping = {};
+            }
+            var params = {
+                Action: "GetQuerySettingAndData",
+                SchemaCode: sheetQuery.schemaCode,
+                QueryCode: sheetQuery.queryCode,
+                InputMapping: localInpuptMapping,
+                PageSize: $scope.PageSize,
+                NextPageIndex: $scope.NextPageIndex
+            };
+            //筛选数据
+            if (sheetQuery.filter.length > 0) {
+                //params["Action"] = "GetQueryData";
+                //如何没绑定inputmapping的值，得绑定
+                params["Filters"] = $scope.GetFilters();
+            }
+
+            if ($scope.NextPageIndex == $scope.NetWorkFlag.index && !$scope.NetWorkFlag.status) {
+                //已经发送了请求不再重复发送请求##
+                $scope.NetWorkFlag.status = true;
+                var promise = $SheetQuery.QueryData(params);
+                promise.then(function (data) {
+                    $scope.$broadcast('scroll.infiniteScrollComplete');
+                    $scope.BindData(data)
+                })
+            } else {
+                // console.log("repeat network!");
+            }
+        };
+        $scope.conditionLoadQueryData = function (isSearch) {
+            $scope.NextPageIndex = 0;
+            $scope.viewModel = [];
+            $scope.NetWorkFlag = {
+                index: 0,
+                status: false
+            };
+            var InputMapping = {};
+            $("[data-property]").each(function (i, v) {
+                if ($(v).val() !== "") {
+                    InputMapping[$(v).data("property")] = $(v).val();
+                }
+            })
+            // console.log(InputMapping);
+            $scope.LoadQueryData(isSearch, InputMapping);
+        }
+        //$scope.RefreshData = function (isSearch) {
+        //    var localInpuptMapping = $scope.GetInputMappings();
+        //    if (isSearch) { localInpuptMapping = {}; }
+        //    var params = {
+        //        Action: "GetQuerySettingAndData",
+        //        SchemaCode: sheetQuery.schemaCode,
+        //        QueryCode: sheetQuery.queryCode,
+        //        InputMapping: localInpuptMapping,
+        //        PageSize: $scope.PageSize,
+        //        NextPageIndex: $scope.NextPageIndex
+        //    };
+        //    //筛选数据
+        //    if (sheetQuery.filter.length > 0) {
+        //        //params["Action"] = "GetQueryData";
+        //        //如何没绑定inputmapping的值，得绑定
+        //        params["Filters"] = $scope.GetFilters();
+        //    }
+        //    var promise = $SheetQuery.QueryData(params);
+        //    promise.then(function (data) {
+        //        $scope.BindData(data);
+        //        $scope.$broadcast('scroll.infiniteScrollComplete');
+        //    })
+        //}
+        $scope.goBack = function () {
+            window.history.back();
+        }
+        //开窗重置update by luxm
+        $scope.reset = function () {
+            sheetQuery.controlManager.SetValue("");
+            $scope.choosedObjectId = "";
+        }
+        // 每次进入View时触发
+        $scope.$on("$ionicView.enter", function (scopes, states) {
+            if ($rootScope.dingMobile.isDingMobile) {
+                //设置header 右边按钮
+                dd.biz.navigation.setMenu({
+                    items: [
+                        {
+                            "id": "1", //字符串
+                            "text": "查询"
+                        }
+                    ],
+                    onSuccess: function (data) {
+                        $scope.conditionLoadQueryData(true);
+                    }
+                });
+            }
+            $scope.LoadQueryData(true);
+        });
+
+    })
+
+    //传阅、转发
+    .controller('fetchUserCtrl', ['$rootScope', '$scope', '$ionicHistory', '$ionicPopup', '$ionicModal', function ($rootScope, $scope, $ionicHistory, $ionicPopup, $ionicModal) {
+        // 每次进入View时触发
+        $scope.$on("$ionicView.enter", function (scopes, states) {
+            // console.log($scope,'$scope')
+            $scope.NavBarShow = true;
+            if ($.MvcSheetUI.IonicFramework.$rootScope.loginfrom == "dingtalk" && dd) {
+                $scope.NavBarShow = false;
+            }
+            $.MvcSheetUI.IonicFramework.$scopeFetchUser = $scope;
+            $scope.Params = $.MvcSheetUI.actionSheetParam;
+            console.log($scope.Params, '传阅、转发,征询，协办，加签');
+            // debugger
+            if (dd) {
+                dd.biz.navigation.setTitle({
+                    title: $scope.Params.title,//控制显示文本，空字符串表示显示默认文本
+                    onSuccess : function(result) {
+                    },
+                    onFail : function(err) {
+                    }
+                })
+            }
+            $("#fetchUserSelect").html();
+            $scope.SheetUser = $("#fetchUserSelect").SheetUser($scope.Params.ueroptions);
+            if (!$scope.SheetUser && $rootScope.fetchUserSelect) {
+                $scope.SheetUser = $rootScope.fetchUserSelect;
+            }
+//        $($(".fetchUserContainer")[0].children).show();
+//        $($(".fetchUserContainer")[0]).find("span").attr("style", "width: auto;word-break: normal;word-wrap: break-word;white-space: initial;");
+            // $($(".fetchUserContainer")[0].children).after($(".divContentImg"));//将加减号移动到感应区
+            //update by ouyangsk 意见展示区
+            $scope.ActionShow = true;
+            // if ($scope.Params.Action == "Circulate") { //转发不应该展示意见 //添加转发意见
+            //     $scope.ActionShow = false;
+            // }
+        });
+
+        //SelectUser完成事件
+        $rootScope.$on('sheetUserFinished', function (event, data) {
+
+            var ngmodel = data.dataField;
+            var the = $scope[ngmodel];
+            if (!the)
+                return;
+            the.ClearMobileChoices();
+            the.SetMobileValue(data.obj);
+            var tagName = ngmodel;
+            $scope["sheetUsers" + tagName] = data.SelectItems;
+            //$scope.fetchUserSelectData = data.obj;
+            $scope.fetchUserSelectData = data.obj;
+            $scope.selectUsers = data.obj;
+            if(Object.prototype.toString.call($scope.selectUsers)!="[object Array]"){
+                $scope.selectUsers = [];
+                $scope.selectUsers.push(data.obj);
+            }
+            $scope.count();
+
+            //$rootScope.fetchUserSelect = the;
+            //tll:存在数据则需要把加减号移动到人员后面
+            if ((angular.isArray(data.obj) && data.obj.length > 0) || !(angular.isArray($scope.fetchUserSelectData))) {
+                // console.log(1);
+                $($(".breadcrumb-wrapper")[1]).append($(".fetchUserContainer"));
+            }
+        });
+        $scope.userCount = 0;
+        $scope.orgCount = 0;
+        $scope.count = function(){
+            $scope.userCount = 0;
+            $scope.orgCount = 0;
+            $($scope.selectUsers).each(function(){
+                if(this.ContentType=="U"){
+                    $scope.userCount++;
+                }
+                else
+                {
+                    $scope.orgCount++;
+                }
+            })
+        }
+        $scope.removeSelect = function (user){
+            $($scope.selectUsers).each(function(i){
+                if(this.Code == user.Code){
+                    $scope.selectUsers.splice(i,1);
+                }
+            })
+            delete $scope.SheetUser.Choices[user.Code];
+            $scope.count();
+        }
+        //update by lum
+        //返回按钮事件
+        $scope.BackPage = function () {
+            //update by ouyangsk 点击返回时，清空已选择的内容
+            $scope['sheetUsersfetchUserSelectundefined'] = [];
+            $scope.SheetUser.ClearMobileChoices();
+            $scope.fetchUserSelectData = [];
+            $scope.Params.commentVaule = '';
+            $scope.Params.title = '';
+            window.history.back();
+        };
+        $scope.showSelectUser = function(){
+            $("[data-datafield='fetchUserSelectundefined']").click()
+        }
+
+        // 确定 -> 转办，协办， 征询，转发
+        $scope.doAction = function () {
+            var Datas = [];
+            if (angular.isUndefined($scope.fetchUserSelectData) || (angular.isArray($scope.fetchUserSelectData) && $scope.fetchUserSelectData.length == 0)) {
+                alert($scope.Params.Text);
+                return;
+            } else if (angular.isArray($scope.fetchUserSelectData)) {
+                var datas = "";
+                angular.forEach($scope.fetchUserSelectData, function (data, index, full) {
+                    if (datas == "") {
+                        datas = data.Code;
+                    } else {
+                        datas = datas + "," + data.Code;
+                    }
+                });
+                Datas.push(datas);
+            } else {
+                var data = $scope.fetchUserSelectData.Code;
+                var datas = data;
+                if (data != "")
+                    Datas.push(data);
+            }
+            //update by ouyangsk 转发后台方法只接受两个参数
+            if ($scope.Params.Action != $.MvcSheet.Action_Forward) {
+                Datas.push(false);
+            }
+            console.log($scope.Params)
+            //update by ouyangsk 转办，协办， 征询，转发请求意见
+            if ($scope.Params.Action == $.MvcSheet.Action_Forward ||
+                $scope.Params.Action == $.MvcSheet.Action_Assist ||
+                $scope.Params.Action == $.MvcSheet.Action_Consult ||
+                $scope.Params.Action == $.MvcSheet.Action_Circulate) {
+                // var commentVaule = $.trim($("#commentVaule").val()) ? $.trim($("#commentVaule").val()) : "同意";
+                var commentVaule = $.trim($("#commentVaule").val())
+                if (!commentVaule) {
+                    alert('请输入' + $scope.Params.title + '内容')
+                    return
+                }
+                Datas.push(commentVaule);  // 转发/协助/征询意见，暂时用默认值替代
+            }
+            if ($scope.Params.Action == $.MvcSheet.Action_Circulate) {
+                var usercodes = datas;
+                if(usercodes.indexOf(",") != -1 ) {
+                    var users = datas.split(",");
+                    var usercodes = "'" +users.join("','") + "'";
+                }else {
+                    usercodes = "'" + usercodes + "'";
+                }
+                var userNum = 0;
+                $.ajax({
+                    url : "/Portal/QueryUser/GetUserNumber",
+                    type : 'POST',
+                    dataType : "json",
+                    data : {
+                        unitids:usercodes
+                    },
+                    async : false,//同步执行
+                    success : function(result) {
+                        userNum = result.usernum;
+                    }
+                });
+                if(userNum > 30) {
+                    var confirmValue = confirm("您已选择" + userNum + "人,确认传阅吗? ");
+                    if (!confirmValue) {
+                        return false
+                    }
+                }
+            }
+            var action = {
+                Action: $scope.Params.Action,
+                Datas: Datas
+            };
+            $.MvcSheet.Action(action);
+            //update by ouyangsk ionic的goBack方法会造成页面循环，此处用history.back
+            //$ionicHistory.goBack();
+            window.history.back();
+        }
+
+        $scope.$on('$destroy', function() {
+            // console.log($scope, '$scope');
+            // console.log($ionicModal, '$ionicModal');
+        });
+    }])
+
+    //流程状态
+    .controller('instanceStateCtrl', ['$rootScope', '$scope', '$stateParams', '$http', '$ionicScrollDelegate', '$ionicHistory', 'fcommonJS', function ($rootScope, $scope, $stateParams, $http, $ionicScrollDelegate, $ionicHistory, fcommonJS) {
+        $scope.$on("$ionicView.enter", function (scopes, states) {
+        });
+        if ($rootScope.dingMobile.isDingMobile) {
+            //$scope.SetDingDingHeader("流程状态");
+        }
+        //保证上下滑动
+        $scope.scrollHeight = {'height': document.body.scrollHeight + "px"};
+
+        // console.log($stateParams, '流程状态');
+        $scope.Mode = $stateParams.Mode;
+        $scope.InstanceID = $stateParams.InstanceID;
+        $scope.WorkflowCode = $stateParams.WorkflowCode;
+        $scope.WorkflowVersion = $stateParams.WorkflowVersion;
+        $scope.closePage = function () {
+            //update by ouyangsk 因为ionic控件goBack会导致后退循环，故此处改用history.back
+            window.history.back();
+            //$ionicHistory.goBack();
+        }
+        if ($scope.Mode == 3) {
+            $scope.IsOriginate = true;
+        } else {
+            $scope.IsOriginate = false;
+        }
+
+        $scope.init = function () {
+            $scope.type = "base";
+            if ($scope.IsOriginate) {
+                MobileLoader.ShowWorkflow($scope.InstanceID, $scope.WorkflowCode, $scope.WorkflowVersion, _PORTALROOT_GLOBAL);
+            } else {
+                MobileLoader.ShowWorkflow($scope.InstanceID, "", -1, _PORTALROOT_GLOBAL);
+            }
+            fcommonJS.loadingHide();
+        }
+        $scope.init();
+    }])
+
+    // 选择流程
+    .controller('associationUserCtrl', ['$rootScope', '$scope', '$stateParams', '$http', '$ionicScrollDelegate', '$ionicHistory', 'fcommonJS', function ($rootScope, $scope, $stateParams, $http, $ionicScrollDelegate, $ionicHistory, fcommonJS){
+        $scope.$on("$ionicView.enter", function (scopes, states) {
+            // console.log($scope,'$scope')
+        });
+        //返回按钮事件
+        $scope.BackPage = function () {
+            window.history.back();
+        };
+    }])
+
+    //文件预览
+    .controller('downLoadFileCtrl', ['$rootScope', '$scope', '$state', '$location', '$http', '$stateParams', '$ionicHistory', '$window', '$sce', function ($rootScope, $scope, $state, $location, $http, $stateParams, $ionicHistory, $window, $sce) {
+        $scope.$on("$ionicView.enter", function (scopes, states) {
+            $scope.extension = $stateParams.extension;
+            $scope.url = $rootScope.AttachmentUrl;
+            $scope.url = $sce.trustAsResourceUrl($rootScope.AttachmentUrl);
+            var pic_extension = ".jpg,.gif,.jpeg,.png";
+            var txt_extension = ".txt,.doc,.docx,.xlsx,.xls,.ppt,.pptx,.pdf,.html,.csv,.xml";
+            var mp3_extension = ".mp3";
+            $scope.isImg = pic_extension.indexOf($scope.extension) > -1 ? true : false;
+            $scope.isTxt = txt_extension.indexOf($scope.extension) > -1 ? true : false;
+            $scope.isMp3 = mp3_extension.indexOf($scope.extension) > -1 ? true : false;
+            // console.log($scope.isTxt)
+        });
+    }]).filter('proceStateString', function() { //可以注入依赖
+        return function(state) {
+            var stateMaps={
+                2:"进行中",
+                4:"已完成",
+                5:"已取消"
+            }
+            return stateMaps[state];
+        }
+    }).filter('approvelStateString', function() { //可以注入依赖
+        return function(state) {
+            var stateMaps={
+                0:"提交",
+                1:"同意",
+                2:"驳回",
+                3:"已征询",
+                4:"已转发",
+                5:"回复",
+                6:"审核中",
+                7:"加签",
+                8:"协办",
+                9:"转办",
+                10:"取消"
+
+            }
+            return stateMaps[state];
+        }
+    });
+

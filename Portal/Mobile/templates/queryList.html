@@ -1,0 +1,54 @@
+﻿<ion-view hide-nav-bar="true" class="tab-myInstances tab-queryList {{uniqueCode}}" view-title="{{DisplayName}}">
+    <i ng-if="pageModel.HasSheet" class="addqueryList ion-android-add f22" ng-click="startWorkflow(SchemaCode)">
+    </i>
+    <div class="menu-tittle  {{$root.dingMobile.dingHeaderClass}}" style="border-bottom: 1px solid #edeff1">
+        <div class="menu-tittle-left">
+            <span ng-click="backToAppCenter()">
+                <i class="f17 ion-chevron-left blue pr25"></i>
+            </span>
+        </div>
+        <div class="menu-tittle-middle f17">{{DisplayName}}</div>
+        <div class="menu-tittle-right f15">
+            <i class="icon-shaixuan f14 blue "></i>
+            <span ng-click="openPopover()" class="">{{languages.filter}}</span>
+        </div>
+    </div>
+    <ion-content class="{{$root.dingMobile.dingContentClass}}">
+
+
+
+        <!--isShow==false中文
+       isShow==true英文-->
+
+        <div class="list-showEmpty" ng-if="pageModel.items.length == 0&&!pageModel.isRequest">
+            <img ng-show="!languages.inEnShow" src="img/empty.svg">
+            <img ng-show="languages.inEnShow" src="img/emptyEng.svg">
+        </div>
+
+
+        <!--下拉刷新-->
+        <ion-refresher on-refresh="pageModel.refresh()" pulling-text="{{languages.pullingtext}}" refreshing-text="{{languages.refreshingtext}}" refreshing-icon="ion-loading-b">
+        </ion-refresher>
+        <div class="queryListItem" ng-repeat="item in pageModel.items">
+            <div class="qlHeader">
+                <div class="qlhLeft" ng-bind-html="item.required.Name"></div>
+                <div class="qlhRight">
+                    <span class="viewDetails" ng-click="openBizObject(item.required.ObjectID)" ng-if="pageModel.HasSheet">{{languages.queryList.ViewDetails}}</span>
+                </div>
+            </div>
+            <div class="qlContent">
+                <div class="qlcItem" ng-repeat="(x,y) in item.configed">
+                    <div class="qlcItemLeft">{{x}}：</div>
+                    <div class="qlcItemRight" ng-bind-html="y" onclick="return false;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="no-data f12" ng-if="pageModel.items.length != 0&&!pageModel.isMore&&!languages.inEnShow"><span>没有更多的数据</span></div>
+        <div class="no-data f12" ng-if="pageModel.items.length != 0&&!pageModel.isMore&&languages.inEnShow"><span>no more data</span></div>
+        <!--加载更多-->
+        <ion-infinite-scroll ng-if="pageModel.isMore"
+                             on-infinite="pageModel.loadMore()"
+                             distance="10%">
+        </ion-infinite-scroll>
+    </ion-content>
+</ion-view>

@@ -1,0 +1,149 @@
+﻿<script>
+    var pageData = {
+        WorkSheet: {},
+        Types: [{ Value: "true", Text: $.Lang("WorkSheetEdit.System") }, { Value: "false", Text: $.Lang("WorkSheetEdit.Custom") }],
+        LanData: $.Languages
+    };
+    $(function () {
+
+        //初始化页面数据sbsbsbsbsb
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    var validateCondition;
+                    if (pageData.WorkSheet.Type == "false") {
+                        validateCondition = this.$formValidator.invalid;
+                    } else {
+                        validateCondition = this.$formValidator.System.invalid;
+                    }
+                    if (validateCondition) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                }
+            }
+        });
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+        //初始化页面数据
+        function initPageData() {
+            var id = getUrlParam("ID") || "";
+            var parentCode = getUrlParam("ParentCode") || "";
+            var parentId = getUrlParam("ParentID") || "";
+            if (id || parentId || parentCode) {
+                $.ajax({
+                    url: $.Controller.WorkSheet.GetWorkSheet,
+                    type: 'get',
+                    dataType: "json",
+                    data: { id: id, parentId: parentId, parentCode: parentCode },
+                    async: false,//同步执行
+                    success: function (result) {
+                        pageData.WorkSheet = result.Extend;
+                    }
+                });
+            }
+        };
+        //保存
+        function saveData() {
+            $.ajax({
+                url: $.Controller.WorkSheet.SaveWorkSheet,
+                type: "post",
+                dataType: "json",
+                data: pageData.WorkSheet,
+                success: function (result) {
+                    if (result.Success) {
+                        top.ReloadNode(pageData.WorkSheet.ParentId);
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                        parent.H3DialogManger.Close();  
+                        
+                    } else {
+                        if (result.Message) {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.Repeated_SaveFailed") });
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+</script>
+<validator name="formValidator" v-bind:groups="['Custom','System']">
+    <div id="ToolBar">
+        <a id="lnkOK" v-on:click="saveData" data-icon="fa fa-save" href="javascript:void(0)" data-lang="GlobalButton.Save">保存</a>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.msgGlobalString.BasicInfo}}</span>
+        <table>
+            <tr>
+                <td>{{LanData.WorkSheetEdit.Directory}}</td>
+                <td>
+                    <label>{{WorkSheet.Root}}</label>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.WorkSheetEdit.Code}}</td>
+                <td>
+                    <input group="System" v-model="WorkSheet.Code" detect-change="on" detect-blur="on" initial="off" v-validate:code="{required:true}" type="text" v-bind:disabled="WorkSheet.ObjectID" />
+                    <span style="color:Red;" v-if="$formValidator.code.required" data-lang="msgGlobalString.EnumValueRequired"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.WorkSheetEdit.Name}}</td>
+                <td>
+                    <input group="System" v-model="WorkSheet.Name" detect-change="on" detect-blur="on" initial="off" v-validate:name="{required:true}" type="text" />
+                    <span style="color:Red;" v-if="$formValidator.name.required" data-lang="msgGlobalString.EnumValueRequired"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.WorkSheetEdit.Type}}</td>
+                <td colspan="2" class="tableNoCss">
+                    <table border="0">
+                        <tr>
+                            <td v-for="item in Types" style="padding-right:50px;">
+                                <input type="radio" value="{{item.Value}}" v-model="WorkSheet.Type" />
+                                <label>{{item.Text}}</label>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tbody v-show="WorkSheet.Type=='false'">
+                <tr class="sheet">
+                    <td>{{LanData.WorkSheetEdit.PC}}</td>
+                    <td>
+                        <input group="Custom" v-model="WorkSheet.PCAdd" detect-change="on" detect-blur="on" initial="off" v-validate:pc="{required:true}" type="text" />
+                        <span style="color:Red;" v-if="$formValidator.Custom.invalid" data-lang="msgGlobalString.EnumValueRequired"></span>
+                    </td>
+                </tr>
+                <tr class="sheet">
+                    <td>{{LanData.WorkSheetEdit.Mobile}}</td>
+                    <td>
+                        <input v-model="WorkSheet.isMobileAdd" type="checkbox" />{{LanData.WorkSheetEdit.AddTip}}
+                        <input v-model="WorkSheet.MobileAdd" type="text" v-show="!WorkSheet.isMobileAdd" />
+                    </td>
+                </tr>
+                <tr class="sheet">
+                    <td>{{LanData.WorkSheetEdit.Print}}</td>
+                    <td>
+                        <input type="checkbox" v-model="WorkSheet.isPrintAdd" />{{LanData.WorkSheetEdit.AddTip}}
+                        <input v-model="WorkSheet.PrintAdd" type="text" v-show="!WorkSheet.isPrintAdd" />
+                    </td>
+                </tr>
+            </tbody>
+            <tr style="display:none;">
+                <td>{{LanData.WorkSheetEdit.SortKey}}</td>
+                <td colspan="3">
+                    <input detect-change="on" detect-blur="on" initial="off" v-validate:sort-key="['number']" type="text" v-model="WorkSheet.SortKey" />
+                    <span style="color:Red;" v-if="$formValidator.sortKey.number">{{LanData.msgGlobalString.NumberValidate}}</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

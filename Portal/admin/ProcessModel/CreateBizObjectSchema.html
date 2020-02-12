@@ -1,0 +1,138 @@
+﻿<script>
+    $(function () {
+        var pageData = {
+            MasterPackage: {},
+            StorageType: [{ Value: "0", Text: $.Lang("WorkflowPackage.DataList") }, { Value: "1", Text: $.Lang("WorkflowPackage.PureServiceBased") }],
+            LanData: $.Languages
+        };
+        //初始化页面数据
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                },
+                changeEditMode: function () {
+                    pageData.MasterPackage.IsImport = !pageData.MasterPackage.IsImport;
+                    if (pageData.MasterPackage.IsImport) {
+                        pageData.EditMode = $.Lang("EditBizObjectSchema.EditMode");
+                    }
+                    else {
+                        pageData.EditMode = $.Lang("EditBizObjectSchema.ImportMode");
+                    }
+                    $("#changeMode").find("span").first().text(pageData.EditMode);
+                }
+            }
+        });
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+        //初始化页面数据
+        function initPageData() {
+            var parentCode = getUrlParam("ParentCode") || "";
+            var parentId = getUrlParam("ParentID") || "";
+            var objectType = getUrlParam("ObjectType") || "";
+            if (parentId && parentCode && objectType) {
+                $.ajax({
+                    url: $.Controller.MasterPackage.GetMasterPackage,
+                    type: 'get',
+                    dataType: "json",
+                    data: { parentId: parentId, parentCode: parentCode, objectType: objectType },
+                    async: false,//同步执行
+                    success: function (result) {
+                        if (result.Success) {
+                            pageData.MasterPackage = result.Extend.MasterPackage;
+                            pageData.BizServices = result.Extend.BizServices;
+                            pageData.EditMode = $.Lang("EditBizObjectSchema.ImportMode");
+                            if (pageData.MasterPackage.CheckedUser)
+                                pageData.MasterPackage.CheckedUser = $.Lang(pageData.MasterPackage.CheckedUser);
+                        }
+                    }
+                });
+            }
+        };
+        //保存
+        function saveData() {
+            $.ajax({
+                url: $.Controller.MasterPackage.SaveMasterPackage,
+                type: "post",
+                dataType: "json",
+                data: pageData.MasterPackage,
+                success: function (result) {
+                    if (result.Success) {
+                        parent.$.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SaveSucced") });
+                        top.ReloadNode(result.Extend);
+                        parent.H3DialogManger.Close();
+                    } else {
+                        if (result.Extend) {
+                            var content = $.format($.Lang(result.Message), result.Extend);
+                            $.H3Dialog.Warn({ content: content });
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a id="lnkOK" v-on:click="saveData" data-icon="fa fa-save" href="javascript:void(0)" data-lang="GlobalButton.Save">保存</a>
+        <a href="javascript:void(0)" v-on:click="changeEditMode" data-icon="fa fa-upload" id="changeMode">{{EditMode}}</a>
+    </div>
+
+    <div class="H3Panel">
+        <span>{{LanData.EditBizObjectSchema.NewDefine}}</span>
+        <table>
+            <tr>
+                <td>{{LanData.WorkflowPackage.Code}}</td>
+                <td>
+                    <input v-model="MasterPackage.Code" detect-change="on" detect-blur="on" initial="off" v-validate:code="{required:true}" type="text" v-bind:disabled="MasterPackage.ObjectID" />
+                    <span style="color:Red;" v-if="$formValidator.code.required" data-lang="msgGlobalString.EnumValueRequired"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.WorkflowPackage.DisplayName}}</td>
+                <td>
+                    <input v-model="MasterPackage.DisplayName" type="text" />
+                </td>
+            </tr>
+            <tbody v-show="!MasterPackage.IsImport">
+                <tr>
+                    <td>{{LanData.WorkflowPackage.Type}}</td>
+                    <td colspan="2" class="tableNoCss">
+                        <table border="0">
+                            <tr>
+                                <td v-for="item in StorageType" style="padding-right:50px;">
+                                    <input type="radio" value="{{item.Value}}" v-model="MasterPackage.StorageType" v-bind:disabled="MasterPackage.ObjectID" />
+                                    <label>{{item.Text}}</label>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="H3Panel" id="ImportPannel" v-show="MasterPackage.IsImport">
+        <span>{{LanData.EditBizObjectSchema.ImportSource}}</span>
+        <table>
+            <tr>
+                <td>{{LanData.EditBizObjectSchema.CreateDatabase}}</td>
+                <td>
+                    <select v-model="MasterPackage.BizService">
+                        <option v-for="option in BizServices" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

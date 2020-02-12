@@ -1,0 +1,21 @@
+﻿
+
+<!--<link href="css/H3Report/Reporting/ReportView.css" rel="stylesheet" />-->
+
+
+
+<div class="hbox hbox-auto-xs hbox-auto-sm" id="Report">
+    <!-- main -->
+    <div class="col">
+        <!-- main header -->
+        <div class="bg-light lter b-b wrapper-md">
+            <div class="row">
+                <div class="col-sm-6 col-xs-12">
+                    <span class="h3" ng-bind="menuData.DisplayName"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div ui-jq="LoadReportFiters" ui-options="options()" id="ReportFiters" class="report-content form-horizontal"></div>
+<div ui-jq="LoadReportPage" ui-options="options()" id="ReportPage" class="report-content"></div>

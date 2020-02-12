@@ -1,0 +1,94 @@
+{
+  "_args": [
+    [
+      {
+        "raw": "ion-datetime-picker@^0.4.4",
+        "scope": null,
+        "escapedName": "ion-datetime-picker",
+        "name": "ion-datetime-picker",
+        "rawSpec": "^0.4.4",
+        "spec": ">=0.4.4 <0.5.0",
+        "type": "range"
+      },
+      "E:\\document\\desktop\\Ionic\\ionic-components"
+    ]
+  ],
+  "_from": "ion-datetime-picker@>=0.4.4 <0.5.0",
+  "_id": "ion-datetime-picker@0.4.4",
+  "_inCache": true,
+  "_location": "/ion-datetime-picker",
+  "_nodeVersion": "6.9.1",
+  "_npmOperationalInternal": {
+    "host": "packages-12-west.internal.npmjs.com",
+    "tmp": "tmp/ion-datetime-picker-0.4.4.tgz_1480951277400_0.8990516744088382"
+  },
+  "_npmUser": {
+    "name": "kate.mihalikova",
+    "email": "kate.mihalikova@gmail.com"
+  },
+  "_npmVersion": "4.0.2",
+  "_phantomChildren": {},
+  "_requested": {
+    "raw": "ion-datetime-picker@^0.4.4",
+    "scope": null,
+    "escapedName": "ion-datetime-picker",
+    "name": "ion-datetime-picker",
+    "rawSpec": "^0.4.4",
+    "spec": ">=0.4.4 <0.5.0",
+    "type": "range"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/ion-datetime-picker/-/ion-datetime-picker-0.4.4.tgz",
+  "_shasum": "6b5ac0d2d427ed19b32afa54a8486fbf2d60be39",
+  "_shrinkwrap": null,
+  "_spec": "ion-datetime-picker@^0.4.4",
+  "_where": "E:\\document\\desktop\\Ionic\\ionic-components",
+  "author": {
+    "name": "https://github.com/katemihalikova, kate@katemihalikova.cz"
+  },
+  "bugs": {
+    "url": "https://github.com/katemihalikova/ion-datetime-picker/issues"
+  },
+  "dependencies": {},
+  "description": "Date and/or time picker for awesome ionic framework",
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-concat": "^2.6.0",
+    "gulp-iife": "^0.1.0",
+    "gulp-minify-html": "^1.0.4",
+    "gulp-ng-annotate": "^1.1.0",
+    "gulp-ng-html2js": "^0.2.0",
+    "gulp-sass": "^2.0.4",
+    "gulp-uglify": "^1.4.1"
+  },
+  "directories": {},
+  "dist": {
+    "shasum": "6b5ac0d2d427ed19b32afa54a8486fbf2d60be39",
+    "tarball": "https://registry.npmjs.org/ion-datetime-picker/-/ion-datetime-picker-0.4.4.tgz"
+  },
+  "files": [
+    "release"
+  ],
+  "gitHead": "04b06bec39c11764514743236654b5d63582a219",
+  "homepage": "https://github.com/katemihalikova/ion-datetime-picker#readme",
+  "license": "MIT",
+  "main": "release/ion-datetime-picker.min.js",
+  "maintainers": [
+    {
+      "name": "kate.mihalikova",
+      "email": "kate.mihalikova@gmail.com"
+    }
+  ],
+  "name": "ion-datetime-picker",
+  "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/katemihalikova/ion-datetime-picker.git"
+  },
+  "scripts": {},
+  "version": "0.4.4"
+}

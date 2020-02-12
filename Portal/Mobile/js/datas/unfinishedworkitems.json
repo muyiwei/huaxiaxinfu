@@ -1,0 +1,116 @@
+{
+    "status": "1",
+    "msg": "",
+    "result": {
+        "LastTime": "/Date(1496905333000)/",
+        "LoadComplete": true,
+        "RefreshTime": "/Date(1496905333000)/",
+        "TotalCount": 4,
+        "workItems": [
+            {
+                "ObjectId": "1",
+                "OrigiantorName": "张三",
+                "UserAvatar": "img/adam.jpg",
+                "InstanceName": "张三的请假单",
+                "Summary": [
+                    {
+                        "ItemName": "请假天数",
+                        "ItemValue": "3"
+                    },
+                    {
+                        "ItemName": "起始时间",
+                        "ItemValue": "2017-05-01"
+                    },
+                    {
+                        "ItemName": "结束时间",
+                        "ItemValue": "2017-05-04"
+                    }
+                ],
+                "Priority": "2",
+                "PriorityState":"2",
+                "ReceiveTime": "08-02 19:47",
+                "Urged": true,
+                "OrigiantorOUName": "我的公司",
+                "WorkflowCode": "AppliacationForLeave"
+            },
+            {
+                "ObjectId": "2",
+                "OrigiantorName": "张三",
+                "UserAvatar": "img/adam.jpg",
+                "InstanceName": "张三的报销单",
+                "Summary": [
+                    {
+                        "ItemName": "报销金额",
+                        "ItemValue": "1000.00"
+                    },
+                    {
+                        "ItemName": "报销事由",
+                        "ItemValue": "出差乘坐飞机的费用"
+                    },
+                    {
+                        "ItemName": "预算所属部门",
+                        "ItemValue": "研发部门"
+                    }
+                ],
+                "Priority": "1",
+                "PriorityState":"1",
+                "ReceiveTime": "08-02 19:47",
+                "Urged": false,
+                "OrigiantorOUName": "我的公司",
+                "WorkflowCode": "ExpenseClaim"
+            },
+            {
+                "ObjectId": "3",
+                "OrigiantorName": "张三",
+                "UserAvatar": "img/adam.jpg",
+                "InstanceName": "张三的出差申请单",
+                "Summary": [
+                    {
+                        "ItemName": "出差事由",
+                        "ItemValue": "出差山西客户讨论项目具体合作"
+                    },
+                    {
+                        "ItemName": "起始时间",
+                        "ItemValue": "2017-05-01"
+                    },
+                    {
+                        "ItemName": "结束时间",
+                        "ItemValue": "2017-05-04"
+                    }
+                ],
+                "Priority": "1",
+                "PriorityState":"0",
+                "ReceiveTime": "08-02 19:47",
+                "Urged": false,
+                "OrigiantorOUName": "我的公司",
+                "WorkflowCode": "EvectionClaim"
+            },
+            {
+                "ObjectId": "4",
+                "OrigiantorName": "李四",
+                "UserAvatar": "img/adam.jpg",
+                "InstanceName": "李四的出差申请单",
+                "Summary": [
+                    {
+                        "ItemName": "出差事由",
+                        "ItemValue": "出差山西客户讨论项目具体合作"
+                    },
+                    {
+                        "ItemName": "起始时间",
+                        "ItemValue": "2017-05-01"
+                    },
+                    {
+                        "ItemName": "结束时间",
+                        "ItemValue": "2017-05-04"
+                    }
+                ],
+                "Priority": "1",
+                "PriorityState":"0",
+                "ReceiveTime": "08-03 19:47",
+                "Urged": false,
+                "OrigiantorOUName": "我的公司-销售部",
+                "WorkflowCode": "EvectionClaim"
+            }
+        ]
+    }
+}

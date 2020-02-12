@@ -1,0 +1,192 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <link type="text/css" rel="stylesheet" href="../WFRes/_Scripts/jquery/plugin/calendar/jquery.calendar.css" />
+    <script type="text/javascript" src="../WFRes/_Scripts/jquery/jquery.js"></script>
+    <script type="text/javascript" src="../WFRes/_Scripts/jquery/plugin/calendar/jquery.calendar.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $("#test").WorkCalendar({
+                selected: function (d) {
+                    console.log("selected->" + d);
+                }
+            });
+        })
+
+        var controller = {
+            "WorkingCalendar": "GetWorkingDays",
+            "WorkingCalendar": "GetWorkingCalendarList",
+            "WorkingCalendar": "RemoveWorkingCalendar",
+            "WorkingCalendar": "GetWorkingDay",
+            "WorkingCalendar": "UpdateWorkingDay",
+            "WorkingCalendar": "SaveWorkingCalendar"
+
+        }
+
+        var json = {
+            "msgGlobalString": {
+                "Monday": "周一",
+                "Tuesday": "周二",
+                "Wednesday": "周三",
+                "Thursday": "周四",
+                "Friday": "周五",
+                "Saturday": "周六",
+                "Sunday": "周日",
+                "WorkdayText": "班",
+                "HolidayText": "休",
+                "YearText": "年",
+                "MonthText": "月",
+                "TodayText": "今天",
+                "Morning": "上午",
+                "Afternoon": "下午",
+                "Hour": "时",
+                "Minute": "分",
+                "Second": "秒",
+                "From": "从",
+                "To": "到",
+                "DisplayName": "显示名称"
+            },
+            "WorkingCalendar": {
+                "AddCalendar": "新建工作日历",
+                "EditCalendar": "编辑工作日历",
+                "Calendar": "工作日历",
+                "InitText1": "工作日历未初始化，请先",
+                "InitText2": "初始化工作日历。",
+                "SelectedDay": "选中日期",
+                "IsWorkingDay": "是否工作日",
+                "IsExceptionDay": "是否例外日期",
+                "WorkingTimeSpan": "工作时间段",
+                "Description": "备注信息",
+                "DefaultCalendar": "默认工作日历",
+                "WorkingWeek": "工作日",
+                "InitDate": "初始化日期",
+                "CalendarNotExists": "工作日历不存在",
+                "NoWorkingDays": "没有设置工作日期",
+                "WorkingDayNotExists": "工作日不存在",
+                "NoWorkingTimeSpans": "未设置工作时间"
+            }
+        };
+
+        var jsonEn = {
+            "msgGlobalString": {
+                "Monday": "Monday",
+                "Tuesday": "Tuesday",
+                "Wednesday": "Wednesday",
+                "Thursday": "Thursday",
+                "Friday": "Friday",
+                "Saturday": "Saturday",
+                "Sunday": "Sunday",
+                "WorkdayText": "W",
+                "HolidayText": "H",
+                "YearText": "Y",
+                "MonthText": "M",
+                "TodayText": "Today",
+                "Morning": "Morning",
+                "Afternoon": "Afternoon",
+                "Hour": "Hour",
+                "Minute": "Minute",
+                "Second": "Second",
+                "From": "From",
+                "To": "To",
+                "DisplayName": "Display name"
+            },
+            "WorkingCalendar": {
+                "Calendar": "Working calendar",
+                "InitText1": "Working calendar not initial,please",
+                "InitText2": "initial calendar frist.",
+                "SelectedDay": "Selected day",
+                "IsWorkingDay": "Is working day",
+                "IsExceptionDay": "Is Exception day",
+                "WorkingTimeSpan": "Working time",
+                "Description": "Description",
+                "DefaultCalendar": "Is Default",
+                "WorkingWeek": "Working day",
+                "InitDate": "Initial day",
+                "CalendarNotExists": "Calendar has not exists",
+                "NoWorkingDays": "No working days",
+                "WorkingDayNotExists": "Working day has not exists",
+                "NoWorkingTimeSpans": "No working times"
+            }
+        };
+    </script>
+</head>
+<body>
+    <div id="test">
+
+    </div>
+
+    <br />
+    <hr />
+    <div class="workCalendar">
+        <div class="toolbar">
+            <select>
+                <option>2016</option>
+            </select>
+            <button><</button>
+            <select>
+                <option>06</option>
+            </select>
+            <button>></button>
+            <button class="btnToday">今天</button>
+        </div>
+        <div>
+            <table class="calendarTable">
+                <tr style="border:0px;">
+                    <th class="titleCell">一</th>
+                    <th class="titleCell">二</th>
+                    <th class="titleCell">三</th>
+                    <th class="titleCell">四</th>
+                    <th class="titleCell">五</th>
+                    <th class="titleCell">六</th>
+                    <th class="titleCell">日</th>
+                </tr>
+                <tr>
+                    <td class="dayCell workDay selectedDay">1</td>
+                    <td class="dayCell workDay">1</td>
+                    <td class="dayCell workDay">1</td>
+                    <td class="dayCell workDay">1</td>
+                    <td class="dayCell holiday">1</td>
+                    <td class="dayCell holiday">1</td>
+                    <td class="dayCell holiday">1</td>
+                </tr>
+                <tr>
+                    <td class="dayCell">1</td>
+                    <td class="dayCell">1</td>
+                    <td class="dayCell">1</td>
+                    <td class="dayCell">1</td>
+                    <td class="dayCell">1</td>
+                    <td class="dayCell">1</td>
+                    <td class="dayCell">1</td>
+                </tr>
+                <tr>
+                    <td class="dayCell">1</td>
+                    <td class="dayCell">1</td>
+                    <td class="dayCell">1</td>
+                    <td class="dayCell">1</td>
+                    <td class="dayCell">1</td>
+                    <td class="dayCell">1</td>
+                    <td class="dayCell">1</td>
+                </tr>
+                <tr>
+                    <td class="dayCell">
+                        32
+                        <span class="msgWork">班</span>
+                        <span class="daymessage">端午节</span>
+                    </td>
+                    <td class="dayCell">
+                        1
+                        <span class="msgHoliday">休</span>
+                    </td>
+                    <td class="dayCell">1</td>
+                    <td class="dayCell">1</td>
+                    <td class="dayCell">1</td>
+                    <td class="dayCell">1</td>
+                    <td class="dayCell">1</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

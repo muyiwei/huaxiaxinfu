@@ -1,0 +1,294 @@
+﻿/*规则编辑器样式*/
+.formula-container {
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    padding: 0;
+}
+
+    .formula-container .col {
+        border: 1px solid #f1f1f1;
+        border-top: none;
+        height: 400px;
+        padding: 0;
+    }
+
+    .formula-container .row.header {
+        text-align: center;
+        height: 30px;
+        line-height: 30px;
+        background-color: #f1f1f1;
+    }
+
+    .formula-container .formula-area {
+        height: 300px;
+    }
+
+    .formula-container .formula-editor {
+        /*height: 100%;*/
+        width: 100%;
+        overflow: auto;
+        border: none;
+        outline: none;
+        padding: 5px;
+        height: 300px;
+    }
+
+    .formula-container .formula-description {
+        width: 100%;
+        border: none;
+        border-top: 1px solid #f1f1f1;
+        height: 100px;
+        /*background-color: #fffbef;*/
+        padding: 5px;
+        color: #808080;
+        font-size: 14px;
+    }
+        /*说明行*/
+        .formula-container .formula-description > .row {
+            margin-left: 0;
+        }
+
+            .formula-container .formula-description > .row > span {
+                padding-left: 5px;
+            }
+    /*底部按钮栏*/
+    .formula-container .row.footer {
+        text-align: right;
+        line-height: 50px;
+        padding-right: 20px;
+    }
+    /*关闭按钮*/
+    .formula-container .close {
+        height: 30px;
+        line-height: 30px;
+        width: 30px;
+        display: inline-block;
+    }
+/*校验信息*/
+#formula_validate {
+    color: red;
+    overflow-y: auto;
+    overflow-x: hidden;
+    /*display: inline-block;*/
+    width: 100%;
+}
+
+/*function列表开始*/
+.formula-container .li-function {
+    color: #0094ff;
+    width: 100%;
+    height: 370px;
+    /*border: 1px solid #e5e5e5;
+            border-left: none;*/
+    border: none;
+    margin-bottom: 10px;
+    overflow-y: auto;
+}
+
+    .formula-container .li-function ul {
+        list-style-type: none;
+        margin-left: 0;
+        padding-left: 0;
+    }
+
+    .formula-container .li-function li {
+        padding-left: 5px;
+    }
+
+    .formula-container .li-function a {
+        text-decoration: none;
+    }
+
+.formula-container .function-header {
+    display: inline-block;
+    height: 30px;
+    line-height: 30px;
+    padding-left: 20px;
+    width: 100%;
+    color: #000;
+}
+
+    .formula-container .function-header.fa {
+    }
+
+    .formula-container .function-header.fa-caret-right {
+        /*background-image: url('../../../Scripts/plugins/zTree/css/zTreeStyle/img/caret-right.png');*/
+        background: url(../img/caret-right.png) 0 no-repeat;
+        /*background-position: 0,0;
+        background-repeat: no-repeat;*/
+    }
+
+    .formula-container .function-header.fa-caret-down {
+        /*background-image: url('../../../Scripts/plugins/zTree/css/zTreeStyle/img/caret-down.png');*/
+        background: url(../img/caret-down.png) 0 no-repeat;
+
+        /*background-position: 0,0;
+        background-repeat: no-repeat;*/
+    }
+
+    .formula-container .function-header a {
+        color: #000;
+    }
+
+.function-header:hover {
+    cursor: pointer;
+}
+
+.formula-container .function-item {
+    height: 30px;
+    line-height: 30px;
+    /*border-bottom: 1px solid #ddd;*/
+    margin: 0;
+    /*padding-left: 10px;*/
+    padding-left: 45px;
+}
+
+    .formula-container .function-item > a {
+        display: inline-block;
+        width: 100%;
+        color: #000;
+        padding-left: 10px;
+    }
+
+        .formula-container .function-item > a:hover {
+            /*color: #0094ff;*/
+        }
+
+    .formula-container .function-item:hover {
+        cursor: pointer;
+        background-color: #f8f8f8;
+    }
+
+.formula-container .function-selected {
+    background-color: #0094ff;
+    color: #fff;
+}
+
+.formula-container .row.validate {
+    color: red;
+    display: none;
+}
+/*function列表结束*/
+#appTree .fa:before {
+    content: '';
+}
+
+#appTree.ztree {
+    height: 400px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+    #appTree.ztree li a.curSelectedNode {
+        background-color: #fff;
+        border: none;
+    }
+
+    #appTree.ztree li {
+        margin-top: 10px;
+    }
+
+        #appTree.ztree li span.button {
+            background-image: url();
+            width: 0;
+        }
+
+        #appTree.ztree li a:hover {
+            text-decoration: none;
+        }
+
+        #appTree.ztree li ul.line {
+            background: url();
+        }
+
+        #appTree.ztree li span.button.root_open,
+        #appTree.ztree li span.button.roots_open,
+        #appTree.ztree li span.button.center_open,
+        #appTree.ztree li span.button.bottom_open {
+            /*background-image: url('../../../Scripts/plugins/zTree/css/zTreeStyle/img/caret-down.png');
+            background-position: 0,0;*/
+            background: url(../img/caret-down.png) no-repeat;
+            width: 16px;
+        }
+
+        #appTree.ztree li span.button.root_close,
+        #appTree.ztree li span.button.roots_close,
+        #appTree.ztree li span.button.center_close,
+        #appTree.ztree li span.button.bottom_close {
+            /*background-image: url('../../../Scripts/plugins/zTree/css/zTreeStyle/img/caret-right.png');
+            background-position: 0,0;*/
+            background: url(../img/caret-right.png) no-repeat;
+            width: 16px;
+        }
+
+        #appTree.ztree li a.curSelectedNode {
+            background-color: #fff;
+            border: none;
+        }
+
+    #appTree .ztree *, .li-function a {
+        font-family: 'Microsoft YaHei';
+        font-weight: lighter;
+        font-size: 14px;
+    }
+
+.div-intelligent-container {
+    width: auto;
+    max-width: 200px;
+}
+
+.row {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+#txt_title {
+    border: none;
+    border-bottom: 1px solid #f1f1f1;
+    width: 100%;
+    outline: none;
+    height: 30px;
+    line-height: 30px;
+    padding-left: 5px;
+    display: none;
+    border-radius: 0;
+}
+
+    #txt_title:focus {
+        border: 1px solid #66afe9;
+    }
+
+.ztree * {
+    font-family: 'Microsoft YaHei';
+    font-weight: lighter;
+}
+
+#function_search {
+    width: 100%;
+    height: 30px;
+    line-height: 30px;
+    border: none;
+    padding-left: 6px;
+    /*border-top: 1px solid #f1f1f1;*/
+    border-left: 1px solid #fff;
+    border-bottom: 1px solid #f1f1f1;
+    border-right: 1px solid #f1f1f1;
+    border-radius: 0;
+}
+
+    #function_search:focus {
+        border: 1px solid #66afe9;
+    }
+
+.btn-success, .btn-success:hover {
+    background-color: #4eca48;
+    border: 1px solid #4eca48;
+    color: #fff;
+}
+
+.btn-default, .btn-default:hover {
+    background-color: #f1f1f1;
+    border: 1px solid #f1f1f1;
+    color: #525252;
+}

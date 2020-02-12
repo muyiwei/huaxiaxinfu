@@ -1,0 +1,9 @@
+﻿.WorkflowSelector_PortalCss {height: 32px;padding: 6px 12px;border: 1px solid #d6d6d6;}
+/*#main-navbar, #main-menu {position: fixed;}*/
+a {cursor: pointer;}
+label {display: inline-block;margin-bottom: 5px;font-weight:normal;}
+.SelectedRow {background: #F2F2F2;}
+lable {font-weight: normal;}
+.table {margin-bottom: initial;}
+.table-condensed > tbody > tr > td {height: 32px;vertical-align: middle;border-bottom:0px}
+.pager_row {height: 50px;}

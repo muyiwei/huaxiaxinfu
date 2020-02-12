@@ -1,0 +1,313 @@
+﻿<script>
+    var BizRule = {};
+    $(function () {
+
+        InitPageData();
+
+        $("#H3ToolBar").AspLinkToolBar();
+        $("#PropertyToolBar").AspLinkToolBar({ IsFixed: false });
+        $(".H3Panel").BuildPanel({ excludeIDs: ["ExcludePanel"] });
+
+        GridLoad();
+    });
+
+    function GridLoad() {
+        //有编码的时候才创建表格
+        if (BizRule.Code) {
+            //创建表格
+            CreateLigerGrid(
+                $("#PropertyGrid"),
+                GreateColums(),
+                $.Controller.BizRule.GetGlossary,
+                true, "98%",
+                null, null, null,
+                { ruleCode: BizRule.Code }
+               )
+        }
+    }
+
+    //
+    function InitPageData()
+    {
+        var ruleCode = getUrlParam("RuleCode");
+        var parentCode = getUrlParam("ParentCode");
+        if (ruleCode && ruleCode != "") {
+            $.ajax({
+                url: $.Controller.BizRule.GetBizRule,
+                data: { ruleCode: ruleCode },
+                async:false,
+                success: function (data) {
+                    if (data) {
+                        //规则数据初始化
+                        $("#txtCode").val(data.Code);
+                        $("#txtDisplayName").val(data.DisplayName);
+                        $("#txtDescription").val(data.Description);
+
+                        //编码不可写
+                        $("#txtCode").attr("disabled", "disabled");
+                        //
+                        BizRule = data;
+                        $("#GlossaryPanel").show();
+                        
+                    }
+                }
+            });
+        } else {
+            //控制页面显示
+            $("#GlossaryPanel").hide();
+            //禁用按钮
+            setControlUsable("0", $("a.savebutton"));
+        }
+        BizRule.ParentCode = parentCode;
+    }
+
+    function GreateColums() {
+        var ElementName =$.Lang("BizRule.ElementName");
+        var DisplayName =$.Lang("BizRule.DisplayName");
+        var LogicType =$.Lang("BizRule.LogicType");
+        var ParamType =$.Lang("BizRule.ParamType");
+        var DefaultValue =$.Lang("BizRule.DefaultValue");
+        var Open =$.Lang("BizRule.Open");
+
+        return [
+                { display: ElementName, name: "ElementName" },
+                { display: DisplayName, name: "DisplayName" },
+                { display: LogicType, name: "LogicType" },
+                { display: ParamType, name: "ParamType" },
+                { display: DefaultValue, name: "DefaultValue" },
+                {
+                    display: Open, name: "Open",
+                    render: function (rowdata, index, value) {
+                        return "<a href='javascript:void(0)' elementName='" + rowdata.ElementName + "' onclick='EditRuleProterty(this)'>"+Open+"</a>";
+                    }
+                }];
+    }
+
+    //添加词汇
+    function EditRuleProterty(obj) {
+        var elementName = $(obj).attr("elementName");
+        var title = $(obj).text();
+        var url = _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=BizRule/EditBizRuleTableDataElement.html&RuleCode=" + BizRule.Code;//TODO
+        
+        if (elementName != null) {
+            title = elementName;
+            url += "&ItemName=" + elementName;
+        }
+        ShowDialog(title, url,600);
+    }
+
+    //删除词汇表数据项
+    function RemoveRuleProterty(obj) {
+        var rows = H3GridManager.getSelecteds();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SelectItem") });
+            return;
+        }
+        if (ConfirmDel(obj)) {
+            var elementNames = "";
+            for (var i = 0; i < rows.length; i++) {
+                elementNames = elementNames + rows[i]["ElementName"] + ";";
+            }
+            var url = "";//TODO Del Action  RuleCode
+            //url += "&elementNames=" + encodeURI(elementNames);
+            $.ajax({
+                url: $.Controller.BizRule.DeleteGlossary,
+                type:"post",
+                data: { ruleCode:BizRule.Code,elementNames: elementNames },
+                success: function (data) {
+                    top.workTab.reload(top.workTab.getSelectedTabItemID());
+                }
+            });
+        }
+    }
+
+    function SaveRule()
+    {
+        BizRule.Code = $("#txtCode").val();
+        BizRule.DisplayName = $("#txtDisplayName").val();
+        BizRule.Description = $("#txtDescription").val();
+
+        if (BizRule.Code == "") { $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.CodeOrNameNotNull") }); return; }
+        if (BizRule.DisplayName == "" || BizRule.DisplayName.trim()=="") { $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.CodeOrNameNotNull") }); return; }
+
+        var parentID = getUrlParam("ParentID");
+
+        if (BizRule.Code == "") { $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.InvalidCode") }); return; }
+
+        $.ajax({
+            url: $.Controller.BizRule.SaveBizRule,
+            type: 'post',
+            dataType: "json",
+            data: BizRule,
+            async: false,//同步执行
+            success: function (result) {
+                if (result.Success) {
+                    $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                    //刷新树节点
+                    top.ReloadNode(parentID);
+                    //修改TabID
+                    ChangeCurrentTabId(BizRule.Code);
+                    //设置标签显示名称
+                    top.workTab.setHeader(top.workTab.getSelectedTabItemID(), BizRule.DisplayName);
+                    var newUrl = _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=BizRule/EditBizRuleTable.html&RuleCode=" + BizRule.Code + "&ParentID=" + parentID;
+                    ChangeCurrentTabIframe(top.workTab.getSelectedTabItemID(), newUrl);
+                } else {
+                    var extend = "";
+                    if (result.Extend) { extend = ":" + result.Extend;}
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) + extend });
+                }
+            }
+        });
+
+        
+    }
+    //修改TabID
+    function ChangeCurrentTabId(newTabId) {
+        top.$("div[tabid='" + top.workTab.getSelectedTabItemID() + "']").attr("tabid", newTabId);
+        top.$("iframe[id='" + top.workTab.getSelectedTabItemID() + "']").attr("id", newTabId);
+        top.$("iframe[name='" + top.workTab.getSelectedTabItemID() + "']").attr("name", newTabId);
+        top.$("li[tabid='" + top.workTab.getSelectedTabItemID() + "']").attr("tabid", newTabId);
+    }
+
+    //修改页面地址
+    function ChangeCurrentTabIframe(tabID, newUrl) {
+        top.$("iframe[id='" + tabID + "']").attr("src", newUrl);
+    }
+
+    function DelRule(obj) {
+        //debugger;
+        var parentID = getUrlParam("ParentID");
+        if (DelRuleCheck(BizRule.Code)) {
+            if (ConfirmDel(obj)) {
+                $.ajax({
+                    url: $.Controller.BizRule.DeleteBizRule,
+                    type: 'post',
+                    dataType: "json",
+                    data: { ruleCode: BizRule.Code },
+                    async: false,//同步执行
+                    success: function (result) {
+                        if (result.Success) {
+                            //刷新树节点
+                            top.ReloadNode(parentID);
+                            top.workTab.removeTabItem(top.workTab.getSelectedTabItemID());;//关闭标签页
+                        } else {
+                            if (result.Extend) {
+                                var title = $.Lang(result.Message) + "<br/>";
+                                var content = $.Lang("BizService.ApplyDetail") + "：<br/>";
+                                for (var i = 0; i < result.Extend.length; i++) {
+                                    content += "　 " + $.Lang("BizService.InstanceName") + "：" + result.Extend[i].Name + "，" + $.Lang("BizService.ApplyMethods") + "：(" + result.Extend[i].Methods.join(',') + ")<br/>";
+                                }
+                                $.H3Dialog.Warn({ content: title + content });
+                            } else {
+                                $.H3Dialog.Warn({ content: $.Lang(result.Message) + ":" + result.Extend });
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    function DelRuleCheck(Code)
+    {
+        var canDel = false;
+        $.ajax({
+            url: $.Controller.BizRule.DeleteBizRuleCheck,
+            type: 'post',
+            dataType: "json",
+            data: { ruleCode: Code },
+            async: false,//同步执行
+            success: function (result) {
+                if (result.Success) {
+                    canDel = true;
+                } else {
+                    if (result.Extend) {
+                        var title = $.Lang(result.Message) + "<br/>";
+                        var content = $.Lang("BizRule.ApplyDetail") + "：<br/>";
+                        for (var i = 0; i < result.Extend.length; i++) {
+                            content += "<p style='margin-left:21px;display:inline-block;white-space:normal;word-wrap:break-word;width:95%'>" + $.Lang("BizRule.InstanceName") + "：" + result.Extend[i].Name + "，" + $.Lang("BizRule.ApplyMethods") + "：(" + result.Extend[i].Methods.join(',') + ")</p><br/>";
+                        }
+                        $.H3Dialog.Warn({ content: title + content });
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) + ":" + result.Extend });
+                    }
+                }
+            }
+        });
+        return canDel;
+    }
+
+    function ValidateRule() {
+        $.ajax({
+            url: $.Controller.BizRule.Validate,
+            type: 'post',
+            dataType: "json",
+            data: { ruleCode: BizRule.Code },
+            async: false,//同步执行
+            success: function (result) {
+                if (result.Success) {
+                    $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                } else {
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) + ":" + result.Extend });
+                }
+            }
+        });
+    }
+
+    function ShowRunPage(obj) {
+        ShowDialog($(obj).text(), _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=ProcessModel/TestBizService.html&ServiceCode="+BizRule.Code);//TODO
+        return false;
+    }
+
+    //查看引用关系
+    function viewReference(obj) {
+        var ruleCode = getUrlParam("RuleCode");
+        ShowDialog($(obj).text(), _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=BizRule/ListBizRuleReferences.html&RuleCode=" + ruleCode);
+        return false;
+    }
+</script>
+
+<div id="H3ToolBar">
+    <a id="btnSave" data-icon="fa fa-save" onclick="SaveRule();" data-lang="GlobalButton.Save"></a>
+    <a id="btnValidate" data-icon="fa fa-check" class="savebutton" onclick="ValidateRule()" data-lang="GlobalButton.Validate"></a>
+    <a id="btnReference" onclick="viewReference(this)" class="savebutton" data-icon="fa fa-exchange" data-lang="GlobalButton.ReferenceRelationship"></a>
+    <a id="btnRun" data-icon="icon-yunxing" class="savebutton" onclick="return ShowRunPage(this)" data-lang="GlobalButton.Run"></a>
+    <a id="btnRemove" data-icon="fa fa-minus" class="savebutton" onclick="DelRule(this)" data-lang="GlobalButton.Delete"></a>
+</div>
+
+<div class="H3Panel">
+    <span data-lang="msgGlobalString.BasicProperties"></span>
+    <table>
+        <tr>
+            <td data-lang="BizRule.Code"></td>
+            <td>
+                <input type="text" id="txtCode"  MaxLength="64" />
+            </td>
+        </tr>
+        <tr>
+            <td data-lang="BizRule.DisplayName"></td>
+            <td>
+                <input type="text" id="txtDisplayName" maxlength="64" />
+            </td>
+        </tr>
+        <tr>
+            <td data-lang="BizRule.Description"></td>
+            <td>
+                <textarea id="txtDescription"   Width="600" Height="50" />
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div id="PropertyPanel">
+    <div class="H3Panel" id="GlossaryPanel">
+        <span data-lang="BizRule.Glossary"></span>
+        <div id="ExcludePanel">
+            <div id="PropertyToolBar">
+                <a href="javascript:void(0)" onclick="EditRuleProterty(this)" title="add" data-lang="BizRule.AddWord"></a>
+                <a href="javascript:void(0)" onclick="RemoveRuleProterty(this)" title="delete" data-lang="GlobalButton.Delete"></a>
+            </div>
+            <div id="PropertyGrid"></div>
+        </div>
+    </div>
+</div>

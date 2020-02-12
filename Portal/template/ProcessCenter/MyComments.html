@@ -1,0 +1,115 @@
+﻿<!--
+    常用意见
+     -->
+<!--  ng-init="
+     app.settings.asideFolded=false;
+     app.settings.asideDock=false;" -->
+<div class="hbox hbox-auto-xs hbox-auto-sm">
+    <!-- main -->
+    <div class="col">
+        <!-- main header -->
+        <div class="bg-light lter b-b wrapper-md">
+            <div class="row">
+                <div class="col-sm-6 col-xs-12">
+                    <span class="h3" ng-bind="menuData.DisplayName"></span>
+                </div>
+            </div>
+        </div>
+        <alert class="animated fadeInDown hide fadeOut" id="alertMsg"
+               type="danger" close=""
+               style="width: 300px;font-size:15px;">
+            您未选择任何常用意见！
+        </alert>
+        <!--委托详情-->
+        <div class="wrapper-md paddingbottomNone">
+            <div class="panel panel-default">
+                <div class="table-responsive">
+                    <div class="form-inline">
+                        <div class="input-group searchContainer" style="float:left;">
+                            <div class="form-group" style="margin-left:5px;">
+                                <div class="btn-group btn-default">
+                                    <a class="btn btn-default" ng-click="btn_addComment()">
+                                        <i class="panel-title-icon fa fa-plus">
+                                            <span style="margin-left:3px;" translate="QueryTableColumn.Add"></span>
+                                        </i>
+                                    </a>
+                                    <button class="btn btn-default" ng-click="btn_removeAgents()">
+                                        <i class="panel-title-icon fa fa-minus">
+                                            <span style="margin-left:3px;" translate="QueryTableColumn.Remove"></span>
+                                        </i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <table ui-jq="dataTable" id="tabMyComments"
+                           ui-options="tabMyComments"
+                           class="table table-striped m-b-none" style="width:99%;">
+                        <thead>
+                            <tr>
+                                <th style="width:4%;padding-left:15px;">
+                                    <input type="checkbox" ng-model="checkAll" />
+                                </th>
+                                <th style="width: 55%;" translate="QueryTableColumn.Content"></th>
+                                <th style="width:10%;" translate="QueryTableColumn.SortKey"></th>
+                                <th style="width: 10%;" translate="QueryTableColumn.Edit"></th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- / main -->
+</div>
+
+<script type="text/ng-template" id="EditComment.html">
+    <div class="modal-header">
+        <button type="button" class="close"
+                data-dismiss="modal" aria-hidden="true" ng-click="cancel()">
+            ×
+        </button>
+        <h4 class="modal-title" id="myModalLabel">
+            <span translate="QueryTableColumn.AddComment"></span>
+        </h4>
+    </div>
+    <div class="modal-body" style="padding-left:50px;padding-right:50px;">
+        <form class="bs-example form-horizontal">
+            <div class="row">
+                <div class="col-md-10">
+                    <div class="form-group">
+                        <label class="col-md-3 control-label" translate="QueryTableColumn.Content"></label>
+                        <label class="col-md-9 control-label alignLeft">
+                            <textarea ng-model="CommentText" maxlength="100" style="width:95%;" rows="5" class="form-control"></textarea>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-10">
+                    <div class="form-group">
+                        <label class="col-md-3 control-label" translate="QueryTableColumn.SortKey"></label>
+                        <label class="col-md-9">
+                            <input ng-model="SortKeyText" type="number" maxlength="16" class="form-control" value="1" style="width:95%;">
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-info" ng-disabled="!CommentText" ng-click="ok()">
+            <span translate="QueryTableColumn.Button_Save"></span>
+        </button>
+        <!--<button type="button" class="btn btn-info" ng-click="cancel()">
+            <span translate="QueryTableColumn.Button_Cancel"></span>
+        </button>-->
+    </div>
+</script>

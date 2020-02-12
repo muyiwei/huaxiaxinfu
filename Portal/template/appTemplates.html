@@ -1,0 +1,28 @@
+﻿<!--顶部导航栏Start-->
+<div data-ng-include="'template/platform/header.html'" class="app-header navbar">
+</div>
+<!--顶部导航栏End-->
+<div class="mainContent" style="bottom: 0px;">
+    <!--左侧菜单部分Start-->
+    <div data-ng-include="'template/platform/aside_Template.html'" class="app-aside hidden-xs">
+    </div>
+    <!--左侧菜单部分End-->
+    <!--主题内容部分Start-->
+    <div class="app-content">
+        <div ui-butterbar></div>
+        <a class="off-screen-toggle hide" ui-toggle-class="off-screen" data-target=".app-aside"></a>
+        <div class="app-content-body">
+            <div ui-view class="fade-in-up"></div>
+        </div>
+    </div>
+    <!--主题内容部分End-->
+    <!-- 弹出表单Start -->
+    <div class="app-aside-right pos-fix no-padder app-content w-auto-xs bg-white b-l animated fadeInRightBig hide" style="margin-top:0px;left:0px;">
+        <div class="vbox">
+            <div class="input-group-btn" style="height: 100%;">
+                <iframe src="" style="border:0px;width:100%;height:100%;"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+

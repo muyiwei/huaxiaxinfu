@@ -1,0 +1,157 @@
+﻿<link href="../WFRes/css/MvcSheet.css" rel="stylesheet" type="text/css" />
+<script>
+    $(function () {
+        var pageData = {
+            WorkflowPackage: {},
+            StorageType: [{ Value: "0", Text: $.Lang("WorkflowPackage.DataList") }, { Value: "1", Text: $.Lang("WorkflowPackage.PureServiceBased") }],
+            LanData: $.Languages
+        };
+        //初始化页面数据
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        //$.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                }
+            }
+        });
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+        $("#ReportFolders").SheetWorkflow({
+            OnChange: function () {
+                pageData.WorkflowPackage.Folder = $("#ReportFolders").SheetUIManager().GetValue();
+            },
+            SheetWorkflowHandler: $.Controller.ReportFolder.GetReportTreeFolder,
+            Editable: true,
+            Visiable: true,
+            Mode: "ReportFolder",
+            AllowSearch: true,
+            IsMultiple: false,
+            IsSearchThree: true,
+            FolderChoosed: true,
+        });
+        if (pageData.Folders.selected) {
+            pageData.WorkflowPackage.Folder = $("#ReportFolders").SheetUIManager().SetValue(pageData.Folders.selected);
+        }
+        //初始化页面数据
+        function initPageData() {
+            var id = getUrlParam("ID") || "";
+            var parentCode = getUrlParam("ParentCode") || "";
+            var parentId = getUrlParam("ParentID") || "";
+            var objectType = getUrlParam("ObjectType") || "";
+            if (id || parentId || parentCode || objectType) {
+                $.ajax({
+                    url: $.Controller.ReportFolder.GetWorkflowPackage,
+                    type: 'get',
+                    dataType: "json",
+                    data: { id: id, parentId: parentId, parentCode: parentCode, objectType: objectType },
+                    async: false,//同步执行
+                    success: function (result) {
+                        debugger
+                        if (result.Message) {
+                            //parent.$.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                            //parent.H3DialogManger.Cancel();
+                            setControlUsable(0, $("a"));
+                        } else {
+                            pageData.Folders = result.Folders;
+                            pageData.WorkflowPackage = result.WorkflowPackage;
+                            
+                            if (pageData.WorkflowPackage.CheckedUser)
+                                pageData.WorkflowPackage.CheckedUser = $.Lang(pageData.WorkflowPackage.CheckedUser);
+
+                            pageData.Folders.selected = pageData.WorkflowPackage.Folder;
+                        }
+                    }
+                });
+            }
+        };
+        //保存
+        function saveData() {
+            pageData.WorkflowPackage.Folder = $("#ReportFolders").SheetUIManager().GetValue();
+            if (pageData.WorkflowPackage.Folder == "") {
+                return false;
+            }
+            $.ajax({
+                url: $.Controller.ReportFolder.SaveWorkflowPackage,
+                type: "post",
+                dataType: "json",
+                data: pageData.WorkflowPackage,
+                success: function (result) {
+                    debugger//0876edf8-f7b4-4ab3-b9b6-e8db93b4ebfa
+                    if (result.Success) {
+                        top.ReloadNode(result.Extend);
+                        // alert(1);
+                        //if (result.Extend != pageData.WorkflowPackage.Folder) {
+                        //    top.ReloadNode(pageData.WorkflowPackage.Folder);
+                            
+                        //}
+                        parent.H3DialogManger.Close();
+                       // if (!pageData.WorkflowPackage.ObjectID) parent.H3DialogManger.Close();
+                    } else {
+                        if (result.Extend) {
+                            var content = $.format($.Lang(result.Message), result.Extend);
+                            $.H3Dialog.Warn({ content: content });
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a id="lnkOK" v-on:click="saveData" data-icon="fa fa-save" href="javascript:void(0)" data-lang="GlobalButton.Save">保存</a>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.msgGlobalString.BasicInfo}}</span>
+        <table>
+            <tr>
+                <td>
+                    {{LanData.Reporting.Directory}}
+                </td>
+                <td>
+                    <div id="ReportFolders" style="width: 250px"></div>
+                    <span style="color:Red;" v-if="WorkflowPackage.Folder==''" data-lang="msgGlobalString.EnumValueRequired"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.WorkflowPackage.Code}}</td>
+                <td>
+                    <input v-model="WorkflowPackage.Code" detect-change="on" detect-blur="on" initial="off" v-validate:code="{required:true}" type="text" v-bind:disabled="WorkflowPackage.ObjectID" />
+                    <span style="color:Red;" v-if="$formValidator.code.required" data-lang="msgGlobalString.EnumValueRequired"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.WorkflowPackage.DisplayName}}</td>
+                <td>
+                    <input v-model="WorkflowPackage.DisplayName" detect-change="on" detect-blur="on" initial="off" v-validate:display-name="{required:true}" type="text" />
+                    <span style="color:Red;" v-if="$formValidator.displayName.required" data-lang="msgGlobalString.EnumValueRequired"></span>
+                </td>
+            </tr>
+            <tr v-show="WorkflowPackage.ObjectID">
+                <td>{{LanData.WorkflowPackage.CheckedUser}}</td>
+                <td>
+                    <label>{{WorkflowPackage.CheckedUser}}</label>
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.WorkflowPackage.SortKey}}</td>
+                <td colspan="3">
+                    <input v-model="WorkflowPackage.SortKey" detect-change="on" detect-blur="on" initial="off" v-validate:sort-key="['number']" type="number" />
+                    <span style="color:Red;" v-if="$formValidator.sortKey.number">{{LanData.msgGlobalString.NumberValidate}}</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+</validator>

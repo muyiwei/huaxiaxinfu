@@ -1,0 +1,169 @@
+﻿<link href="../WFRes/_Content/themes/H3Default/H3-Wizard.css" rel="stylesheet" />
+<script src="../WFRes/_Scripts/H3Wizard.js"></script>
+<script src="../WFRes/_Scripts/ReportDesigner/ReportBase.js"></script>
+<script src="../WFRes/_Scripts/ReportDesigner/ReportSource.js"></script>
+<style>
+    .raidodis {
+        padding-right:20px;
+    }
+    .l-dialog-content-noimage {
+        padding-left:0px;
+    }
+</style>
+<script>
+    $(function () {
+        var reportSourceCode = getUrlParam("ReportSourceCode") || "";
+        var parentID = getUrlParam("ParentID") || "";
+        if (!reportSourceCode) {
+            $("#btnSave").attr("disabled", "disabled");
+            $("#btnDel").attr("disabled", "disabled");
+        }
+        SettingInit(reportSourceCode, parentID);
+    });
+</script>
+<div id="H3ToolBar">
+    <!--<a onclick="btnSave_Click(this);" id="btnSave" data-icon="fa fa-save" data-lang="GlobalButton.Save">保存</a>-->
+    <a id="btnView" href="javascript:void(0)" data-icon="fa fa-eye" data-lang="GlobalButton.View">查看</a>
+    <a onclick="DelReportSource(this)" id="btnDel" data-icon="fa fa-minus" data-lang="GlobalButton.Delete" href="#">删除</a>
+</div>
+<div id="H3Wizard">
+    <ul id="Guide">
+        <li stepcontent="Step1" data-lang="ReportSource.GetTransaction_DbCode">数据库</li>
+        <li stepcontent="Step2" data-lang="ReportSource.TableDefinition">表定义</li>
+        <li stepcontent="Step3" data-lang="ReportSource.FieldDefinition">字段定义</li>
+    </ul>
+</div>
+<div id="Step1">
+    <span data-lang="ReportSource.DatabaseInformation"></span>
+    <table>
+        <tr>
+            <td data-lang="ReportSource.Code"></td>
+            <td>
+                <input type="text" id="txtCode" />
+            </td>
+        </tr>
+        <tr>
+            <td data-lang="ReportSource.DisplayName"></td>
+            <td>
+                <input type="text" id="txtSourceName" />
+            </td>
+        </tr>
+        <tr>
+            <td data-lang="ReportSource.DbType"></td>
+            <td>
+                <input type="radio" name="rbSorceType" value="H3System" data-title="ReportSource.BusinessSystem" checked="checked" /><label class="raidodis" data-lang="ReportSource.BusinessSystem"></label>
+                <input type="radio" name="rbSorceType" value="DbConnection" data-title="ReportSource.DataBaseConn" /><label data-lang="ReportSource.DataBaseConn"></label>
+            </td>
+        </tr>
+        <tr id="trH3System">
+            <td data-lang="ReportSource.DataModel"></td>
+            <td>
+                <div id="divWorkflow" style="width: 250px;"></div>
+      
+            </td>
+        </tr>
+        <tr id="trDbConnection">
+            <td data-lang="ReportSource.DataBaseConn"></td>
+            <td>
+                <select id="lstDbConnection"></select>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="Step2">
+    <span data-lang="ReportSource.TableDefinition"></span>
+    <table>
+        <tr>
+            <td data-lang="ReportSource.TableSourceType"></td>
+            <td>
+                <input type="radio" name="rblDataSourceType" value="Table" data-title="ReportSource.DataSheet" checked="checked" /><span data-lang="ReportSource.DataSheet" class="raidodis"></span>
+                <input type="radio" name="rblDataSourceType" value="View" data-title="ReportSource.View" /><span data-lang="ReportSource.View" class="raidodis"></span>
+                <input type="radio" name="rblDataSourceType" value="SQL" data-title="ReportSource.Query" /><span data-lang="ReportSource.Query" class="raidodis"></span>
+            </td>
+        </tr>
+        <tr itemid="trTable View">
+            <td>
+                <label id="lbSourceType"></label>
+            </td>
+            <td>
+                <select id="lstTables"></select>
+            </td>
+        </tr>
+        <tr itemid="trSQL">
+            <td>Sql</td>
+            <td>
+                <textarea id="txtSql" style="width: 600px; height: 300px;" maxlength="1999"></textarea>
+                <div id="txtSqlLen"></div>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="Step3">
+    <span data-lang="ReportSource.FieldDefinition"></span>
+    <div id="Step3Content">
+        <div id="FieldToolBar">
+            <a id="btnAddField" href="javascript:void(0);" title="add" data-lang="ReportSource.AddField"></a>
+        </div>
+        <div id="ColumnTable" style="width: 100%"></div>
+    </div>
+</div>
+<div id="EidtFiledDialog" style="display: none;">
+    <div id="DialogButtons"><a id="btnSaveFiledInfo" href="javascript:void(0);" title="save" data-lang="GlobalButton.Save"></a></div>
+    <div id="FiledDialogPanle">
+        <span data-lang="ReportSource.FieldInfo"></span>
+        <table>
+            <tr>
+                <td data-lang="ReportSource.FieldCode"></td>
+                <td>
+                    <input id="txtColumnCode" type="text" />
+                </td>
+            </tr>
+            <tr>
+                <td data-lang="ReportSource.DisplayName"></td>
+                <td>
+                    <input id="txtDisplayName" type="text" />
+                </td>
+            </tr>
+            <tr>
+                <td data-lang="ReportSource.FieldType"></td>
+                <td>
+                    <input type="radio" name="CustomType" value="TableColumn"  /><span data-lang="ReportSource.SelectField"></span>
+                    <input type="radio" name="CustomType" value="CustomColumn" /><span data-lang="ReportSource.CustomColumn"></span>
+                    <input type="radio" name="CustomType" value="RuleColumn" /><span data-lang="ReportSource.CustomRule"></span>
+                </td>
+            </tr>
+            <tr>
+                <td data-lang="ReportSource.FieldName"></td>
+                <td>
+                    <input id="txtColumnName" type="text" />
+                </td>
+            </tr>
+            <tr>
+                <td data-lang="ReportSource.CustomRule"></td>
+                <td>
+                    <textarea id="txtDataRuleText"></textarea>
+                    <br />
+                    <span>
+                        Example:<br />
+                        (CASE DATEPART(QUARTER,CREATEDTIME)<br />
+                        WHEN 1 THEN 'First Quarter '<br />
+                        WHEN 2 THEN 'Second Quarter'<br />
+                        WHEN 3 THEN 'Third Quarter'<br />
+                        ELSE 'Fourth Quarter'<br />
+                        END)
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td data-lang="ReportSource.SortRule"></td>
+                <td>
+                    <select id="selOrderRule">
+                        <option value="Null" selected="selected" data-lang="ReportSource.Null"></option>
+                        <option value="ASC" data-lang="ReportSource.ASC"></option>
+                        <option value="DESC" data-lang="ReportSource.DESC"></option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,260 @@
+﻿
+<script>
+    $(function () {
+        var pageData = {
+            SyncADData: {},
+            LanData: $.Languages
+        };
+
+        //debugger;
+        InitPageData();
+        //
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                },
+                testConnection: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        testConnection();
+                    }
+                },
+                syncAD: function (event) { syncAD(); },
+                syncAllAD: function (event) { syncAllAD(); }
+            }
+        });
+
+        //初始化页面数据
+        function InitPageData() {
+            $.ajax({
+                url: $.Controller.SyncAD.GetSyncADInfo,
+                type: 'get',
+                dataType: "json",
+                data: {},
+                async: false,//同步执行
+                success: function (result) {
+                    pageData.SyncADData = result;
+
+                    //同步时间
+                    $("#txtADSyncTimes").val(result.AutoSynchTime); //读取同步时间
+                    $("#txtOrgReloadTimes").val(result.AutoReloadTime); //读取自动加载时间
+                }
+            });
+        }
+
+
+        //执行保存
+        function saveData() {
+            pageData.SyncADData.AutoSynchTime = $("#txtADSyncTimes").val();
+            pageData.SyncADData.AutoReloadTime = $("#txtOrgReloadTimes").val();
+
+            $.ajax({
+                url: $.Controller.SyncAD.SaveSyncADInfo,
+                type: "post",
+                dataType: "json",
+                data: pageData.SyncADData,
+                success: function (result) {
+                    //debugger;
+                    $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                }
+            });
+        };
+
+        //执行测试连接
+        function testConnection() {
+            $.ajax({
+                url: $.Controller.SyncAD.TestADConnection,
+                type: "post",
+                dataType: "json",
+                data: pageData.SyncADData,
+                success: function (result) {
+                    //debugger;
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message)+":"+result.Extend });
+                    }
+                }
+            });
+        }
+
+        //增量同步
+        function syncAD() {
+            ShowLoading();
+            $.ajax({
+                url: $.Controller.SyncAD.SyncAD,
+                type: "post",
+                dataType: "json",
+                data: {},
+                success: function (result) {
+                    //debugger;
+                    HideLoading();
+                    if (result.Success) {
+                        top.ReloadNode();//加载组织树
+                        $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+
+                }
+            });
+            
+        }
+
+        //完整同步
+        function syncAllAD() {
+            ShowLoading();
+            $.ajax({
+                url: $.Controller.SyncAD.SyncAllAD,
+                type: "post",
+                dataType: "json",
+                data: {},
+                success: function (result) {
+                    //debugger;
+                    HideLoading();
+                    if (result.Success) {
+                        top.ReloadNode();//加载组织树
+                        $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message)+","+result.Extend });
+                    }
+                }
+            });
+        }
+
+        //构造同步时间数据源
+        var times = new Array();
+        for (var i = 0; i <= 9; i++) {
+            times.push({ text: "0" + i + ":00", id: "0" + i + ":00" });
+            times.push({ text: "0" + i + ":30", id: "0" + i + ":30" });
+        }
+        for (var i = 10; i < 24; i++) {
+            times.push({ text: i + ":00", id: "0" + i + ":00" });
+            times.push({ text: i + ":30", id: "0" + i + ":30" });
+        }
+
+        var ADSyncTimesVal = $("#txtADSyncTimes").val(); //读取同步时间
+        var orgReloadTimesVal = $("#txtOrgReloadTimes").val(); //读取自动加载时间
+
+        $("#dropDownOrgReloadTimes").ligerComboBox({
+            initValue: orgReloadTimesVal,
+            initText: orgReloadTimesVal,
+            isShowCheckBox: true, isMultiSelect: true,
+            data: times,
+            onSelected: function (newvalue) {
+                $("#txtOrgReloadTimes").val(newvalue);
+            }
+        });
+        $("#dropDownADSyncTimes").ligerComboBox({
+            initValue: ADSyncTimesVal,
+            initText: ADSyncTimesVal,
+            isShowCheckBox: true, isMultiSelect: true,
+            data: times,
+            onSelected: function (newvalue) {
+                $("#txtADSyncTimes").val(newvalue);
+            }
+        });
+
+        $("#dropDownOrgReloadTimes").change(dropDownchange);
+        $("#dropDownADSyncTimes").change(dropDownchange);
+    });
+
+
+    function dropDownchange() {
+        if ($(this).val() == "") {
+            var manager = $(this).ligerGetComboBoxManager();
+            $(manager.selectBox).find("input[type='checkbox']").each(function () {
+                $(this).removeAttr("checked");
+            });
+            $(manager.selectBox.table).find(".l-checkbox-checked").each(function () {
+                $(this).removeClass("l-checkbox-checked");
+            });
+        }
+    }
+</script>
+<validator name="formValidator">
+    <div id="H3ToolBar">
+        <a data-icon="fa fa-save" v-on:click="saveData" data-lang="GlobalButton.Save"></a>
+        <a data-icon="fa fa-check" v-on:click="testConnection" data-lang="SyncAD.TestConnection"></a>
+        <a data-icon="fa fa-angle-right" @click="syncAD" data-lang="SyncAD.SyncAD"></a>
+        <a data-icon="fa fa-angle-double-right" @click="syncAllAD" data-lang="SyncAD.SyncAllAD"></a>
+    </div>
+
+    <div class="H3Panel">
+        <span>{{LanData.SyncAD.NormalSetting}}</span>
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft">{{LanData.SyncAD.Route}}</td>
+                <td style="width:360px">
+                    <textarea style="height:60px;" v-model="SyncADData.Route" detect-change="on" detect-blur="on" initial="off" v-validate:route="{required:true}"></textarea>
+                    <span style="color:Red;" v-if="$formValidator.route.required">{{LanData.msgGlobalString.EnumValueRequired}} </span>
+                </td>
+                <td class="tableDesCol">
+                    &nbsp;LDAP://192.168.1.1/OU=奥哲科技,DC=authine,DC=com
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.SyncAD.UserName}}</td>
+                <td>
+                    <input type="text" v-model="SyncADData.UserName" detect-change="on" detect-blur="on" initial="off" v-validate:username="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.username.required">{{LanData.msgGlobalString.EnumValueRequired}} </span>
+                </td>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.SyncAD.Password}}</td>
+                <td>
+                    <input type="password" v-model="SyncADData.Password" detect-change="on" detect-blur="on" initial="off" v-validate:password="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.password.required">{{LanData.msgGlobalString.EnumValueRequired}} </span>
+                </td>
+                <td>&nbsp;</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="H3Panel">
+        <span>{{LanData.SyncAD.AdvanceSetting}}</span>
+        <table class="tableList">
+            <tr>
+                <td class="tableLeft">{{LanData.SyncAD.LastSyncTime}}</td>
+                <td>
+                    <input type="text" disabled="disabled" v-model="SyncADData.LastSyncTime"></input>
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.SyncAD.AutoSynchTime}}</td>
+                <td>
+                    <input type="hidden" id="txtADSyncTimes" v-model="SyncADData.AutoSynchTime"><!---存储同步时间-->
+                    <input type="text" id="dropDownADSyncTimes" />
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.SyncAD.OrgReloadTimes}}</td>
+                <td>
+                    <input type="hidden" id="txtOrgReloadTimes" v-model="SyncADData.OrgReloadTimes"><!---存储自动加载时间-->
+                    <input type="text" id="dropDownOrgReloadTimes" />
+                </td>
+            </tr>
+            <tr>
+                <td class="tableLeft">{{LanData.SyncAD.ADValidator}}</td>
+                <td>
+                    <!---是否启用AD验证-->
+                    <input type="checkbox" v-model="SyncADData.ADValidator" />
+                </td>
+            </tr>
+        </table>
+    </div>
+</validator>

@@ -1,0 +1,1756 @@
+﻿<script src="./ProcessModel/queryList/js/jquery-ui-1.9.2.custom.min.js"></script>
+<script src="./ProcessModel/queryList/js/jquery.nicescroll.min.js"></script>
+<!--新手引导-->
+<script src="./ProcessModel/queryList/js/jquery.scrollTo.js"></script>
+<script src="./ProcessModel/queryList/js/jquery.aSimpleTour.min.js"></script>
+<style>
+    @import url("./ProcessModel/queryList/css/custom-theme/jquery-ui-1.9.2.custom.css");
+    @import url("./ProcessModel/queryList/css/style.css");
+</style>
+<style>
+    /*搜索结果错位*/
+    #masterDataGrid .l-grid-body.l-grid-body2.l-scroll table{
+        border-collapse:collapse;
+    }
+    #masterDataGrid .l-grid-body.l-grid-body2.l-scroll table td{
+        border:1px solid transparent;
+        border-top:0;
+        border-bottom:0;
+    }
+
+</style>
+
+<!--页面初始化-->
+<script>
+    debugger;
+    var SchemaCode = "";
+    var QueryCode = "";
+    var IsSchemaPublished = false;
+    SchemaCode = getUrlParam("SchemaCode") || "";
+    IsSchemaPublished = CheckSchemaPublished();
+    var QueryObject = null;
+    if (IsSchemaPublished) {//已发布
+        var QueryObject = GetBizQueryList();
+        if (QueryObject.length == 0 || QueryObject[0].QueryCode==null) {
+            guidance();//新手指引
+        } else {
+            //存取第一个
+            QueryCode = QueryObject[0].QueryCode;
+            console.log(QueryCode);
+        }
+    }
+    
+    function CheckSchemaPublished() {
+        var OwnSchemaCode = getUrlParam("OwnSchemaCode") || "";
+        var IsSchemaPublished = false;
+        $.ajax({
+            url: $.Controller.BizQuery.IsSchemaPublished,
+            type: 'get',
+            dataType: "json",
+            async: false,//同步执行
+            data: { schemaCode: SchemaCode, ownSchemaCode: OwnSchemaCode },
+            success: function (result) {
+                if (!result.Success) {
+                    IsSchemaPublished = false;
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                } else {
+                    IsSchemaPublished= true;
+                }
+                setControlUsable(result.Extend,$("a"));
+            }
+        });
+        return IsSchemaPublished;
+    }
+    function GetBizQueryList() {
+        var data = [];
+        $.ajax({
+            url: $.Controller.BizQuery.GetBizQueryList,
+            type: "post",
+            data: {
+                schemaCode: SchemaCode,
+                PageIndex:1,
+                PageSize:20
+            },
+            async:false,//同步
+            success: function (res) {
+                if (res.Rows.length != 0) {
+                    data = res.Rows;
+                } 
+            },
+            fail: function (res) {
+                $.H3Dialog.Warn({ content: "请求失败" });
+            }
+        })
+        return data;
+    }
+    //新手引导程序
+    function guidance() {
+        var tour = {
+            autoStart: false,
+            data: [
+                { element: '#basicSettingsButton', tooltip: '点此输入列表名称编码', text: '基础设置', position: 'B' },
+                { element: '#changeQueryStringButton', tooltip: "请选择显示在列表中的字段:点击确定将自动保存,取消手动保存!", text: "更改列表字段", position: 'L' },
+                { element: '#changeQueryInput', tooltip: "请选择查询条件的字段:点击确定将自动保存,取消手动保存!", text: "更改查询字段", position: 'L' },
+                { element: '#btnSave', tooltip: '点此保存页面信息', text: '保存', position: 'R' },
+                { element: '#btnSearch', tooltip: '刷新页面后,点此查询', text: '查询', position: 'R' }
+            ],
+            welcomeMessage: '查询列表配置指引',
+            controlsPosition: 'BR',
+            buttons: {
+                next: { text: '下一步 &rarr;', class: 'btn btn-default' },
+                prev: { text: '&larr; 上一步', class: 'btn btn-default' },
+                start: { text: '开始指引', class: 'btn btn-primary' },
+                end: { text: '结束', class: 'btn btn-primary' }
+            },
+            controlsCss: {
+                background: 'rgba(124, 124, 124, 1)',
+                color: '#fff',
+                width: '400px',
+                'border-radius': 0
+            }
+        };
+        $.aSimpleTour(tour);
+    }
+</script>
+
+
+<!--查询条件设置-->
+<script>
+    var pageData = {
+        BizQuery: {},
+        LanData: $.Languages
+    };
+
+    var WidthValidationFlag = false;
+    $(function () {
+        if (!IsSchemaPublished) {
+            return;
+        }
+
+        initPageData(initDefualtSettings);
+        //基础设置默认值
+        function initDefualtSettings() {
+            pageData.BizQuery.OrginQueryCode = 'default';//之前接口留下，已无意义
+            pageData.BizQuery.ListMethod = "GetList";
+            pageData.BizQuery.QueryWhenLoad = true;
+            pageData.IsSchemaPublished = IsSchemaPublished;//
+            if (pageData.BizQuery.QueryCode=='') {
+                pageData.isQueryCodeEmpty = true;
+            } else {
+                pageData.isQueryCodeEmpty = false;
+            }
+            //自定义按钮
+            pageData.tmpAction = {};
+            //系统参数映射
+            pageData.tmpSystemParamsBind = {};
+            pageData.tmpSystemParamsBind.ConditionColumn = "",
+            pageData.tmpSystemParamsBind.Value = "";
+            //查询条件设置
+            pageData.tmpConditions = [];
+            pageData.tmpConditionsAllSelected = true;//全选
+            pageData.tmpConditionsString = "";//vue无法监听到数组中对象的属性的变化
+            //更改列表字段
+            pageData.tmpPropertys = [];
+
+            //初始化所有按钮
+            initAllConditions();
+
+            initButtonSettingCommponent();
+            //initShowListCommpnent();
+
+
+            //查询条件nicescroll
+            $("#panelSearch").niceScroll({ cursorcolor: "#37ABFD", cursoropacitymax: 0.7, boxzoom: true, touchbehavior: false, boxzoom: false }).resize();
+
+        };
+
+        //debugger;
+
+        queryModel = new Vue({
+            el: "#editBizQuery",
+            data: pageData,
+            filters: {
+                //系统参数设置
+                getTextFromValue: function (value) {
+                    for (var i = 0; i < pageData.ConditionColumns.length;i++){
+                        if(pageData.ConditionColumns[i].Value==value){
+                            return pageData.ConditionColumns[i].Text;
+                        }
+                    }
+                }
+            },
+            methods: {
+                saveData: function () {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                },
+                selectAll: function ($event, arry, field) {
+                    //更改查询字段全选全不选
+                    var checked = !pageData.tmpConditionsAllSelected;
+                    pageData.tmpConditionsAllSelected = checked;
+                    $.each(arry, function () {
+                        this[field] = checked;
+                    });
+                },
+                selectItem: function ($event, item) {
+                    //更改查询字段单选
+                    item.Visible = !item.Visible;
+                    
+                    for (var i in pageData.tmpConditions) {
+                        if (pageData.tmpConditions[i].Visible==false) {
+                            pageData.tmpConditionsAllSelected = false;
+                            return;
+                        }
+                    }
+                    pageData.tmpConditionsAllSelected = true;
+                },
+                ModifyAction: function (ActionCode) {
+                    var item = {
+                        "ActionCode": "",
+                        "DisplayName": "",
+                        "ActionType": 0,
+                        "ActionMethod": pageData.ActionMethods[0].Value,
+                        "ActionSheet": null,
+                        "Url": null,
+                        "WithID": false,
+                        "Confirm": false,
+                        "SaveCompleted": pageData.SaveCompletes[0].Value,
+                        "SortKey": 0
+                    }
+                    pageData.tmpAction = item;
+
+                    if (ActionCode) {
+                        for (var i = 0; i < pageData.Actions.length;i++){
+                            if (pageData.Actions[i].ActionCode == ActionCode) {
+
+                                Object.assign(pageData.tmpAction, pageData.Actions[i]);
+                                //pageData.tmpAction = pageData.Actions[i];
+                                break;
+                            }
+                        }
+                    }
+
+                    $("#customButtonSettings").dialog({
+                        modal: true,
+                        width: 420,
+                        resizable: false,
+                        buttons: {
+                            "确定": function () {
+                                //编码不能为空
+                                if ($.trim(pageData.tmpAction.ActionCode) === "") {
+                                    $.H3Dialog.Warn({ content: $.Languages.BizQuery.CodeNotNull });
+                                    $("#customButtonSettings #ActionCode").focus();
+                                    return;
+                                }
+                                //显示名称不能为空
+                                if ($.trim(pageData.tmpAction.DisplayName) === "") {
+                                    $.H3Dialog.Warn({ content: $.Languages.BizQuery.DisplayNameNotNull });
+                                    $("#customButtonSettings #DisplayName").focus();
+                                    return;
+                                }
+
+                                //编码不能为中文
+                                var langCNReg = /^[\u4E00-\u9FA5]+$/;
+                                if (langCNReg.test($.trim(pageData.tmpAction.ActionCode))) {
+                                    $.H3Dialog.Warn({ content: "功能编码不能为中文！" });
+                                    $("#customButtonSettings #ActionCode").focus();
+                                    return;
+                                }
+
+                                if (ActionCode) {
+                                    for (var i = 0; i < pageData.Actions.length; i++) {
+                                        if (pageData.Actions[i].ActionCode == ActionCode) {
+
+                                            Object.assign(pageData.Actions[i], pageData.tmpAction);
+                                            //pageData.Actions[i] = pageData.tmpAction;
+                                            break;
+                                        }
+                                    }
+                                } else {
+                                    //编码重复检查 
+                                    for (var i = 0; i < pageData.Actions.length; i++) {
+                                        if (pageData.Actions[i].ActionCode == pageData.tmpAction.ActionCode) {
+                                            $.H3Dialog.Warn({ content: $.Languages.BizQuery.CodeExist });
+                                            $("#customButtonSettings #ActionCode").focus();
+                                            return;
+                                        }
+                                    }
+                                    pageData.Actions.push(pageData.tmpAction);
+                                }
+
+                                $(this).dialog("close");
+                            },
+                            "取消": function () {
+                                $(this).dialog("close");
+                            }
+                        },
+                        open: function () {
+                            //按钮中英文切换
+                        var OK = $.Languages.GlobalButton.Confirm;
+                        var Cancel = $.Languages.GlobalButton.Cancel;
+                        $buttomPanel = $(this).next();
+                        $buttomPanel.find("button:first").html(OK);
+                        $buttomPanel.find("button:last").html(Cancel);
+                    }
+                    });
+
+
+
+                },
+                delAction: function (item) {
+                    //删除功能
+                    pageData.Actions.$remove(item);
+                },
+
+
+                editItem: function (item) {
+                    //编辑按钮功能
+                    console.log(item);
+                    //$("#customButtonSettings").dialog("close");
+                    this.ModifyAction(item.ActionCode);
+                },
+                bindSystemParams:function(){
+                    getSystemParams();
+                    //系统参数映射
+                    $("#SystemParamsBind").dialog({
+                        modal: true,
+                        width: 420,
+                        resizable: false,
+                        buttons: {
+                            "确定": function () {
+                                $(this).dialog("close");
+                                setSystemParams();
+                            },
+                            "取消": function () {
+                                $(this).dialog("close");
+                            }
+                        },
+                        open: function () {
+                            //按钮中英文切换
+                            var OK = $.Languages.GlobalButton.Confirm;
+                            var Cancel = $.Languages.GlobalButton.Cancel;
+                            $buttomPanel = $(this).next();
+                            $buttomPanel.find("button:first").html(OK);
+                            $buttomPanel.find("button:last").html(Cancel);
+                        }
+                    })
+                },
+                conditionValueShow: function (item) {
+                    //控制conditionValue文本域是否显示
+                    var logicType = getLogicType(item, pageData.ConditionColumns);
+                    switch (logicType) {
+                        case "Bool":
+                            return false;
+                            break;
+                        default:
+                            return item.FilterType != '3' && (item.DisplayType != 0 && item.DisplayType != 5);
+                    }
+                },
+                limitInt: function (e) {
+                    //限制input只能输入整数
+                    var value = e.target.value;
+                    e.target.value = value.replace(/\D/g, '');
+                },
+                widthValidate: function (e) {
+                    var el = e.target;
+                    if ($.trim(el.value) == "") {
+                        el.value = 100;
+                        $.H3Dialog.Warn({ content: "值不能为空" });
+                        $(el).focus();
+                        WidthValidationFlag = false;
+                        return;
+                    }
+                    else if (el.value < 100) {
+                        el.value = 100;
+                        $.H3Dialog.Warn({ content: "最大宽度250，最小宽度100" });
+                        $(el).focus();
+                        WidthValidationFlag = false;
+                        return;
+                    }
+                    else if (el.value > 250) {
+                        el.value = 250;
+                        $.H3Dialog.Warn({ content: "最大宽度250，最小宽度100" });
+                        $(el).focus();
+                        WidthValidationFlag = false;
+                        return;
+                }
+                    WidthValidationFlag = true;
+                }
+            },
+        });
+
+
+        //获取和设置系统参数
+        function getSystemParams() {
+            for (var i = 0; i < pageData.Conditions.length;i++){
+                if (pageData.Conditions[i].FilterType=="3") {
+                    pageData.tmpSystemParamsBind.Value = pageData.Conditions[i].DefaultValue;
+                    pageData.tmpSystemParamsBind.ConditionColumn = pageData.Conditions[i].ConditionColumn;
+                    return;
+                }
+            }
+        }
+        function setSystemParams() {
+            //恢复原状
+            for (var i = 0; i < pageData.Conditions.length; i++) {
+ 
+                if (pageData.Conditions[i].FilterType == "3") {
+                    var column = pageData.Conditions[i].ConditionColumn;
+                    for (var j = 0; j < pageData.ConditionColumns.length; j++) {
+                        if (pageData.ConditionColumns[j].Value == column) {
+                            var item = initACondition(pageData.ConditionColumns[j]);
+
+                            for (var attr in pageData.Conditions[i]) {
+                                if (attr != "ObjectID") {
+                                    pageData.Conditions[i][attr] = item[attr];
+                                }
+                            }
+
+                        }
+                    }
+                }
+
+            }
+
+            //设置系统参数
+            if (pageData.tmpSystemParamsBind.ConditionColumn == "" || pageData.tmpSystemParamsBind.Value == "") {
+                return;
+            }
+            for (var k = 0; k < pageData.Conditions.length; k++) {
+
+                if (pageData.Conditions[k].ConditionColumn == pageData.tmpSystemParamsBind.ConditionColumn) {
+
+                    var condition = {
+                        ConditionColumn: pageData.tmpSystemParamsBind.ConditionColumn,
+                        ConditionValue: "",//枚举类型的值
+                        DefaultValue: pageData.tmpSystemParamsBind.Value,
+                        DisplayType: '0',//0125 文本 下拉 单选 选人控件
+                        FilterType: 3,//0123 完全匹配 模糊匹配 范围匹配 系统参数
+                        ObjectID: "",
+                        Visible: false,
+                        DisplayTypes: pageData.DisplayTypes
+                    };
+
+
+                    for (var attr in pageData.Conditions[k]) {
+                        if (attr != "ObjectID") {
+                            pageData.Conditions[k][attr] = condition[attr];
+                        }
+                    }
+
+                    return;
+                }
+            }
+        }
+
+
+        function ConvertConditionColumns(data) {
+            var array = ["Name", "CreatedBy", "CreatedByParentId", "OwnerId", "OwnerParentId", "CreatedTime", "ModifiedTime"];
+            if (!data) return null;
+            $.each(data, function (i,v) {
+                if (array.indexOf(this.Text)!=-1) {
+                    this.Text = $.Lang("BizQuery.Propertys." + this.Text);
+                }
+            });
+            return data;
+        }
+        function ConvertPropertys(data) {
+            var array = ["Name[Name]", "CreatedBy[CreatedBy]", "CreatedByParentId[CreatedByParentId]", "OwnerId[OwnerId]", "OwnerParentId[OwnerParentId]", "CreatedTime[CreatedTime]", "ModifiedTime[ModifiedTime]"];
+            if (!data) return null;
+            var curZindex = data.length;
+            $.each(data, function (i, v) {
+                if (array.indexOf(this.Name) != -1) {
+                    this.Name = this.Name.split("");
+                    var index = this.Name.indexOf("[");
+                    this.Name.splice(index, this.Name.length);
+                    this.Name = this.Name.join("");
+                    this.Name = $.Lang("BizQuery.Propertys." + this.Name);
+                }
+                //默认排序值 没设置（全部都是0）的话在chorom内核（数组大小超过10） Array.sort方法会导致排序完和原数组不一样
+                if (!(SchemaCode && pageData.BizQuery.QueryCode))
+                {
+                    this.Zindex = curZindex;
+                    curZindex--;
+                }
+            });
+            return data;
+        }
+        //名称转换
+        function ConvertConditions(data) {
+            if (!data) return null;
+            $.each(data, function () {
+                this.DisplayTypes = $.LangArray(this.DisplayTypes, "Text");
+            });
+            return data;
+        }
+        //系统默认按钮
+        function ConvertActions(data) {
+            for (var i in data) {
+                if (data[i].DisplayName == "GlobalButton.Edit") {
+                    data[i].DisplayName = $.Languages.GlobalButton.Edit;
+                } else if (data[i].DisplayName == "GlobalButton.Remove") {
+                    data[i].DisplayName = $.Languages.GlobalButton.Remove;
+                } else if (data[i].DisplayName == "GlobalButton.Add") {
+                    data[i].DisplayName = $.Languages.GlobalButton.Add;
+                }
+            }
+        }
+        //初始化页面数据
+        function initPageData(fn) {
+            if (SchemaCode) {
+                $.ajax({
+                    url: $.Controller.BizQuery.GetBizQuery,
+                    type: 'get',
+                    dataType: "json",
+                    data: { schemaCode: SchemaCode, queryCode: QueryCode },
+                    async: false,//同步执行
+                    success: function (result) {
+                        if (result.Success) {
+                            pageData = $.LangArray(result.Extend, "Text");
+                            ConvertActions(pageData.Actions);
+                            ConvertConditions(pageData.Conditions);
+                            ConvertConditionColumns(pageData.ConditionColumns);
+                            ConvertPropertys(pageData.Propertys);
+                            pageData.LanData = $.Languages;
+                            setControlUsable(result.Extend.IsLocked, $("a"));
+
+                            if (typeof fn == "function") {
+                                fn();
+                            }
+                        }
+                    }
+                });
+            }
+        };
+
+        //保存
+        function saveData() {
+            var saveData = pageData.BizQuery;
+            if (!saveData.Columns) saveData.Columns = [];
+            saveData["conditions"] = JSON.stringify(pageData.Conditions);
+            saveData["actions"] = JSON.stringify(pageData.Actions);
+            //保存前初始化不可见字段的相关值 
+            if (pageData.Propertys) {
+                for (var i = 0; i < pageData.Propertys.length; i++) {
+                    if (!pageData.Propertys[i].Visible) {
+                        pageData.Propertys[i].Width = 0;
+                        pageData.Propertys[i].Foramt = "";
+                    } else if (pageData.Propertys[i].Width==0) {
+                        pageData.Propertys[i].Width =100;
+                    }
+                }
+            }
+           
+            saveData["propertys"] = JSON.stringify(pageData.Propertys);
+
+            //debugger;
+
+            $.ajax({
+                url: $.Controller.BizQuery.SaveBizQuery,
+                type: "post",
+                dataType: "json",
+                data: saveData,
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                        //一次保存后编码就不可编辑
+                        pageData.isQueryCodeEmpty = false;
+                        //保存后更新
+                        $(function () {
+                            radioLoaded = false;//下载单选工具栏
+                            initPage();
+                            BuildFilter(isFrame);
+                            BuildPage(true);
+                            GridParam = GetGridParam();
+                            if (ListDefault != 0) {
+                                LoadData();
+                            }
+                            //查询
+                            $("#btnSearch").unbind("click").bind('click', function () {
+                                GridParam = GetGridParam();
+                                DocumentReady();
+                                ReloadData();
+                            })
+                            $("#panelSearch").niceScroll({ cursorcolor: "#37ABFD", cursoropacitymax: 0.7, boxzoom: true, touchbehavior: false, boxzoom: false }).resize();
+                        })
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        }
+    });
+
+
+    //初始化所有的查询条件 只限制FilterType和是否能作为查询条件
+    function initAllConditions() {//防止增加或删除数据字段
+        var array = ['ObjectID', 'RunningInstanceId', 'ModifiedBy'];
+        var items = pageData.ConditionColumns;
+        var conditions = pageData.Conditions || [];
+
+
+
+        for (var j = 0; j < conditions.length; j++) {
+            if (conditions.length==0) {
+                break;
+            }
+            if (array.indexOf(conditions[j].ConditionColumn) != -1) {
+                conditions.splice(j--, 1);
+            } else {
+                //本来存在的现已经删除
+                var flag = false;
+                for (var t = 0; t < items.length; t++) {
+                    if (conditions[j].ConditionColumn == items[t].Value) {
+                        flag = true;
+                    }
+                }
+                if (!flag) {
+                    conditions.splice(j--, 1);
+                }
+            }
+        }
+
+
+        for (var i = 0; i < items.length; i++) {
+            var flag = false;
+            for (var j = 0; j < conditions.length;j++){
+                if (conditions[j].ConditionColumn == items[i].Value) {
+                    flag = true;
+                }
+            }
+            if(!flag){
+                var condition = initACondition(items[i]);
+                conditions.push(condition);
+            }
+        }
+    };
+    //初始化一个查询条件
+    function initACondition(item) {
+        var displayTypes = deepCopy(pageData.DisplayTypes, true);
+        //debugger;
+        var conditon = {
+            ConditionColumn: item.Value,
+            ConditionValue: "",//枚举类型的值
+            DefaultValue: "",
+            DisplayType: displayTypes[0].Value,//0125 文本 下拉 单选 选人控件
+            FilterType: 0,//012 完全匹配 模糊匹配 范围匹配
+            ObjectID: "",
+            Visible: false,
+            DisplayTypes: displayTypes
+        };
+
+        var logicType = item.Extend.LogicType; 
+        switch (logicType) {
+            case "Bool":
+                conditon.DisplayType = "1";
+                conditon.ConditionValue = '1;0';
+                conditon.FilterType = 0;
+                break;
+            case "SingleParticipant":
+            case "MultiParticipant":
+                conditon.DisplayType = "5";
+                conditon.FilterType = 0;
+                break;
+            case "Association":
+                conditon.FilterType = 0;
+                break;
+            case "Guid"://objectId...
+                conditon.FilterType = 0;
+                break;
+
+
+            case "ShortString":
+                conditon.FilterType = 1;
+                break;
+            case "String":
+                conditon.FilterType = 1;
+                break;
+
+
+            case "Double":
+                conditon.FilterType = 2;
+                break;
+            case "Int":
+                conditon.FilterType = 2;
+                break;
+            case "Long":
+                conditon.FilterType = 2;
+                break;
+            case "Decimal":
+                conditon.FilterType = 2;
+                break;
+            case "DateTime":
+                conditon.FilterType = 2;
+                break;
+            case "TimeSpan":
+                conditon.FilterType = 2;
+                break;
+
+
+            default://其他数据类型无法查询 附件子表审批意见html链接全局变量
+                return;
+        }
+
+        return conditon;
+    }
+
+
+    //获取选项的逻辑类型
+    function getLogicType(item, columns) {
+        var selectItem;
+        $.each(columns, function () {
+            if (this.Value == item.ConditionColumn)
+                selectItem = this;
+        });
+        if (!selectItem) return null;
+        else return selectItem.Extend.LogicType;
+    }
+    //深拷贝
+    function deepCopy(source, parent) {
+        var result = [];
+        if (!parent) result = {};
+        for (var key in source) {
+            result[key] = typeof (source[key]) === 'object' ? deepCopy(source[key], false) : source[key];
+        }
+        return result;
+    }
+    //数组排序工具函数
+    function SortByProperty(property) {
+        function sortFun(obj1, obj2) {
+            if (obj1[property] > obj2[property]) return -1;
+            if (obj1[property] == obj2[property]) return 0;
+            if (obj1[property] < obj2[property]) return 1;
+        }
+        return sortFun;
+    }
+
+</script>
+
+
+
+<!--按钮显示设置组件-->
+<script>
+    function initButtonSettingCommponent() {
+
+        var sortableArrayActions = pageData.Actions;
+        sortableArrayActions.sort(SortByProperty("SortKey"));
+
+        $("#buttonSettings .checkboxlist").sortable({
+            revert: true,
+            cursor: "move",
+            stop: function (e) {
+                // 重新设定index
+                //debugger;
+                $("#buttonSettings .checkboxlist .dragable").each(function (i, v) {
+                    var len = $(".checkboxlist .dragable").length;
+                    var ObjectID = $(v).data('code');
+                    for (var item in sortableArrayActions) {
+                        if (sortableArrayActions[item].ObjectID == ObjectID) {
+                            sortableArrayActions[item].SortKey = (len - 1) - i;
+                            break;
+                        }
+                    }
+                });
+                Vue.nextTick(function () {
+                    sortableArrayActions.sort(SortByProperty("SortKey"));
+                })
+            }
+        });
+
+    }
+</script>
+
+
+<!--更改列表字段组件-->
+<script>
+    function initShowListCommpnent() {
+        debugger;
+        var sortableArrayPropertys = pageData.tmpPropertys;
+        sortableArrayPropertys.sort(SortByProperty("Zindex"));
+        function initDragBoxes() {
+            //debugger;
+            //拖拽事件
+            $("#changeQueryString .boxContent").sortable({
+                revert: true,
+                cursor: "move",
+                start: function (e) {
+                    $(e.toElement).addClass("isMove");
+                },
+                stop: function (e) {
+                    //debugger;
+                    //start stop e.toElement居然在此版本jqeryUI指代不同dom对象
+                    $(e.target).find(".item").removeClass("isMove");
+                    if ($(e.target).parents(".leftBox").length==1) {
+                        $(".leftBox .item").each(function (i, v) {
+                            var len = $(".leftBox .item").length;
+                            var NameValue = $(v).data("code");
+                            for (var item in sortableArrayPropertys) {
+                                if (sortableArrayPropertys[item].NameValue == NameValue) {
+                                    sortableArrayPropertys[item].Zindex = (len - 1) - i;
+                                }
+                            }
+                        });
+                    } else {
+                        $(".rightBox .item").each(function (i, v) {
+                            var len = $(".rightBox .item").length;
+                            var NameValue = $(v).data("code");
+                            for (var item in sortableArrayPropertys) {
+                                if (sortableArrayPropertys[item].NameValue == NameValue) {
+                                    sortableArrayPropertys[item].Zindex = (len - 1) - i;
+                                }
+                            }
+                        });
+                    }
+                    sortableArrayPropertys.sort(SortByProperty("Zindex"));
+                }
+            })
+
+            //更改列表全选
+            $(".toRight").on("dblclick", function () {
+                $(".leftBox  .item").each(function (i, el) {
+                    var parent = $(this).parents(".dragbox");
+                    var NameValue = $(this).data("code");
+                    for (var item in sortableArrayPropertys) {
+                        if (sortableArrayPropertys[item].NameValue == NameValue) {
+                            sortableArrayPropertys[item].Visible = !sortableArrayPropertys[item].Visible;
+                            sortableArrayPropertys[item].Zindex = -1;
+                            break;
+                        }
+                    }
+                    Vue.nextTick(function () {
+                        //排序
+                        sortableArrayPropertys.sort(SortByProperty("Zindex"));
+                        if (parent.hasClass("leftBox")) {
+                            Vue.nextTick(function () {
+                                $(".rightBox .item").each(function (i, v) {
+                                    var len = $(".rightBox .item").length;
+                                    var NameValue = $(v).data("code");
+                                    for (var item in sortableArrayPropertys) {
+                                        if (sortableArrayPropertys[item].NameValue == NameValue) {
+                                            sortableArrayPropertys[item].Zindex = (len - 1) - i;
+                                        }
+                                    }
+                                });
+                            })
+                        } else {
+                            Vue.nextTick(function () {
+                                $(".leftBox .item").each(function (i, v) {
+                                    var len = $(".leftBox .item").length;
+                                    var NameValue = $(v).data("code");
+                                    for (var item in sortableArrayPropertys) {
+                                        if (sortableArrayPropertys[item].NameValue == NameValue) {
+                                            sortableArrayPropertys[item].Zindex = (len - 1) - i;
+                                        }
+                                    }
+                                });
+                            })
+                        }
+                    });
+                })
+            })
+
+            $(".toLeft").on("dblclick", function () {
+                $(".rightBox .item").each(function (i, el) {
+                    var parent = $(this).parents(".dragbox");
+                    var NameValue = $(this).data("code");
+                    for (var item in sortableArrayPropertys) {
+                        if (sortableArrayPropertys[item].NameValue == NameValue) {
+                            sortableArrayPropertys[item].Visible = !sortableArrayPropertys[item].Visible;
+                            sortableArrayPropertys[item].Zindex = -1;
+                            break;
+                        }
+                    }
+                    Vue.nextTick(function () {
+                        //排序
+                        sortableArrayPropertys.sort(SortByProperty("Zindex"));
+                        if (parent.hasClass("leftBox")) {
+                            Vue.nextTick(function () {
+                                $(".rightBox .item").each(function (i, v) {
+                                    var len = $(".rightBox .item").length;
+                                    var NameValue = $(v).data("code");
+                                    for (var item in sortableArrayPropertys) {
+                                        if (sortableArrayPropertys[item].NameValue == NameValue) {
+                                            sortableArrayPropertys[item].Zindex = (len - 1) - i;
+                                        }
+                                    }
+                                });
+                            })
+                        } else {
+                            Vue.nextTick(function () {
+                                $(".leftBox .item").each(function (i, v) {
+                                    var len = $(".leftBox .item").length;
+                                    var NameValue = $(v).data("code");
+                                    for (var item in sortableArrayPropertys) {
+                                        if (sortableArrayPropertys[item].NameValue == NameValue) {
+                                            sortableArrayPropertys[item].Zindex = (len - 1) - i;
+                                        }
+                                    }
+                                });
+                            })
+                        }
+                    });
+                })
+            })
+           
+            //item双击事件
+            $("#changeQueryString").on("dblclick", ".item", function () {
+                var parent = $(this).parents(".dragbox");
+                var NameValue = $(this).data("code");
+                for (var item in sortableArrayPropertys) {
+                    if (sortableArrayPropertys[item].NameValue == NameValue) {
+                        sortableArrayPropertys[item].Visible = !sortableArrayPropertys[item].Visible;
+                        sortableArrayPropertys[item].Zindex = -1;
+                        break;
+                    }
+                }
+                Vue.nextTick(function () {
+                    //排序
+                    sortableArrayPropertys.sort(SortByProperty("Zindex"));
+                    if (parent.hasClass("leftBox")) {
+                        Vue.nextTick(function () {
+                            $(".rightBox .item").each(function (i, v) {
+                                var len = $(".rightBox .item").length;
+                                var NameValue = $(v).data("code");
+                                for (var item in sortableArrayPropertys) {
+                                    if (sortableArrayPropertys[item].NameValue == NameValue) {
+                                        sortableArrayPropertys[item].Zindex = (len - 1) - i;
+                                    }
+                                }
+                            });
+                        })
+                    } else {
+                        Vue.nextTick(function () {
+                            $(".leftBox .item").each(function (i, v) {
+                                var len = $(".leftBox .item").length;
+                                var NameValue = $(v).data("code");
+                                for (var item in sortableArrayPropertys) {
+                                    if (sortableArrayPropertys[item].NameValue == NameValue) {
+                                        sortableArrayPropertys[item].Zindex = (len - 1) - i;
+                                    }
+                                }
+                            });
+                        })
+                    }
+                });
+            });
+            //>&<单击事件
+            $("#changeQueryString .boxOperation div").click(function () {
+                if (!$(this).hasClass("clickable")) {
+                    return;
+                };
+                $("#changeQueryString .boxContent .item.selected").each(function (i, v) {
+                    var NameValue = $(v).data("code");
+                    for (var item in sortableArrayPropertys) {
+                        if (sortableArrayPropertys[item].NameValue == NameValue) {
+                            sortableArrayPropertys[item].Visible = !sortableArrayPropertys[item].Visible;
+                            sortableArrayPropertys[item].Zindex = -1;
+                        }
+                    }
+                })
+                //已经更新了数据，但是Dom很有可能没有更新,Vue异步更新Dom
+                if ($(this).hasClass("ltr")) {
+                    Vue.nextTick(function () {
+                        //排序
+                        sortableArrayPropertys.sort(SortByProperty("Zindex"));
+                        Vue.nextTick(function () {
+                            $(".rightBox .item").each(function (i, v) {
+                                var len = $(".rightBox .item").length;
+                                var NameValue = $(v).data("code");
+                                for (var item in sortableArrayPropertys) {
+                                    if (sortableArrayPropertys[item].NameValue == NameValue) {
+                                        sortableArrayPropertys[item].Zindex = (len - 1) - i;
+                                    }
+                                }
+                            });
+                        })
+                    });
+                } else {
+                    Vue.nextTick(function () {
+                        sortableArrayPropertys.sort(SortByProperty("Zindex"));
+                        Vue.nextTick(function () {
+                            $(".leftBox .item").each(function (i, v) {
+                                var len = $(".leftBox .item").length;
+                                var NameValue = $(v).data("code");
+                                for (var item in sortableArrayPropertys) {
+                                    if (sortableArrayPropertys[item].NameValue == NameValue) {
+                                        sortableArrayPropertys[item].Zindex = (len - 1) - i;
+                                    }
+                                }
+                            });
+                        })
+                    });
+                }
+                $(this).removeClass("clickable");
+            });
+            //item单击事件
+            $("#changeQueryString").on("click", ".item", function () {
+                var parent = $(this).parents(".dragbox");
+                if (!$(this).hasClass("selected")) {
+                    $("#changeQueryString .item").removeClass("selected");
+                    $("#changeQueryString .boxOperation div").removeClass("clickable");
+                    $(this).addClass("selected");
+                    if (parent.hasClass("leftBox")) {
+                        $("#changeQueryString .ltr").addClass("clickable");
+                    } else {
+                        $("#changeQueryString .rtl").addClass("clickable");
+                    }
+                } else {
+                    $(this).removeClass("selected");
+                    if (parent.hasClass("leftBox")) {
+                        $("#changeQueryString .ltr").removeClass("clickable");
+                    } else {
+                        $("#changeQueryString .rtl").removeClass("clickable");
+                    }
+                }
+            });
+        };
+        initDragBoxes();
+
+    }
+
+    //Array.prototype.sort(function (sortFunc) {
+    //    for (var i = 0; i < this.length; i++)
+    //    {
+
+    //    }
+    //})
+</script>
+
+
+<!--ui组件-各种弹出框提示框 -->
+<script>
+    $(function () {
+        
+        if (!IsSchemaPublished) return;
+
+        //提示框
+        $(document).tooltip();
+        $("#ask").tooltip({
+            tooltipClass: "askTooltip",
+            content: function () {
+                return '1、支持html格式字符串,如:"&lt;a&gt;{Name}&lt;\/a&gt;"' + "<br/>" +
+                '2、支持时间格式化，如：yyyy-MM-dd等' + "<br/>";
+            }
+        });
+
+        //基础设置
+        $("#basicSettingsButton").click(function () {
+            $("#basicSettings").dialog({
+                modal: true,
+                width: 420,
+                resizable: false,
+                buttons: {
+                    "确定": function () {
+                        $(this).dialog("close");
+                    }
+                },
+                open: function () {
+                    //按钮中英文切换
+                    var OK = $.Languages.GlobalButton.Confirm;
+                    $buttomPanel = $(this).next();
+                    $buttomPanel.find("button:first").html(OK);
+                }
+            })
+        });
+
+
+        //按钮显示设置
+        $("#buttonSettingsButton").click(function () {
+            $("#buttonSettings").dialog({
+                modal: true,
+                width: 420,
+                resizable: false,
+                buttons: {
+                    "确定": function () {
+                        queryModel.saveData();//保存数据
+                        $(this).dialog("close");
+                    }
+                },
+                open: function () {
+                    //按钮中英文切换
+                    var OK = $.Languages.GlobalButton.Confirm;
+                    $buttomPanel = $(this).next();
+                    $buttomPanel.find("button:first").html(OK);
+                }
+            })
+        });
+
+        //列表设置
+        $("#listSettingsButton").click(function () {
+            $("#listSettings").dialog({
+                modal: true,
+                width: 420,
+                resizable: false,
+                buttons: {
+                    "确定": function () {
+                        if (WidthValidationFlag) { 
+                        $(this).dialog("close");
+                        queryModel.saveData();//保存数据
+                    }
+                    }
+                },
+                open: function () {
+                    //按钮中英文切换
+                    var OK = $.Languages.GlobalButton.Confirm;
+                    $buttomPanel = $(this).next();
+                    $buttomPanel.find("button:first").html(OK);
+                }
+            });
+
+            //设置滚动条
+            $("#listSettings").niceScroll("#listSettingsScroll", { cursorcolor: "#37ABFD", cursoropacitymax: 0.7, boxzoom: true, touchbehavior: false, boxzoom: false }).resize();
+            $("#listSettingsScroll").css({ "transform": "translate3d(0px, 0px, 0px)" });
+        });
+
+        //列表查询设置
+        $("#changeQueryStringButton").click(function () {
+            pageData.tmpPropertys = [];
+            //初始化tmpPropertys
+            for(var i in pageData.Propertys){
+                var item = {};
+                Object.assign(item, pageData.Propertys[i]);
+                pageData.tmpPropertys.push(item);
+            }
+            //初始化拖动组件
+            initShowListCommpnent();
+
+
+            $("#changeQueryString").dialog({
+                modal: true,
+                width: 420,
+                resizable: false,
+                buttons: {
+                    "确定": function () {
+                        $(this).dialog("close");
+                        for (var i in pageData.tmpPropertys) {
+                            Object.assign(pageData.Propertys[i], pageData.tmpPropertys[i]);
+                        }
+                        pageData.tmpPropertys = [];
+                        queryModel.saveData();//保存数据
+                    },
+                    "取消": function () {
+                        $(this).dialog("close");
+                        pageData.tmpPropertys = [];
+                    }
+                },
+                open: function () {
+                    //按钮中英文切换
+                    var OK = $.Languages.GlobalButton.Confirm;
+                    var Cancel = $.Languages.GlobalButton.Cancel;
+                    $buttomPanel = $(this).next();
+                    $buttomPanel.find("button:first").html(OK);
+                    $buttomPanel.find("button:last").html(Cancel);
+                }
+            });
+            //设置滚动条
+            $(".boxContent").niceScroll({ cursorcolor: "#37ABFD", cursoropacitymax: 0.7, boxzoom: true, touchbehavior: false, boxzoom: false }).resize();
+
+        });
+
+
+        //更改查询字段
+        //$("#changeQueryInput").webuiPopover({
+        //    url: "#changeQueryInputBox",
+        //    trigger: "click",
+        //    animation: "pop",
+        //    width: 400,
+        //    height: 400,
+        //    arrow: false,
+        //    //placement:"bottom"
+        //});
+        $("#changeQueryInput").click(function () {
+            pageData.tmpConditions = [];
+            for (var i = 0; i < pageData.Conditions.length; i++) {
+
+                var item = {};
+                Object.assign(item, pageData.Conditions[i]);
+                //双向绑定
+                pageData.tmpConditions.push(item);
+            }
+            //检查全选状态
+            pageData.tmpConditionsAllSelected = true;
+            for (var i in pageData.tmpConditions) {
+                if (pageData.tmpConditions[i].Visible == false) {
+                    pageData.tmpConditionsAllSelected = false;
+                    break;
+                }
+            }
+            
+
+            $("#changeQueryInputBox").dialog({
+                modal: true,
+                width: 420,
+                resizable: false,
+                buttons: {
+                    "确定": function () {
+                        $(this).dialog("close");
+
+                        for (var i = 0; i < pageData.Conditions.length; i++) {
+                           
+                            Object.assign(pageData.Conditions[i], pageData.tmpConditions[i]);
+                        }
+                        queryModel.saveData();//保存数据
+                    },
+                    "取消": function () {
+                        pageData.tmpConditions = [];
+                        $(this).dialog("close");
+                    }
+                },
+                open: function () {
+                    //按钮中英文切换
+                    var OK = $.Languages.GlobalButton.Confirm;
+                    var Cancel = $.Languages.GlobalButton.Cancel;
+                    $buttomPanel = $(this).parent('div');
+                    $buttomPanel.find("button:first").html(OK);
+                    $buttomPanel.find("button:last").html(Cancel);
+
+                }
+            })
+            //设置滚动条
+            $("#changeQueryInputBox").niceScroll({ cursorcolor: "#37ABFD", cursoropacitymax: 0.7, boxzoom: true, touchbehavior: false, boxzoom: false }).resize();
+
+        });
+
+
+        //查询字段设置
+        $("#queryInputSettingButton").click(function () {
+            $("#queryInputSetting").dialog({
+                modal: true,
+                width: 700,
+                resizable: false,
+                buttons: {
+                    "确定": function () {
+                        $(this).dialog("close");
+                        queryModel.saveData();//保存数据
+                    }
+                },
+                open: function () {
+                    //debugger
+                    //按钮中英文切换
+                    var OK = $.Languages.GlobalButton.Confirm;
+                    $buttomPanel = $(this).parent('div');
+                    $buttomPanel.find("button:first").html(OK);
+                }
+            })
+            //设置滚动条
+            $("#queryInputSetting").niceScroll({ cursorcolor: "#37ABFD", cursoropacitymax: 0.7, boxzoom: true, touchbehavior: false, boxzoom: false }).resize();
+
+        });
+
+        //折叠不折叠
+        function collapseCallBack() {
+            var RunQueryToolBarHeight = $(".RunQueryToolBar").is(":visible") ? $(".RunQueryToolBar").height() : 0
+            console.log(RunQueryToolBarHeight);
+            var screenHeight = $(window).height() - $("#toolBar").height() - $(".setBar").height() - $("#panelSearch").height() - $(".l-panel-bar").height() - $(".resultBar").height() - RunQueryToolBarHeight;
+            $("#masterDataGridgrid").css("height", screenHeight + "px");
+            $("#masterDataGridgrid").find(".l-grid-body").css("height", screenHeight - 40 + "px");
+            console.log($("#panelSearch").height());
+            console.log(screenHeight);
+        }
+        $("#runBizQuery .updownButton").click(function () {
+            if ($(this).hasClass("xup")) {
+                $(".RunQueryToolBar").slideUp(collapseCallBack);
+                $(this).removeClass("xup").addClass("xdown");
+            } else {
+                $(".RunQueryToolBar").slideDown(collapseCallBack);
+                $(this).removeClass("xdown").addClass("xup");
+            }
+        });
+        $(".querySet .updownButton").click(function () {
+            if ($(this).hasClass("xup")) {
+                $("#tableSearch").slideUp(collapseCallBack);
+                $(this).removeClass("xup").addClass("xdown");
+            } else {
+                $("#tableSearch").slideDown(collapseCallBack);
+                $(this).removeClass("xdown").addClass("xup");
+            }
+        })
+
+
+    });
+</script>
+
+
+
+
+<!--查询结果显示-->
+<script src="../WFRes/_Scripts/bizquery.js" type="text/javascript"></script>
+<script>
+    
+    var CustomColumns = [];//用户自定义列
+    var BizQueryActions = [];//工具栏按钮
+    var FilterData = [];//查询条件数组
+    var DisplayFormats = [];//显示格式
+    var GirdColumns = [];//表格显示列
+    var Controller = $.Controller.RunBizQuery.GetGridData;//表格数据请求地址
+    var GridParam = { schemaCode: SchemaCode, queryCode: QueryCode };//表格数据请求参数
+    var isFrame = false;//是否在frame中
+    var isRetrun = false;//是否返回
+    var p = false;
+    var sourceObj;
+    var outputPropertyMappings = "";
+    var ActionVisible = "false";//是否显示工具栏
+    var Param_BizObjectID = "BizObjectID";
+    var Param_SchemaCode = "SchemaCode";
+    var BizObjectHandlerUrl = $.Controller.RunBizQuery.InvokeMethod;
+    var LoginUrl = _PORTALROOT_GLOBAL + '/index.html#/platform/login';
+    var EditBizObjectUrl = $.Controller.RunBizQuery.EditBizObject;
+    var ListDefault = 0;
+    var inputMappings = null;
+    $(function () {
+        if (!IsSchemaPublished || QueryObject.length==0) return;
+        initPage();
+        BuildFilter(isFrame);
+        BuildPage();
+        GridParam = GetGridParam();
+        if (ListDefault != 0) {
+            LoadData();
+        }
+        //查询
+        $("#btnSearch").bind('click', function () {
+            //debugger;
+            GridParam = GetGridParam();
+            DocumentReady();
+            ReloadData();
+            //LoadData();
+        })
+
+    })
+
+
+
+
+    //初始化页面数据
+    function initPage() {
+        if (SchemaCode && pageData.BizQuery.QueryCode) {
+            $.ajax({
+                url: $.Controller.RunBizQuery.GetRunBizQueryData,
+                type: 'get',
+                dataType: "json",
+                data: { schemaCode: SchemaCode, queryCode: pageData.BizQuery.QueryCode },
+                async: false,//同步执行
+                success: function (result) {
+                    if (result.Success) {
+                        QueryCode = pageData.BizQuery.QueryCode;
+                        GridParam["queryCode"] = QueryCode;
+                        
+                        isFrame = result.Extend.isFrame;
+                        isReturn = result.Extend.isReturn;
+                        p = isFrame ? window.parent : window.opener;
+                        if (result.CtrlID) {
+                            sourceObj = p == null ? null : (p.$ == null ? null : p.$.find("#" + result.Extend.CtrlID + ""));
+                        }
+                        outputPropertyMappings = result.Extend.outputPropertyMappings;
+                        ActionVisible = result.Extend.ActionVisible;
+                        Param_BizObjectID = result.Extend.Param_BizObjectID;
+                        Param_SchemaCode = result.Extend.Param_SchemaCode;
+                        GirdColumns = result.Extend.GirdColumns;
+                        //系统保留字段变成中文
+                        var array = ["Name", "CreatedBy", "CreatedByParentId", "OwnerId", "OwnerParentId", "CreatedTime", "ModifiedTime"];
+                        $.each(GirdColumns, function (i, v) {
+                            if (array.indexOf(this.display) != -1) {
+                                this.display = $.Lang("BizQuery.Propertys." + this.display);
+                            }
+                            this.render = function (row, rowindex, value) {
+                                if (value && (value + "").indexOf("</a>") == -1) {
+                                    return "<span title='" + value + "'>" + value + "</span>"
+                                }
+                                return value;
+                            }
+                        });
+                        BizQueryActions = result.Extend.BizQueryActions;
+                        //按钮按sortkey排序
+                        BizQueryActions.sort(SortByProperty("SortKey"));
+                        DisplayFormats = result.Extend.DisplayFormats;
+                        FilterData = result.Extend.FilterData;
+                        ListDefault = result.Extend.ListDefault;
+                        initFilterData();
+                    } else {
+                        parent.$.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        }
+    };
+
+    //过滤已删除的项
+    function initFilterData()
+    {
+        var items = pageData.ConditionColumns;
+        if (FilterData && FilterData.length > 0) {
+            for (var j = 0; j < FilterData.length; j++) {
+                //本来存在的现已经删除
+                var flag = false;
+                for (var t = 0; t < items.length; t++) {
+                    if (FilterData[j].PropertyCode == items[t].Value) {
+                        flag = true;
+                    }
+                }
+                if (!flag) {
+                    FilterData.splice(j--, 1);
+                }
+            }
+        }
+    }
+
+</script>
+
+
+<div v-if=""></div>
+<div class="queryListContainer" id="queryListContainer" v-else>
+
+        <!--查询条件设置-->
+        <div class="editBizQuery" id="editBizQuery">
+            <div id="toolBar" class="toolBar">
+                <ul>
+                    <li>
+                        <a v-on:click="saveData" href="javascript:void(0)" data-lang="GlobalButton.Save" id="btnSave">保存</a>
+                    </li>
+                    <li>
+                        <a href="javascript:void(0)" data-lang="BizQuery.BasicSet" id="basicSettingsButton">基础设置</a>
+                    </li>
+                    <li>
+                        <a href="javascript:void(0)" data-lang="BizQuery.QuerySet" id="queryInputSettingButton">查询字段设置</a>
+                    </li>
+                    <li>
+                        <a href="javascript:void(0)" data-lang="BizQuery.ListSet" id="listSettingsButton">列表设置</a>
+                    </li>
+                    <li>
+                        <a href="javascript:void(0)" data-lang="BizQuery.ButtonDisplaySet" id="buttonSettingsButton">按钮显示设置</a>
+                    </li>
+                    <li>
+                        <a href="javascript:void(0)" data-lang="BizQuery.CustomButton" id="" v-on:click="ModifyAction()">自定义按钮</a>
+                    </li>
+                    <li>
+                        <a href="javascript:void(0)" data-lang="BizQuery.SystemParamMap" id="" v-on:click="bindSystemParams()">系统参数映射</a>
+                    </li>
+                </ul>
+
+
+
+                <!--弹窗-->
+                <!--基础设置-->
+                <!--编码如果存在则不可编辑-->
+                <div class="dialogContainer basicSettings" id="basicSettings" title="{{LanData.BizQuery.BasicSet}}">
+                    <validator name="formValidator">
+                        <div class="row cl rel">
+                            <label data-lang="BizQuery.QueryCode">编码</label>
+                            <input type="text" placeholder="请输入" class="fr" v-model="BizQuery.QueryCode" maxlength="32" detect-change="on" detect-blur="on" initial="off" v-validate:querycode="['space','required']" v-show="isQueryCodeEmpty" />
+                            <input type="text" placeholder="请输入" class="fr" v-model="BizQuery.QueryCode" maxlength="32" detect-change="on" detect-blur="on" initial="off" v-validate:querycode="['space','required']" disabled v-show="!isQueryCodeEmpty" />
+                            <span style="right:0;top:32px;" class="formValid" v-if="$formValidator.querycode.invalid">{{LanData.msgGlobalString.NotSpace}}</span>
+                        </div>
+                        <div class="row cl rel">
+                            <label data-lang="BizQuery.DisplayName">显示名称</label><input type="text" placeholder="请输入" class="fr" v-model="BizQuery.DisplayName" maxlength="32" detect-change="on" detect-blur="on" initial="off" v-validate:displayname="['space','required']" />
+                            <span style="right:0;top:32px;" class="formValid" v-if="$formValidator.displayname.invalid">{{LanData.msgGlobalString.NotSpace}}</span>
+                        </div>
+                    </validator>
+                </div>
+
+
+                
+
+                <!--自定义按钮-->
+                <div class="dialogContainer customButtonSettings" id="customButtonSettings" title="{{LanData.BizQuery.CustomButton}}">
+                    <div class="row cl rel">
+                        <label data-lang="BizQuery.ActionCode">功能编码</label>
+                        <input type="text" placeholder="请输入" class="fr" v-model="tmpAction.ActionCode" maxlength="32" id="ActionCode" />
+                    </div>
+                    <div class="row cl rel">
+                        <label data-lang="BizQuery.DisplayName">显示名称</label>
+                        <input type="text" placeholder="请输入" class="fr" v-model="tmpAction.DisplayName" maxlength="32" id="DisplayName" />
+                    </div>
+                    <div class="row cl rel">
+                        <label data-lang="BizQuery.ActionType">动作类型</label>
+                        <select v-model="tmpAction.ActionType" class="fr">
+                            <option v-for="option in ActionTypes" v-bind:value="option.Value">{{option.Text}}</option>
+                        </select>
+                    </div>
+                    <div class="row cl rel" v-show="tmpAction.ActionType==0">
+                        <label data-lang="BizQuery.ActionTypes.BizMethod">业务方法</label>
+                        <select v-model="tmpAction.ActionMethod" class="fr">
+                            <option v-for="option in ActionMethods" v-bind:value="option.Value">{{option.Text}}</option>
+                        </select>
+                    </div>
+                    <div class="row cl rel" v-show="tmpAction.ActionType==1">
+                        <label data-lang="BizQuery.ActionTypes.BizMethod">业务方法</label>
+                        <select v-model="tmpAction.ActionSheet" class="fr">
+                            <option v-for="option in ActionSheets" v-bind:value="option.Value">{{option.Text}}</option>
+                        </select>
+                    </div>
+                    <div class="row cl rel" v-show="tmpAction.ActionType==2">
+                        <label data-lang="BizQuery.LinkUrl">链接url</label>
+                        <textarea class="fr" v-model="tmpAction.Url"></textarea>
+                    </div>
+
+
+                    <div class="row cl rel">
+                        <label v-show="tmpAction.ActionType==0" for="_confirm" style="margin-right:15px;"><input v-model="tmpAction.Confirm" type="checkbox" id="_confirm" style="margin-right: 5px; vertical-align: -5%;" /><span data-lang="BizQuery.Confirm">确认</span></label>
+                        <label v-show="tmpAction.ActionType==1" for="_withId" style="margin-right:15px;"><input v-model="tmpAction.WithID" type="checkbox" id="_withId" style="margin-right: 5px; vertical-align: -5%;" /><span data-lang="BizQuery.WithID">传入ID</span></label>
+                        <label v-show="tmpAction.ActionType==0" for="_withId" style="margin-right:15px;pointer-events:none;"><input v-model="tmpAction.WithID=1" type="checkbox" id="_withId" style="margin-right: 5px; vertical-align: -5%;" disabled /><span data-lang="BizQuery.WithID">传入ID</span></label>
+
+                    </div>
+
+
+                    <div class="row cl rel" v-show="tmpAction.ActionType==1">
+                        <label data-lang="BizQuery.SaveCompleted">保存后动作</label>
+                        <select v-model="tmpAction.SaveCompleted" class="fr">
+                            <option v-for="option in SaveCompletes" v-bind:value="option.Value">{{option.Text}}</option>
+                        </select>
+                    </div>
+
+                </div>
+
+
+                <!--按钮显示设置-->
+                <div class="dialogContainer buttonSettings" id="buttonSettings" title="{{LanData.BizQuery.ButtonDisplaySet}}">
+                    <div class="checkboxlist">
+                        <label class="dragable" v-for="item in Actions" data-code="{{item.ObjectID}}" key="{{item.ObjectID}}">
+                            <input type="checkbox" name="" v-model="item.Visible">
+                            {{item.DisplayName}}
+                            <!--:{{item.SortKey}}-->
+                            <!--<span style="color:red;font-size:12px;" v-if="item.IsDefault" data-lang="BizQuery.DefaultButtom">系统默认按钮，不可删除</span>-->
+                            <!--{{item.DisplayName}}-->
+                            <!--<div class="deleteItem" v-on:click="delAction(item)" v-if="!item.IsDefault">
+                                <span class="ui-icon ui-icon-closethick">delete</span>
+                            </div>-->
+
+                            <div class="editItem" v-on:click="editItem(item)">
+                                <span class="ui-icon ui-icon-wrench">edit</span>
+                            </div>
+                            <div class="deleteItem" v-on:click="delAction(item)">
+                                <span class="ui-icon ui-icon-closethick">delete</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <!--列表设置-->
+                <div class="dialogContainer listSettings" id="listSettings" title="{{LanData.BizQuery.ListSet}}">
+                    <div id="listSettingsScroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th data-lang="BizQuery.PropertyWidth">列宽</th>
+                                    <th><span data-lang="BizQuery.DisplayFormat"> 显示格式</span> <img id="ask" src="/portal/admin/ProcessModel/queryList/images/aask.png" title="" class="dialogAsk"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in Propertys" v-if="item.Visible">
+                                    <td><label title="{{item.Name}}">{{item.Name}}</label></td>
+                                    <!--<td>
+                            <input type="checkbox" v-model="item.Visible" />
+                        </td>-->
+                                    <td>
+                                        <input v-model="item.Width" type="text" v-on:keyup="limitInt($event)" v-on:blur="widthValidate($event)" />
+                                    </td>
+                                    <td>
+                                        <input v-model="item.Foramt" type="text" />
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!--更改列表字段-->
+                <div class="dialogContainer changeQueryString" id="changeQueryString" title="{{LanData.BizQuery.ChangeField}}" >
+                    <div class="dragBoxes">
+                        <div class="leftBox dragbox fl">
+                            <div class="boxTitle" data-lang="BizQuery.HiddenField">隐藏字段(双击添加显示字段)</div>
+                            <div class="boxContent">
+                                <!--<div class="item" v-for="item in Propertys" v-if="item.Visible==false" :key="item.NameValue" :data-code="item.NameValue">{{item.Name}}:{{item.Zindex}}</div>-->
+                                <div class="item" v-for="item in tmpPropertys" v-if="item.Visible==false" :key="item.NameValue" :data-code="item.NameValue">{{item.Name}}</div>
+                            </div>
+                        </div>
+                        <div class="boxOperation fl">
+                            <div class="toRight">>></div>
+                            <div class="ltr">></div>
+                            <div class="rtl"><</div>
+                            <div class="toLeft"><<</div>
+                        </div>
+                        <div class="rightBox dragbox fl">
+                            <div class="boxTitle" data-lang="BizQuery.DisplayedField">显示字段</div>
+                            <div class="boxContent">
+                                <!--<div class="item" v-for="item in Propertys" v-if="item.Visible==true" :key="item.NameValue" :data-code="item.NameValue">{{item.Name}}:{{item.Zindex}}</div>-->
+                                <div class="item" v-for="item in tmpPropertys" v-if="item.Visible==true" :key="item.NameValue" :data-code="item.NameValue">{{item.Name}}</div>
+                            </div>
+                        </div>
+                        <div class="cl"></div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!--更改查询字段-->
+            <div id="changeQueryInputBox" title="{{LanData.BizQuery.ChangeQueryBuilder}}" style="display:none;" class="changeQueryInputBox dialogContainer">
+                <label>
+                    <input type="checkbox" name="conditionvisibility" @click="selectAll($event,tmpConditions,'Visible')" v-if="tmpConditionsAllSelected" checked/>
+                    <input type="checkbox" name="conditionvisibility" @click="selectAll($event,tmpConditions,'Visible')" v-if="!tmpConditionsAllSelected" />
+                    {{LanData.BizQuery.SelectAll}}
+                </label>
+                <label v-for="item in tmpConditions">
+                    <input type="checkbox" name="conditionvisibility" @click="selectItem($event,item)" v-if="item.Visible" checked />
+                    <input type="checkbox" name="conditionvisibility" @click="selectItem($event,item)" v-if="!item.Visible"/>
+                    <span v-for="i in ConditionColumns" v-if="item.ConditionColumn==i.Value">{{i.Text}}</span>
+                </label>
+            </div>
+
+
+
+
+           <!--系统参数设置-->
+            <div id="SystemParamsBind" title="{{LanData.BizQuery.SystemParamMap}}" style="display:none;" class="SystemParamsBind dialogContainer">
+                <div class="row cl rel">
+                    <label data-lang="BizQuery.SystemParam">系统参数</label>
+                    <select v-model="tmpSystemParamsBind.Value" class="fr">
+                        <option value=""></option>
+                        <option v-for="item in DefaultValues" v-bind:value="item.Value" v-bind:selected="tmpSystemParamsBind.Value==item.Value">{{item.Text}}</option>
+                    </select>
+                </div>
+                <div class="row cl rel">
+                    <label data-lang="BizQuery.FormProperty">表单属性</label>
+                    <select v-model="tmpSystemParamsBind.ConditionColumn" class="fr">
+                        <option value=""></option>
+                        <option v-for="item in Conditions" v-bind:value="item.ConditionColumn" v-bind:selected="tmpSystemParamsBind.ConditionColumn==item.ConditionColumn">
+                            {{item.ConditionColumn | getTextFromValue}}
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <!--查询字段设置-->
+            <!--dialogContainer-->
+            <div class="dialogContainer queryInputSetting" id="queryInputSetting" title="{{LanData.BizQuery.QuerySet}}">
+                <table>
+                    <tr>
+                        <th data-lang="BizQuery.PropertyName">属性名称</th>
+                        <th data-lang="BizQuery.MatchType">匹配类型</th>
+                        <th data-lang="BizQuery.DefaultValue">默认值</th>
+                        <th data-lang="BizQuery.DisplayType">显示类型</th>
+                        <th>
+                            <span data-lang="BizQuery.DisplayValue">显示的值</span>
+                            <img class="dialogAsk" src="/portal/admin/ProcessModel/queryList/images/aask.png" title="{{LanData.BizQuery.ConditionNotice}}">
+                        </th>
+                    </tr>
+                    <tr v-for="item in Conditions" v-if="item.FilterType!='3'&&item.Visible==true">
+                        <td>
+                            <span v-for="i in ConditionColumns" v-if="i.Value==item.ConditionColumn" class="aConditionSettingsLabel" v-bind:title="i.Text">{{i.Text}}</span>
+                        </td>
+                        <td>
+                            <select v-model="item.FilterType" class="fr">
+                                <option v-for="option in FilterTypes" v-bind:value="option.Value" v-if="option.Value!='3'">{{option.Text}}</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" v-model="item.DefaultValue" />
+                        </td>
+                        <td>
+                            <select v-model="item.DisplayType" class="fr">
+                                <option v-for="option in item.DisplayTypes" v-bind:value="option.Value">{{option.Text}}</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" v-model="item.ConditionValue" type="text" maxlength="200" class="fr" v-if="conditionValueShow(item)" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+           
+
+
+            <div class="querySet">
+                <div class="setBar">
+                    <span class="setBarLabel" data-lang="BizQuery.Conditons">查询条件</span>
+                    <span class="setCollapse fright">
+                        <i class="xup updownButton"></i>
+                    </span>
+                    <span class="setButton fright" id="changeQueryInput" ><img src="/portal/admin/ProcessModel/queryList/images/set.png" style="margin-right: 5px; vertical-align: -5%;"><span data-lang ="BizQuery.ChangeQueryBuilder">更改查询字段</span></span>
+                </div>
+                <div id="panelSearch" style="max-height: 200px;overflow: auto;">
+                    <div class="H3Panel">
+                        <div id="tableSearch"></div>
+                    </div>
+                </div>
+            </div>
+
+
+        <!--查询结果-->
+        <div class="runBizQuery" id="runBizQuery">
+            <div class="queryResult">
+                <div class="resultBar">
+                    <span class="resultBarLabel" data-lang="BizQuery.List">列表内容</span>
+                    <span class="resultCollapse fright">
+                        <i class="xup updownButton"></i>
+                    </span>
+                    <span class="setButton fright changeQueryStringButton" id="changeQueryStringButton" ><img src="/portal/admin/ProcessModel/queryList/images/set.png" style="margin-right: 5px; vertical-align: -5%;"><span data-lang="BizQuery.ChangeField">更改列表字段</span></span>
+                </div>
+                <div class="RunQueryToolBar">
+                    <a href="javascript:void(0)" id="btnSearch" data-icon="fa fa-search" data-lang="GlobalButton.Search">查询</a>
+                    <div id="RunQueryToolBar"></div>
+                </div>
+                
+                <div class="H3Panel">
+                    <div id="excludePanel">
+                        <div id="masterDataGrid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+</div><!--queryListContainer-->
+<style>
+    .toRight,.toLeft {
+        margin:10px 0px;
+    }
+    .l-panel-bar{
+        position:fixed;
+        width:100%;
+        bottom:0;
+
+    }
+        .l-panel-bar input {
+            height:18px !important;
+        }
+         .ui-tooltip-content {
+            word-wrap: break-word;
+        }
+    /*.l-panel-body {
+        overflow: scroll;
+    }
+
+    .l-frozen .l-grid2 {
+    }
+
+    .l-grid-body.l-grid-body2.l-scroll {
+        overflow: scroll;
+    }
+
+    .l-frozen .l-grid2 .l-grid-body {
+        overflow: scroll;
+    }
+
+    .l-grid-body.l-grid-body2 > .l-grid-body-inner {
+        overflow: scroll;
+    }
+        */
+    .l-grid-row-cell, .l-grid-body-table div {
+        border: none;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+    /*报表选人控件中间文字太长显示异常*/
+    .SelectorPanel .task {
+        text-align: left;
+        display: flex;
+    }
+
+        .SelectorPanel .task .task-title {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+
+</style>

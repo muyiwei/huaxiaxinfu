@@ -1,0 +1,525 @@
+﻿<script>
+
+    var pageData = {
+        ExecutionType: {},//执行方式
+        DecisionMatrix: {},//决策表类型
+        DecisionMatrixScope: {},//作用域
+        ResultFields: {},//返回结果
+        BizRuleDecisionMatrix: { DecisionMatrixType: "Script", Scope: "Public", ResultField: "", RowExecutionType: "First", ColumnExecutionType: "First" },//赋默认值
+        LanData: $.Languages
+    }
+
+    $(function () {
+        InitPageData();
+
+        if (!pageData.BizRuleDecisionMatrix.ObjectID) {
+            setControlUsable("0", $("a.ShowAfterSave"))
+        }
+
+        var model = new Vue({
+            el: "#formValidators",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        SaveData();
+                    }
+                },
+                remove: function (event) {
+                    Remove();
+                }
+            }
+        });
+
+        if (!pageData.BizRuleDecisionMatrix.ObjectID) {
+            $("#btnEdit").remove();
+
+            $("#dvShowEdit").remove();
+            $("#plExecutionTypeProperty").remove();
+        }
+        try {
+            $("#H3ToolBar").AspLinkToolBar();
+            $(".H3Panel").BuildPanel({ excludeIDs: ["ColumnPanel", "RowPanel"] });
+            $("#ColumnToolbar").AspLinkToolBar({ IsFixed: false });
+            $("#RowToolbar").AspLinkToolBar({ IsFixed: false });
+        } catch (e) { }
+
+        GridLoad();
+    });
+
+    function GridLoad() {
+        debugger;
+        var ColumnUrl = _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=BizRule/EditBizRuleDecisionMatrixColumn.html";
+        var RowUrl = _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=BizRule/EditBizRuleDecisionMatrixRow.html";
+
+        //填充表格数据
+        //有编码的时候才创建表格
+        if (pageData.BizRuleDecisionMatrix.Code) {
+            //创建表格,决策表列信息
+            CreateLigerGrid(
+                $("#ColumnGrid"),
+                CreateClomu(ColumnUrl, "Column"),
+                $.Controller.BizRuleDecisionMatrix.GetColumnData,
+                false, "200px",
+                null, { columnId: 'DisplayName' }, null,
+                { ruleCode: pageData.BizRuleDecisionMatrix.RuleCode, matrixCode: pageData.BizRuleDecisionMatrix.Code }
+               );
+            //创建表格,决策表行信息
+            CreateLigerGrid(
+                $("#RowGrid"),
+                CreateClomu(RowUrl, "Row"),
+                $.Controller.BizRuleDecisionMatrix.GetRowData,
+                false, "200px",
+                null, { columnId: 'DisplayName' }, null,
+                { ruleCode: pageData.BizRuleDecisionMatrix.RuleCode, matrixCode: pageData.BizRuleDecisionMatrix.Code }
+               )
+        }
+    }
+
+    function ReloadColumnGridData() {
+        var columnGridManager = $("#ColumnGrid").ligerGetGridManager();
+        columnGridManager.reload();
+    }
+
+    function ReloadRowGridData() {
+        var rowGridManager = $("#RowGrid").ligerGetGridManager();
+        rowGridManager.reload();
+    }
+
+    //
+    function InitPageData() {
+        //加载执行方式
+        $.ajax({
+            url: $.Controller.BizRuleDecisionMatrix.LoadExecutionType,
+            type: "get",
+            data: {},
+            async: false,
+            success: function (data) {
+                pageData.ExecutionType = data;
+            }
+        });
+
+        //加载决策表类型
+        $.ajax({
+            url: $.Controller.BizRuleDecisionMatrix.LoadDecisionMatrix,
+            type: "get",
+            data: {},
+            async: false,
+            success: function (data) {
+                pageData.DecisionMatrix = data;
+            }
+        });
+
+        //加载作用域
+        $.ajax({
+            url: $.Controller.BizRuleDecisionMatrix.LoadDecisionMatrixScope,
+            type: "get",
+            data: {},
+            async: false,
+            success: function (data) {
+                pageData.DecisionMatrixScope = data;
+            }
+        });
+
+        var ParentID = getUrlParam("ParentID");
+        var RuleCode = getUrlParam("RuleCode");
+        var DecisionMatrixCode = getUrlParam("DecisionMatrixCode");
+        var hasRightToDelete = true;//放置对象里面
+
+        //如果是打开决策表
+        if (DecisionMatrixCode) {
+            //加载决策表内容
+            $.ajax({
+                url: $.Controller.BizRuleDecisionMatrix.LoadDecisionMatrixInfo,
+                type: "get",
+                data: { ruleCode: RuleCode, matrixCode: DecisionMatrixCode },
+                async: false,
+                success: function (data) {
+                    pageData.BizRuleDecisionMatrix = data;
+                }
+            });
+
+            //加载返回结果数据项 --ResultFields
+            //只有 选择类型和排序内容的决策表需要显示
+            $.ajax({
+                url: $.Controller.BizRuleDecisionMatrix.LoadResultFields,
+                type: "get",
+                data: { ruleCode: RuleCode, matrixCode: DecisionMatrixCode },
+                async: false,
+                success: function (data) {
+                    pageData.ResultFields = data;
+                }
+            });
+        }
+
+        //决策表对象赋初始值
+        pageData.BizRuleDecisionMatrix.ParentID = ParentID;
+        pageData.BizRuleDecisionMatrix.RuleCode = RuleCode;
+        pageData.BizRuleDecisionMatrix.DecisionMatrixCode = DecisionMatrixCode;
+        pageData.BizRuleDecisionMatrix.HasRightToDelete = hasRightToDelete;
+
+    }
+
+    //保存决策表
+    function SaveData() {
+        var parentID = getUrlParam("ParentID");
+        if (pageData.BizRuleDecisionMatrix.Code == "") { $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.InvalidCode") }); return; }
+        if (pageData.BizRuleDecisionMatrix.DisplayName == undefined || pageData.BizRuleDecisionMatrix.DisplayName == "")
+        { $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.DisplayNameNotNull") }); return; }
+
+        var MatrixUrl = $.Controller.BizRuleDecisionMatrix.AddDecisionMatrix;
+        var isNotCreate = pageData.BizRuleDecisionMatrix.ObjectID;
+        if (isNotCreate) { MatrixUrl = $.Controller.BizRuleDecisionMatrix.EditDecisionMatrix; }//不是新增模式，更新决策表
+        $.ajax({
+            url: MatrixUrl,
+            type: 'post',
+            dataType: "json",
+            data: pageData.BizRuleDecisionMatrix,
+            async: false,//同步执行
+            success: function (result) {
+                if (result.Success) {
+                    $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                    //刷新树节点
+                    top.ReloadNode(parentID);
+                    if (!isNotCreate) {
+                        //设置标签显示名称
+                        top.workTab.setHeader(top.workTab.getSelectedTabItemID(), pageData.BizRuleDecisionMatrix.DisplayName);
+                        //修改ID
+                        ChangeCurrentTabId(pageData.BizRuleDecisionMatrix.Code);
+                        var url = _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=BizRule/EditBizRuleDecisionMatrix.html" + "&ParentID=" + parentID + "&RuleCode=" + pageData.BizRuleDecisionMatrix.RuleCode + "&DecisionMatrixCode=" + pageData.BizRuleDecisionMatrix.Code;
+                        ChangeCurrentTabIframe(pageData.BizRuleDecisionMatrix.Code, url);
+                    }
+
+                } else {
+                    var extend = "";
+                    if (result.Extend) { extend = ":" + result.Extend; }
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) + extend });
+                }
+            }
+        });
+    }
+    //修改TabID
+    function ChangeCurrentTabId(newTabId) {
+        top.$("div[tabid='" + top.workTab.getSelectedTabItemID() + "']").attr("tabid", newTabId);
+        top.$("iframe[id='" + top.workTab.getSelectedTabItemID() + "']").attr("id", newTabId);
+        top.$("iframe[name='" + top.workTab.getSelectedTabItemID() + "']").attr("name", newTabId);
+        top.$("li[tabid='" + top.workTab.getSelectedTabItemID() + "']").attr("tabid", newTabId);
+    }
+
+    //修改页面地址
+    function ChangeCurrentTabIframe(tabID, newUrl) {
+        top.$("iframe[id='" + tabID + "']").attr("src", newUrl);
+    }
+
+    function DeleteCheck()
+    {
+        var ajaxUrl = $.Controller.BizRuleDecisionMatrix.RemoveDecisionMatrixCheck;
+        var canDel = false;
+        $.ajax({
+            url: ajaxUrl,
+            type: "post",
+            data: { ruleCode: pageData.BizRuleDecisionMatrix.RuleCode, matrixCode: pageData.BizRuleDecisionMatrix.Code },
+            async: false,
+            success: function (result) {
+                if (!result.Success) {
+                    if (result.Extend) {
+                        var title = $.Lang(result.Message) + "<br/>";
+                        var content = $.Lang("BizService.ApplyDetail") + "：<br/>";
+                        for (var i = 0; i < result.Extend.length; i++) {
+                            content += "<p style='margin-left:21px;display:inline-block;white-space:normal;word-wrap:break-word;width:95%'>" + $.Lang("BizService.InstanceName") + "：" + result.Extend[i].Name + "，" + $.Lang("BizService.ApplyMethods") + "：(" + result.Extend[i].Methods.join(',') + ")</p><br/>";
+                        }
+                        $.H3Dialog.Warn({ content: title + content });
+                    } else {
+                        top.$.H3Dialog.Error({ content: $.Lang(result.Message) });
+                    }
+                }
+                else {
+                    canDel = true
+                }
+            }
+        });
+        return canDel;
+    }
+    //删除决策表
+    function Remove() {
+        if (DeleteCheck()) {
+            var deleteConfirm = $.Lang("msgGlobalString.DeleteConfrim");
+            $.ligerDialog.confirm(deleteConfirm, function (ok) {
+                if (ok) {
+                    $.ajax({
+                        url: $.Controller.BizRuleDecisionMatrix.RemoveDecisionMatrix,
+                        type: 'post',
+                        dataType: "json",
+                        data: { ruleCode: pageData.BizRuleDecisionMatrix.RuleCode, matrixCode: pageData.BizRuleDecisionMatrix.Code },
+                        async: false,//同步执行
+                        success: function (result) {
+                            //debugger;
+                            if (result.Success) {
+                                //刷新树节点
+                                top.ReloadNode(pageData.BizRuleDecisionMatrix.ParentID);
+                                top.workTab.removeTabItem(top.workTab.getSelectedTabItemID());//关闭当前标签页
+                            } else {
+                                $.H3Dialog.Warn({ content: $.Lang(result.Message) + ":" + result.Extend });
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    //表格列
+    function CreateClomu(url, type) {
+        var DisplayName = $.Lang("BizRule.DisplayName");
+        var EffectiveCondition = $.Lang("BizRule.EffectiveCondition");
+        var DisplayName = $.Lang("BizRule.DisplayName");
+        var Description = $.Lang("BizRule.Description");
+        var SortKey = $.Lang("BizRule.SortKey");
+        var Open = $.Lang("BizRule.Open");
+        var Remove = $.Lang("GlobalButton.Delete");
+        var AddChildRow = $.Lang("GlobalButton.AddChildRow");
+
+        return [
+            {
+                display: DisplayName, name: "DisplayName", id: "DisplayName", render: function (rowdata, index, value) {
+                    return "<span title='" + value + "'>" + value + "</span>";
+                }
+            },
+            {
+                display: EffectiveCondition, name: "EffectiveCondition"
+                , render: function (rowdata, index, value) { return "<span title='" + displayFormula(value) + "'>" + displayFormula(value) + "</span>"; }
+            },
+            { display: Description, name: "Description" },
+            { display: SortKey, name: "SortKey" },
+            {
+                display: Open, name: "Open",
+                render: function (rowdata, index, value) {
+                    var openLink = '<div style="padding:5px;float:left;"><a href="javascript:void(0);"  ParentIndexes="' + rowdata.ParentStrIndexs + '" Index="' + rowdata.Index + '" onclick="ShowCellPage(this,\'' + url + '\')">' + Open + '</a></div>';
+                    var deleteLink = "";
+                    var hasRightToDelete = "true";//TODO
+                    if (hasRightToDelete.toLowerCase() === "true") {
+                        deleteLink = '<div style="padding:5px;float:left;"><a href="javascript:void(0);"  ParentIndexes="' + rowdata.ParentStrIndexs + '" Index="' + rowdata.Index + '" onclick="DeleteCell(this, \'' + type + '\')">' + Remove + '</a></div>';
+                    }
+
+                    var addCloumn = '<div style="padding:5px;float:left;"><a href="javascript:void(0);"  ParentIndexes="' + rowdata.ParentStrIndexs + "\\" + rowdata.Index + '"  onclick="ShowCellPage(this,\'' + url + '\')">' + AddChildRow + '</a></div>';
+                    return openLink + deleteLink + addCloumn;
+                }
+            }
+        ];
+    }
+
+    //公式ID转换
+    function displayFormula(_Formula) {
+        //debugger;
+        if (!_Formula) { return ""; }
+        //U前面是分隔符或逗号
+        var UExpressions = _Formula.match(/(([+\-/*/(<>\s!&|,=]+U)|^U)[\s]*[(][^)]*[)]/g);
+        if (!UExpressions || UExpressions.length == 0) {
+            //不存在需解析的U表达式
+            return _Formula;
+        }
+        else {
+            //从U(xxx)表达式中提取xxx
+            var _GetUnitKey = function (_UExpression) {
+                _UExpression = _UExpression.replace(/U[ ]*\(/, "U(")
+                var _LeftParIndex = _UExpression.indexOf("U(", 0) + 1;
+                var _RightParIndex = _UExpression.indexOf(")");
+                if (_RightParIndex > _LeftParIndex) {
+                    return _UExpression.substring(_LeftParIndex + 1, _RightParIndex).trim();
+                }
+            }
+
+            var _UnitKeys = [];
+            $(UExpressions).each(function () {
+                if (this) {
+                    var _UnitKey = _GetUnitKey(this.toString());
+                    if (_UnitKey)
+                        _UnitKeys.push(_UnitKey);
+                }
+            });
+
+            if (_UnitKeys.length == 0)
+                return;
+            $.ajax({
+                type: "post",
+                url: _PORTALROOT_GLOBAL + "/Formula/GetUnitNames",
+                cache: false,
+                async: false,
+                dataType: "json",
+                data: { UnitKeys: JSON.stringify(_UnitKeys) },
+                success: function (_UnitCache) {
+                    //更新缓存
+                    if (_UnitCache && _UnitCache.length > 0) {
+                        $(_UnitCache).each(function () {
+                            if (this["Key"])
+                                // FormulaStack.UnitCache[this["Key"].toLowerCase()] = this["Name"];
+                                _Formula = _Formula.replace(this["Key"], this["Name"]);
+                        });
+                    }
+                },
+                error: function (msg) {
+
+                }
+            });
+
+            return _Formula;
+        }
+    }
+
+    //
+    function ShowCellPage(obj, url) {
+        //debugger;
+        var index = $(obj).attr("Index") == null ? "-1" : $(obj).attr("Index");
+        var parentIndexes = $(obj).attr("ParentIndexes") == null ? "" : $(obj).attr("ParentIndexes");
+        url += "&RuleCode=" + pageData.BizRuleDecisionMatrix.RuleCode;
+        url += "&DecisionMatrixCode=" + pageData.BizRuleDecisionMatrix.DecisionMatrixCode;
+        url += "&Index=" + encodeURI(index);
+        url += "&ParentIndexes=" + encodeURI(parentIndexes);
+        ShowDialog($(obj).text(), url);
+        return false;
+    }
+
+    //删除决策表列或行
+    function DeleteCell(obj, type) {
+        var deleteConfirm = $.Lang("msgGlobalString.DeleteConfrim");
+        $.ligerDialog.confirm(deleteConfirm, function (ok) {
+            if (ok) {
+                var index = $(obj).attr("Index") == null ? "-1" : $(obj).attr("Index");
+                var parentIndexes = $(obj).attr("ParentIndexes") == null ? "" : $(obj).attr("ParentIndexes");
+                var DeleteUrl = $.Controller.BizRuleDecisionMatrix.DeleteCell;
+                //debugger;
+                $.post(DeleteUrl,
+                { ruleCode: pageData.BizRuleDecisionMatrix.RuleCode, matrixCode: pageData.BizRuleDecisionMatrix.Code, hasRightToDelete: true, deleteType: type, parentIndexes: parentIndexes, index: index },
+                function (data) {
+                    if (data) {
+                        parent.$.H3Dialog.Success({ content: $.Lang("msgGlobalString.DeleteSucced") });
+                        top.workTab.reload(top.workTab.getSelectedTabItemID());
+                    }
+                    else {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.DeleteFailed") });
+                    }
+                });
+            }
+        });
+    }
+
+
+</script>
+<validator id="formValidators" name="formValidator">
+    <div id="H3ToolBar">
+        <a id="btnSave" data-icon="fa fa-save" v-on:click="saveData" data-lang="GlobalButton.Save"></a>
+        <a id="btnEdit" data-icon="fa fa-edit" onclick="return ShowCellPage(this,_PORTALROOT_GLOBAL+'/admin/TabMaster.html?url=BizRule/EditBizRuleDecisionMatrixCells.html');" data-lang="BizRule.FillRule"></a>
+        <a id="btnRemove" data-icon="fa fa-minus" class="ShowAfterSave" v-on:click="remove" data-lang="GlobalButton.Delete"></a>
+    </div>
+    <div class="H3Panel">
+        <span data-lang="msgGlobalString.BasicProperties"></span>
+        <table>
+            <tr>
+                <td data-lang="BizRule.Code"></td>
+                <td>
+                    <input type="text" id="txtCode" maxlength="64" v-model="BizRuleDecisionMatrix.Code" v-bind:disabled="BizRuleDecisionMatrix.ObjectID" />
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.BizRule.DisplayName}}</td>
+                <td>
+                    <input type="text" id="txtDisplayName" maxlength="64" v-model="BizRuleDecisionMatrix.DisplayName" />
+                </td>
+            </tr>
+            <tr>
+                <td>{{LanData.BizRule.DecisionMatrixType}}</td>
+                <td>
+                    <select id="lstDecisionMatrixType" v-model="BizRuleDecisionMatrix.DecisionMatrixType" v-bind:disabled="BizRuleDecisionMatrix.ObjectID">
+                        <option v-for="option in DecisionMatrix" v-bind:value="option.Value">
+                            {{option.Text}}
+                        </option>
+                    </select>
+                </td>
+            </tr>
+            <!--<tr>
+                <td>{{LanData.BizRule.Scope}}</td>
+                <td>
+                    <select id="lstDecisionMatrixScope" v-model="BizRuleDecisionMatrix.Scope">
+                        <option v-for="option in DecisionMatrixScope" v-bind:value="option.Value">
+                            {{option.Text}}
+                        </option>
+                    </select>
+                </td>
+            </tr>-->
+            <tr>
+                <td>{{LanData.BizRule.Description}}</td>
+                <td>
+                    <textarea id="txtDescription" height="50" width="600" v-model="BizRuleDecisionMatrix.Description" />
+                </td>
+            </tr>
+        </table>
+    </div>
+
+
+    <div class="H3Panel" id="plExecutionTypeProperty">
+        <span data-lang="BizRule.ExecutionTypeBasicProperties"></span>
+        <table>
+            <tbody>
+                <template v-if="BizRuleDecisionMatrix.DecisionMatrixType!='Script'">
+                    <tr id="panelResultDataElement">
+                        <td>{{LanData.BizRule.ResultField}}</td>
+                        <td>
+                            <select id="lstResultField" v-model="BizRuleDecisionMatrix.ResultField">
+                                <option></option>
+                                <option v-for="option in ResultFields" v-bind:value="option.Value">
+                                    {{option.Text}}
+                                </option>
+                            </select>
+                        </td>
+                    </tr>
+                </template> 
+                <tr>
+                    <td>{{LanData.BizRule.RowExecutionType}}</td>
+                    <td>
+                        <select id="lstRowExecutionType" v-model="BizRuleDecisionMatrix.RowExecutionType" v-bind:disabled="BizRuleDecisionMatrix.DecisionMatrixType!='Script'">
+                            <option v-for="option in ExecutionType" v-bind:value="option.Value" v-bind:selected="BizRuleDecisionMatrix.DecisionMatrixType!='Script'&&option.Value=='Full'" v-if="BizRuleDecisionMatrix.DecisionMatrixType=='Script'||option.Value=='Full'">
+                                {{option.Text}}
+                            </option>
+
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>{{LanData.BizRule.ColumnExecutionType}}</td>
+                    <td>
+                        <select id="lstColumnExecutionType" v-model="BizRuleDecisionMatrix.ColumnExecutionType" v-bind:disabled="BizRuleDecisionMatrix.DecisionMatrixType!='Script'">
+                            <option v-for="option in ExecutionType" v-bind:value="option.Value" v-bind:selected="BizRuleDecisionMatrix.DecisionMatrixType!='Script'&&option.Value=='Full'" v-if="BizRuleDecisionMatrix.DecisionMatrixType=='Script'||option.Value=='Full'">
+                                {{option.Text}}
+                            </option>
+                        </select>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="dvShowEdit">
+        <div class="H3Panel">
+            <span data-lang="BizRule.ColumnMessage"></span>
+            <div id="ColumnPanel">
+                <div id="ColumnToolbar">
+                    <a href="javascript:void(0);" onclick="ShowCellPage(this, _PORTALROOT_GLOBAL + '/admin/TabMaster.html?url=BizRule/EditBizRuleDecisionMatrixColumn.html')" data-lang="BizRule.AddColumn"></a>
+                </div>
+                <div id="ColumnGrid"></div>
+            </div>
+        </div>
+        <div class="H3Panel" style="margin-top:10px">
+            <span data-lang="BizRule.RowMessage"></span>
+            <div id="RowPanel">
+                <div id="RowToolbar">
+                    <a href="javascript:void(0);" onclick="ShowCellPage(this, _PORTALROOT_GLOBAL + '/admin/TabMaster.html?url=BizRule/EditBizRuleDecisionMatrixRow.html')" data-lang="BizRule.AddRow"></a>
+                </div>
+                <div id="RowGrid"></div>
+            </div>
+        </div>
+    </div>
+
+</validator>

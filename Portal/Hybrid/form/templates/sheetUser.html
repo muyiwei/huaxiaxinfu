@@ -1,0 +1,94 @@
+<ion-view>
+    <ion-nav-bar class="bar">
+        <ion-nav-buttons side="left">
+            <button class="button button-icon button-clear ion-ios-arrow-left"
+                    ng-click="goBack()">
+                返回
+            </button>
+            <button class="button button-icon button-clear" ng-click="cancel()">
+                关闭
+            </button>
+        </ion-nav-buttons>
+    </ion-nav-bar>
+    <div class="bar has-header  item-input-inset">
+        <label class="item-input-wrapper" ng-class="{'placeholder-icon-focus':SearchMode,'placeholder-icon-unfocus':!SearchMode}" style="transition-duration: 0.1s; transition-timing-function: linear; transition-property: all;">
+            <i class="icon ion-ios-search-strong"></i>
+            <input type="search" placeholder="搜索" class="input-placeholder"
+                   ng-model="searchKey" ng-change="doSearch(searchKey)"
+                   style="height:17px;"
+                   ng-focus="goToSeach()" ng-blur="searchKey==''?SearchMode=false:SearchMode=true">
+        </label>
+    </div>
+    <ion-content class="has-header has-subheader sheetUser">
+        <div ng-if="!SelectFormStructure&&!SearchMode">
+            <ion-item class="item-icon-right" ng-click="SelectStructure(true)">
+                <span>从组织架构中选择</span>
+                <i class="icon ion-ios-arrow-right"></i>
+            </ion-item>
+            <bpm-sheet-user-selected select-users="SelectItems" cancel-selected="delItem"></bpm-sheet-user-selected>
+            <div class="item item-divider" ng-if="sheetUserParams.options.UserVisible">部门人员</div>
+            <ion-list ng-if="sheetUserParams.options.UserVisible">
+                <ion-checkbox ng-repeat="user in UserOUMembers track by $index"
+                              ng-model="user.checked" ng-click="addItem($event,user)">
+                    <i class="{{user.Icon}}" style="margin-left:40px;"></i>{{user.name}}
+                </ion-checkbox>
+            </ion-list>
+        </div>
+        <div ng-if="SelectFormStructure&&!SearchMode">
+            <bpm-sheet-user-selected select-users="SelectItems" cancel-selected="delItem"></bpm-sheet-user-selected>
+            <div class="item item-divider" style="padding-top:10px;padding-bottom:10px;">
+                <ion-scroll direction="x" scrollbar-x="false">
+                    <ul class="breadcrumb-wrapper">
+                        <li class="breadcrumb" style="font-size:15px;"
+                            ng-repeat="dept in deptNav">
+                            <a ng-if="!$last"
+                               ng-click="navClick('{{dept.id}}',$index)">{{dept.name}}</a>
+                            <span ng-if="$last">{{dept.name}}</span>
+                        </li>
+                    </ul>
+                </ion-scroll>
+            </div>
+            <ion-list>
+                <div ng-repeat="org in Organizations">
+                    <ion-checkbox ng-if="org.canSelect"
+                                  ng-model="org.checked"
+                                  ng-click="itemClick($event,org)">
+                        <label class="item-label" style="padding:0px 10px 0px 0px;">
+                            <i class="{{org.Icon}}" style="margin-left:40px;"></i>
+                            {{org.name|limitTo:16}}{{org.name.length>16?"...":""}}
+                        </label>
+                        <!-- icon -->
+                        <i ng-if="org.type!='U'&&org.root!=true" class="ion-ios-arrow-right"
+                           style="float:right; padding-right:0px;font-size: 15px;"></i>
+                    </ion-checkbox>
+
+                    <div ng-if="!org.canSelect" class="item item-icon-right" ng-click="itemClick($event,org)">
+                        <label class="item-label" style="padding:0px 10px 0px 0px;">
+                            <span style="padding-left:5px;">
+                                <i class="{{org.Icon}}"></i>
+                                {{org.name}}
+                            </span>
+                        </label>
+                        <i class="icon ion-ios-arrow-right" ng-if="org.type!='U'"></i>
+                    </div>
+                </div>
+            </ion-list>
+        </div>
+        <div ng-if="SearchMode">
+            <div class="item item-divider">搜索结果:</div>
+            <ion-list>
+                <ion-checkbox ng-repeat="org in searchItems" ng-model="org.checked"
+                              ng-click="itemClick($event,org)">
+                    <i class="{{org.Icon}}" style="margin-left:40px;"></i>
+                    {{org.name}}
+                </ion-checkbox>
+            </ion-list>
+            <ion-item ng-show="searchItems.length==0&&searchKey!=''"
+                      style="cursor:pointer">
+                <div class="item-icon-left" style="padding-left:20px;">
+                    <h2 style="margin-left:10px;">未搜索到与 “ <span style="color:blue;" ng-bind="searchKey"></span> ” 相关的结果</h2>
+                </div>
+            </ion-item>
+        </div>
+    </ion-content>
+</ion-view>

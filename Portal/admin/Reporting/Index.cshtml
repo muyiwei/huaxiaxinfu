@@ -1,0 +1,363 @@
+﻿@{
+    Layout = "~/Areas/Console/Views/Shared/_Layout.cshtml";
+}
+
+
+@section style{
+    <link href="../../../../Content/font-awesome.min.css?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]" rel="stylesheet" />
+    <link href="../../../../Scripts/plugins/zTree/css/zTreeStyle/zTreeStyle.css?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]" rel="stylesheet" />
+    <link href="~/Content/H3/H3Chart/ChartBase.css?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]" rel="stylesheet" />
+    <link href="~/Content/plugins/bootstraptable/bootstrap-table.min.css?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]" rel="stylesheet" />
+    <link href="~/Content/H3/Console/Reporting/report.css?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]" rel="stylesheet" />
+    <link href="~/Content/H3/plugins/msgBox.css?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]" rel="stylesheet" />
+    @* <link href="~/Content/H3-Icon-Report/style.css" rel="stylesheet" />*@
+    <link href="~/Scripts/plugins/DropDownList/DropDownList.css?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]" rel="stylesheet" />
+    <link href="~/Content/H3-Icon-Tool/style.css?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]" rel="stylesheet" />
+}
+@section HeaderHandle{
+    <a href="@Url.Action("Index", "AppManage", new { Id = this.ViewBag.AppCode })">返回应用</a>
+}
+<div class="body">
+    <div class="left" style="overflow:hidden;">
+        <div class="top">数据源列表</div>
+        <div id="ReportSourceZone">
+            <ul class="source-collection"></ul>
+        </div>
+
+        <!--底部数据源操作-->
+        <div class="source-tool">
+            <div id="btnAddSource" class="btn  btn-block" style="background-color: #4eca48; color: #fff;">新增数据源</div>
+        </div>
+
+    </div>
+    <div class="right">
+        <div class="edit-navbar">
+            <div class="edit-navbar-left">
+                <!--模板区-->
+                <ul id="TemplatesZone"></ul>
+
+            </div>
+
+            <div class="edit-navbar-right" id="menu">
+                <div class="save button " style="background-color:#4eca48;color:#fff;" onclick="SaveReportPage()">保存</div>
+            </div>
+        </div>
+        <div class="edit-center">
+            @*<div class="btn-param" onclick="toggleFilter()">
+                    <i class="fa fa-filter"></i>
+                    <span>设置查询条件</span>
+                </div>*@
+            <div id="reportParameter">
+                @*<div class="h3-head">
+                        <span class="h3-head-title">查询条件</span>
+                        <span class="h3-remove" onclick="hideFilter()"><i class="fa fa-minus"></i></span>
+                    </div>*@
+                <div class="btn-param" onclick="toggleFilter()">
+                    <i class="fa fa-filter"></i>
+                    <span style="">设置查询条件</span>
+                </div>
+                <div class="h3-body" id="h3_param_container" style="">
+                    <div class="myhelper" style="padding: 20px; color: grey; text-align: center;display:none; "> <span>往此处拖入字段可为报表设置查询条件</span></div>
+                </div>
+            </div>
+            <div id="report-editor">
+                <ul id="widget_wrapper"></ul>
+                <!--此处放置一个拖动引导提示框-->
+                <div class="drag-more">
+                    <p style="width:100%;height:100%;vertical-align:middle;line-height:100px;margin:0px;">
+                        <span style="font-size:30px;border-radius:28px;padding:5px 10px;" class="badge">1</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<!--应用树选择框-->
+<div id="sheetselect" style="display:none;">
+    <!--数据源显示名称-->
+    <div style="width:100%;height:35px;line-height:35px;padding-left:8px;">
+        <label style="font-size:14px;font-family:'Microsoft YaHei';font-weight:lighter;">数据源名称</label>
+        <input id="source-display" type="text" style="float:right;width:250px;height:35px;" placeholder="请输入数据源名称" />
+    </div>
+    @*<ul class="source-selector" style="display:block;height:30px;">
+        </ul>*@
+    <div style="height:340px;max-height:340px;overflow-x:hidden;overflow-y:auto;">
+        <div id="sheet"></div>
+    </div>
+</div>
+<div id="editdefaultdata" style="display:none;">
+    <div class="defaultdataedit" style="height:400px;width:33%;float:left;">
+        <div class="defaultdataeditcontent1" style="height:80%;width:100%;" >
+            <textarea id="defaultdata1"  style="height:100%;width:100%" ></textarea>
+        </div>
+        <div class="defaultdataeditcontent2"  style="height:20%;width:100%;" >
+            <textarea id="defaultdata2"   style="height:100%;width:100%"  ></textarea>
+        </div>
+    </div>
+    <div class="defaultdataresult" style="width:60%;height:100%;float:left;margin-left:7%;">
+        <div class="defaultdataresultcontent" id="editdefaultdataresult" style="height:400px;width:600px;">
+
+        </div>
+    </div>
+</div>
+<div id="custom_sql" style="display:none;">
+    <!--数据源显示名称-->
+    <div style="width:100%;height:35px;line-height:35px;padding-left:8px;">
+        <div style="width:100px;float:right;height:35px;line-height:35px;    padding-top: 7px;"><input type="checkbox" id="sqlcheckwhere" /><label style="width:100%;font-size:14px;font-family:'Microsoft YaHei';font-weight:lighter;" for="sqlcheckwhere">设置SQL参数</label></div>
+        <label style="font-size:14px;font-family:'Microsoft YaHei';font-weight:lighter;">数据源名称</label>
+        <input id="source-display" type="text" style="float:right;width:300px;height:35px;" placeholder="请输入数据源名称" />
+
+    </div>
+    <div class="sqlwherecontent">
+        <div class="sqlwhereheader row">
+            <div class="sqlwhereheaderitem">查询条件名称</div>
+            <div class="sqlwhereheaderitem">查询条件编码</div>
+            <div class="sqlwhereheaderitem">字段数据类型</div>
+            <div class="sqlwhereheaderitemadd"><span class="fa fa-plus"></span></div>
+        </div>
+        <div class="sqlwhereheaderbody">
+
+        </div>
+    </div>
+    <div id="sql" style="margin-top:10px;">
+        <textarea class="sql"></textarea>
+        <div class="msg" style="margin-top:5px;"><span class="fa fa-exclamation-circle"></span><span class="text" style="margin-right:5px;margin-left:10px;"></span><span class="check" style="float:right;color:#fff;background-color:#ee984b;width:60px;height:30px;text-align:center;padding:3px 0px;border-radius:5px;cursor:pointer;">校验</span></div>
+        <div class="result" id="sqlresult" style="max-height:100px;overflow:auto;"></div>
+    </div>
+</div>
+<!--手工建立关联关系-->
+<div id="associationpanel">
+    <!--左侧应用树，右侧关联建立-->
+    <div class="panel-left"></div>
+    <div class="panel-right">
+        <div class="association-body-head">
+            <div id="btn_addRelation" class="btn " style="background-color: #4eca48; color: #fff; margin-top: 5px; font-size: 14px; font-family: 'Microsoft YaHei'; font-weight: lighter;"><i class="fa fa-plus" style="margin-right:10px;"></i>新增关联关系</div>
+        </div>
+        <div class="association-body-body">
+            <table class="association-table"></table>
+        </div>
+    </div>
+</div>
+
+<!--浮动悬浮框-->
+<div class="float-panel"></div>
+<!--数据源过滤框-->
+<div class="source-filter-panel"></div>
+<!--过滤字段编辑框-->
+<div class="filter-edit-panel" id="filter-edit-panel">
+    <div class="filter-name filter-wrap" style="margin-top:20px;"><label class="filter-title">显示名称</label><input class="filter-input" /></div>
+    <div class="filter-type filter-wrap"><label class="filter-title">参数类型</label><select class="filter-select"></select></div>
+    <div class="filter-value-string filter-wrap"><label class="filter-title">默认值</label><input class="filter-input"  placeholder="多个值用';'隔开"  /></div>
+    <div class="filter-value-fixed filter-wrap"><label class="filter-title">固定值选项</label><input class="filter-input" placeholder='多个值用";"隔开' /></div>
+    <div class="filter-value-select filter-wrap"><label class="filter-title">默认值</label><select class="filter-select"></select></div>
+    <div class="filter-MasterData filter-wrap"><label class="filter-title">数据字典选项</label><select class="filter-select"></select></div>
+    <div class="filter-organizationtype filter-wrap">
+        <label class="filter-title">组织类型</label>
+        <select class="filter-select">
+            <option value="0">人员</option>
+            <option value="1">部门</option>
+            <option value="2">全部</option>
+        </select>
+    </div>
+    <div class="filter-allownull" style="margin-top:5px;padding-left:5%; width:50%;"><input class="filter-checkbox" id="myexportallowrequered" type="checkbox"><label style="font-weight:normal;width:100%;" for="myexportallowrequered">允许为空</label></div>
+    <div class="filter-visible" style="padding-left:5%; width:50%; float:left;"><input class="filter-checkbox" type="checkbox" id="myexportshow"><label style="font-weight:normal;width:100%;" for="myexportshow">是否显示</label></div>
+
+</div>
+<div class="filter-edit-footer" id="myfiltereditfooter">
+    <button type="button" class="masBox-btn btn_ok">确认</button>
+    <button type="button" class="masBox-btn btn_cancel">取消</button>
+</div>
+<!--浮动字段编辑框-->
+<div id="float-panel-field-eidt" style="display:none;">
+    <div style="width:100%;height:80%;overflow:auto;">
+        <div class="displayname" style="text-align:center;">
+            <label style="font-weight:bold;">显示名称</label>
+            <input style="width:100%;" id="displayname" type="text" />
+        </div>
+        <div class="functiontypeofnum" style="text-align:center;">
+            <label style="font-weight:bold;">函数类型</label>
+            <select id="numfunc" style="display:block;width:100%;">
+                <option value="0">Count</option>
+                <option value="1">Sum</option>
+                <option value="2">Avg</option>
+                <option value="3">Min</option>
+                <option value="4">Max</option>
+            </select>
+        </div>
+        <div class="functiontypeofdate">
+            <label>函数类型</label>
+            <select id="datefunc">
+                <option value="5">年</option>
+                <option value="8">年-季度</option>
+                <option value="6">年-季度-月</option>
+                <option value="7">年-季度-月-日</option>
+
+            </select>
+        </div>
+        <div class="formula">
+            <label>公式</label>
+            <span id="formula" class="fa fa-facebook" style="color:blue;margin-left:5px;"></span>
+            <label class="myedit" style="color:blue;cursor:pointer;">编辑公式</label>
+        </div>
+        <div class="formattype">
+            <label>数据格式</label>
+            <select id="columndataformat" style="display:block;width:100%;">
+                <option value="0">预定义格式</option>
+                <option value="1">自定义定义格式</option>
+            </select>
+        </div>
+        <div class="customformat" style="text-align:center;">
+            <input id="format" type="text" />
+        </div>
+        <div class="dateformat">
+            <label>数据格式</label>
+            <select id="date_format" style="display:block;width:100%;">
+                <option value="yyyy-MM-dd">2016-01-01</option>
+                <option value="yyyy-MM-dd HH:mm:ss">2016-01-01 01:01:01</option>
+                <option value="yyyy-MM-dd HH:mm">2016-01-01 01:01</option>
+                <option value="yyyy-MM-dd HH">2016-01-01 01</option>
+                <option value="yyyy/MM/dd">2016/01/01</option>
+                <option value="yyyy/MM/dd HH:mm:ss">2016/01/01 01:01:01</option>
+                <option value="yyyy/MM/dd HH:mm">2016/01/01 01:01</option>
+                <option value="yyyy/MM/dd HH">2016/01/01 01</option>
+                <option value="yyyy年M月d日">2016年1月1日</option>
+                <option value="yyyy年M月d日 HH时mm分ss秒">2016年1月1日01时01分01秒</option>
+                <option value="yyyy年M月d日 HH时mm分">2016年1月1日01时01分</option>
+                <option value="yyyy年M月d日 HH时">2016年1月1日01时</option>
+                <option value="yyyy年M月d日 EEE">2016年1月1日 星期五</option>
+                <option value="yyyy年M月">2016年1月</option>
+            </select>
+        </div>
+        <div class="numberformat">
+            <div>
+                <input id="thoudsandth" type="checkbox" /><label for="thoudsandth" style="width:100%">千分位</label>
+            </div>
+            <div>
+                <input id="percentage" type="checkbox" /><label for="percentage" style="width:100%">百分比</label>
+
+            </div>
+            <div>
+                <input id="precision" type="checkbox" /><label for="precision" style="width:30%">小数位数</label>
+                <div>
+                    <input id="digits" type="text" style="width:30%;" onpaste="return false();" onkeypress="onlyDigital(event)" />
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div style="text-align:center;" id="myfieldbutton">
+        <button type="button" class="masBox-btn btn_ok">确认</button>
+        <button type="button" class="masBox-btn btn_cancel">取消</button>
+    </div>
+</div>
+<!--添加排序字段-->
+<div id="sortcolumns">
+    <ul class="columns"></ul>
+</div>
+
+<div class="linkage-widget">
+</div>
+<div class="container-formula">
+    <input type="text" id="formula" style="display:none;" />
+</div>
+<div class="simpleboard-column-edit"></div>
+
+<div class="simpleboard-column-remove" style="display:none;">
+    <ul>
+        <li class="td-remove">删除数据</li>
+        <li class="row-remove">删除本行</li>
+        <li class="col-remove">删除本列</li>
+    </ul>
+</div>
+
+@section jqueryuiJs{
+    <script src="~/Scripts/jquery-ui.js"></script>
+}
+@section scripts{
+    @*<script src="~/Scripts/jquery-1.11.1.min.js"></script>
+        @Scripts.Render("~/bundles/bootstrap")*@
+    <script src="~/Scripts/plugins/bootstraptable/bootstrap-table.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+    <script src="~/Scripts/plugins/bootstraptable/locale/bootstrap-table-zh-CN.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+    <script src="~/Scripts/H3/Console/Reporting/ReportBase.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+    <script src="~/Scripts/H3/Console/Reporting/ReportWidget.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+    <script src="~/Scripts/H3/Console/Reporting/ReportSource.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+    <script src="~/Scripts/plugins/gritter/jquery.gritter.min.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+    <script src="~/Scripts/H3/Console/Reporting/ReportDesigner.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+    <script src="../../../../Scripts/plugins/zTree/js/jquery.ztree.core.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+    <script src="../../../../Scripts/plugins/zTree/js/jquery.ztree.exhide.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+    <script src="../../../../Scripts/plugins/zTree/js/jquery.ztree.excheck.min.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+    <script src="../../../../Scripts/H3/AppTree.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+    <script src="~/Scripts/H3/H3Chart/excanvas.min.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+    <script src="~/Scripts/H3/H3Chart/ChartBase.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+    <script src="~/Scripts/H3/H3Chart/Chart.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+    <script src="~/Scripts/H3/Console/Reporting/SimpleDrag.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+    <script src="~/Scripts/H3/Console/Reporting/ReportDetail.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+    <script src="~/Scripts/H3/Console/Reporting/ReportCombined.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+    <script src="~/Scripts/H3/H3Plugins/H3.plugins.system.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+    <script src="~/Scripts/H3/Console/Reporting/SimpleBoard.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+    <script src="~/Scripts/H3/Console/Formula/NewFormulaEditable.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+    <script src="~/Scripts/H3/Console/Formula/Formula.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+    <script src="~/Scripts/plugins/sortable/Sortable.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+
+    <script src="~/Scripts/plugins/DropDownList/DropDownList.js?v=@System.Web.Configuration.WebConfigurationManager.AppSettings["JsCssVersion"]"></script>
+    <script type="text/javascript">
+        var SaveReportPage = function () {
+            $.ReportDesigner.SaveReport();
+        };
+        var hideFilter = function () {
+            $('#reportParameter').hide();
+            $("div.btn-param").show();
+        }
+        var toggleFilter = function () {
+            $('#h3_param_container').toggle();
+            //$("div.btn-param").hide();
+        }
+
+        var onlyDigital = function (event) {
+            var keycode = event.keyCode;
+            if (keycode >= 48 && keycode <= 57) {
+                event.returnValue = true;
+            } else {
+                event.returnValue = false;
+            }
+        };
+        var schemaCode = '@ViewBag.SchemaCode';
+        var IsDev = '@ViewBag.IsDeveloper' == 'False' ? false : true;
+        $.ReportDesigner.Init(schemaCode)
+
+        $(function () {
+            //绑定ctrl+s事件
+            $(window).keydown(function (event) {
+                if (!(event.which == 83 && event.ctrlKey)) return true;
+                console.log('ctrl+s pressed');
+                $.ReportDesigner.SaveReport();
+                event.preventDefault();
+                return false;
+            });
+
+            $("#float-panel-field-eidt").find("select").DropDownList({ Width: "100%" });
+            $("#widget_wrapper").off("mouseenter.list").on("mouseenter.list", '.table td,.table th', function () {
+                var $that = $(this);
+                if ($that.find("td").length > 0) return false;
+                $TextLabel.text($that.text());
+                //console.log($TextLabel.width());
+                if ($TextLabel.width() > $that.width()) {
+                    var offset = $that.offset();
+                    $tableTip.text($that.text()).css({ left: offset.left + ($that.outerWidth() - $tableTip.outerWidth()) / 2 - $(window).scrollLeft(), bottom: $(window).height() - offset.top + 6 + $(window).scrollTop() }).toggle();
+                }
+                return false;
+            });
+
+            $("#widget_wrapper").off("mouseleave.list").on("mouseleave.list", '.table td,.table th', function () {
+                $tableTip && $tableTip.hide();
+            });
+        });
+        var $TextLabel = $("<label style='opacity:0;position:fixed;z-index:-1;'>").hide().appendTo("body");
+        $tableTip = $(".table-tip");
+        $tableTip.length == 0 && ($tableTip = $('<div class="table-tip" style="display: none;word-wrap: break-word"></div>').appendTo($("body")));
+        // $(".panel-left").niceScroll({ cursorcolor: "#f1f1f1" });
+    </script>
+}

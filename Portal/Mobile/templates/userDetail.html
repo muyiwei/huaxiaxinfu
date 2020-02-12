@@ -1,0 +1,50 @@
+﻿<ion-view hide-nav-bar='true' class="settings">
+    <ion-content>
+        <div class="menu-tittle f17  {{$root.dingMobile.dingHeaderClass}}">
+            <div class="menu-tittle-left pr25" ng-click="goback()">
+                <i class="f17 ion-chevron-left blue"></i>
+            </div>
+            <div class="menu-tittle-middle">{{userInfo.Name}}</div>
+        </div>
+        <!-- app头像 -->
+        <div class="menu-bar f16 user">
+            <div class="avatar" ng-click="changeImage()">
+                <img src="{{userInfo.ImageUrl}}" ng-if="userInfo.ImageUrl.length>0">
+                <img src="img/usermen.png" ng-if="userInfo.ImageUrl.length==0||userInfo.ImageUrl==null?userInfo.Gender==0||userInfo.Gender==1:false">
+                <img src="img/userwomen.png" ng-if="userInfo.ImageUrl.length==0||userInfo.ImageUrl==null?userInfo.Gender==2:false">
+            </div>
+        </div>
+        <div class="vertical-border">
+            <div class="vertical-line"></div>
+            <span class="vertical-title f14 ng-binding">{{languages.userDetail.BasicInformation}}</span>
+        </div>
+        <div class="menu-bar f16">
+            <div class="menu-bar-left">{{languages.userDetail.Account}}</div>
+            <div class="menu-bar-right">{{userInfo.Code}}</div>
+        </div>
+        <div class="menu-bar f16" style="border-top: 1px solid #D3D8DC;">
+            <div class="menu-bar-left">{{languages.userDetail.Appellation}}</div>
+            <div class="menu-bar-right">{{userInfo.Appellation}}</div>
+        </div>
+        <div class="menu-bar f16" style="border-top: 1px solid #D3D8DC;">
+            <div class="menu-bar-left">{{languages.userDetail.Department}}</div>
+            <div class="menu-bar-right">{{userInfo.DepartmentName}}</div>
+        </div>
+        <div class="vertical-border">
+            <div class="vertical-line"></div>
+            <span class="vertical-title f14 ng-binding">{{languages.userDetail.ContactWay}}</span>
+        </div>
+        <div class="menu-bar f16">
+            <div class="menu-bar-left">{{languages.userDetail.Email}}</div>
+            <div class="menu-bar-right">{{userInfo.Email}}</div>
+        </div>
+        <div class="menu-bar f16" style="border-top: 1px solid #D3D8DC;">
+            <div class="menu-bar-left">{{languages.userDetail.OfficePhone}}</div>
+            <div class="menu-bar-right">{{userInfo.OfficePhone}}</div>
+        </div>
+        <div class="menu-bar f16" style="border-top: 1px solid #D3D8DC;">
+            <div class="menu-bar-left">{{languages.userDetail.MobilePhone}}</div>
+            <div class="menu-bar-right"><a href="tel:{{userInfo.Mobile}}" ng-click="openTel();">{{userInfo.Mobile}}</a></div>
+        </div>
+    </ion-content>
+</ion-view>

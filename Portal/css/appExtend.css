@@ -1,0 +1,671 @@
+﻿
+
+.glyphicon:before {
+    top: -3px;
+}
+
+.marginRight5 {
+    margin-right: 5px;
+}
+
+.dropdown-menu {
+    font-size: 13px;
+}
+
+.navbar-brand img {
+    width: 160px;
+    height: 30px;
+    max-height: inherit;
+}
+
+.dk {
+    background-color: #DDE6E9;
+}
+
+.m-b-sm {
+    margin-bottom: 13px;
+    margin-top: 21px;
+}
+
+.app-content-body {
+    padding-bottom: 0px;
+}
+
+.wrapper {
+    padding: 10px;
+}
+
+.wrapper-md {
+    padding: 15px 20px 10px;
+    min-height: 52px;
+}
+
+.paddingbottomNone {
+    padding-bottom: 0px;
+}
+
+.control-label {
+    font-weight: bold;
+}
+
+.form-control {
+    font-size: 12px;
+    height: 30px;
+    padding: 6px 6px;
+}
+
+.i-checks > i {
+    position: relative;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-top: -2px;
+    margin-right: 4px;
+    margin-left: -16px;
+    line-height: 1;
+    vertical-align: middle;
+    background-color: #fff;
+    border: 1px solid #cfdadd;
+}
+
+.i-checks input:checked + i:before {
+    top: 3px;
+    left: 3px;
+    width: 8px;
+    height: 8px;
+}
+
+.alignLeft {
+    font-weight: initial;
+    text-align: left !important;
+}
+
+.table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+    .table > tbody > tr {
+        height: 37px;
+    }
+
+        .table > tbody > tr > td {
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+    .table input[type="radio"], input[type="checkbox"] {
+        margin: 0px;
+    }
+
+.selectedRow {
+    background-color: #dde6e9 !important;
+}
+
+    .selectedRow td {
+        background-color: #dde6e9 !important;
+    }
+
+.paddingBodyNone .panel-body {
+    padding: 0px;
+}
+
+.panel .accordion-toggle {
+    font-size: 13px;
+}
+
+.btn {
+    font-size: 12px;
+}
+
+.btn-default {
+    font-size: 12px;
+}
+
+.text-black {
+    font-size: 21px;
+}
+
+.navi ul.nav li a .badge, .navi ul.nav li a .label {
+    margin-top: 0px;
+}
+
+.workItemGroup .panel-heading {
+    padding: 12px;
+}
+
+.input-group-addon {
+    font-size: 12px;
+}
+
+@media screen and (max-width:1024px) {
+    .hide1024 {
+        display: none;
+    }
+}
+
+
+
+@media screen and (max-width:414px) {
+    .hide1024 {
+        display: none;
+    }
+
+    .hide414 {
+        display: none;
+    }
+}
+
+/* ========================================================================
+   Component: notify.less
+ ========================================================================== */
+.uk-notify {
+    position: fixed;
+    top: 80px;
+    left: 50px;
+    z-index: 1040;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 350px;
+}
+
+.uk-notify-top-right,
+.uk-notify-bottom-right {
+    left: auto;
+    right: 50px;
+}
+
+.uk-notify-top-center,
+.uk-notify-bottom-center {
+    left: 50%;
+    margin-left: -175px;
+}
+
+.uk-notify-bottom-left,
+.uk-notify-bottom-right,
+.uk-notify-bottom-center {
+    top: auto;
+    bottom: 50px;
+}
+
+@media (max-width: 480px) {
+    .uk-notify {
+        left: 10px;
+        right: 10px;
+        width: auto;
+        margin: 0;
+    }
+}
+
+.uk-notify-message {
+    position: relative;
+    margin-bottom: 10px;
+    padding: 15px;
+    font-size: 16px;
+    line-height: 22px;
+    border-radius: 3px;
+    padding-right: 35px;
+    cursor: pointer;
+}
+
+    .uk-notify-message.alert.alert-normal {
+        background: #444444;
+        color: #ffffff;
+    }
+
+    .uk-notify-message > .close {
+        visibility: hidden;
+    }
+
+    .uk-notify-message:hover > .close {
+        visibility: visible;
+    }
+
+/* ========================================================================
+   Component: notify end
+ ========================================================================== */
+
+/* Login Start */
+.page-signup .signup-container {
+    border-radius: 2px;
+    display: block;
+    margin: 20px 14px;
+    position: relative;
+    z-index: 999;
+}
+
+.signup-header {
+    background-color: #4997D6;
+    display: block;
+    overflow: hidden;
+    padding: 20px 30px;
+    text-align: center;
+}
+
+    .signup-header .logo[href]:hover {
+        opacity: .7;
+    }
+
+
+.page-signup .signup-form {
+    background: #fff;
+    display: block;
+    padding: 30px 20px;
+    position: relative;
+}
+
+.page-signup .form-actions {
+    margin-top: 15px;
+}
+
+    .page-signup .form-actions .signup-btn {
+        border: none;
+        border-radius: 999999px;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 19px;
+        outline: 0 !important;
+        padding: 10px 0;
+        text-align: center;
+        width: 100%;
+        -webkit-transition: all .3s;
+        transition: all .3s;
+    }
+
+        .page-signup .form-actions .signup-btn:hover {
+            background: #444 !important;
+        }
+
+    .page-signup .form-actions a.forgot-password {
+        border-bottom: 1px dashed #bbb;
+        color: #999;
+        display: inline-block;
+        font-size: 11px;
+        margin-left: 10px;
+        padding-bottom: 1px;
+    }
+
+        .page-signup .form-actions a.forgot-password:hover {
+            color: #555;
+            text-decoration: none;
+        }
+
+.page-signup .form-group {
+    margin: 0;
+    position: relative;
+}
+
+    .page-signup .form-group + .form-group {
+        margin: 10px 0 0;
+    }
+
+    .page-signup .form-group.w-icon .signup-form-icon {
+        border-right: 1px solid #d6d6d6;
+        bottom: 9px;
+        color: #d6d6d6;
+        display: block;
+        font-size: 14px;
+        left: 0;
+        line-height: 27px;
+        position: absolute;
+        text-align: center;
+        top: 9px;
+        width: 40px;
+        z-index: 1002;
+        -webkit-transition: all .3s;
+        transition: all .3s;
+    }
+
+    .page-signup .form-group.w-icon input[type=password], .page-signup .form-group.w-icon input[type=text] {
+        font-size: 15px;
+        padding-left: 56px;
+        height: 45px;
+    }
+
+        .page-signup .form-group.w-icon input[type=password]:focus + .signup-form-icon, .page-signup .form-group.w-icon input[type=text]:focus + .signup-form-icon {
+            color: #888;
+        }
+
+.page-signup .signup-text {
+    color: #777;
+    display: block;
+    font-size: 15px;
+    font-style: italic;
+    margin-bottom: 25px;
+    position: relative;
+    text-align: center;
+}
+
+    .page-signup .signup-text span {
+        background: #fff;
+        display: inline-block;
+        padding: 0 20px;
+        position: relative;
+    }
+
+    .page-signup .signup-text:before {
+        background: #e4e4e4;
+        content: "";
+        display: block;
+        height: 1px;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 50%;
+    }
+
+.page-signup .signup-with {
+    background: #f4f4f4;
+    border-top: 1px solid #ddd;
+    margin: 30px -20px -30px -20px;
+    padding: 20px;
+}
+
+.page-signup .signup-with-btn {
+    border-radius: 2px;
+    color: #fff;
+    display: block;
+    font-weight: 300;
+    padding: 10px 0;
+    text-align: center;
+    -webkit-transition: all .3s;
+    transition: all .3s;
+}
+
+    .page-signup .signup-with-btn span {
+        font-weight: 600;
+    }
+
+    .page-signup .signup-with-btn + .signup-with-btn {
+        margin-top: 10px;
+    }
+
+    .page-signup .signup-with-btn:hover {
+        background: #444 !important;
+    }
+
+.page-signup .have-account {
+    color: #fff;
+    display: block;
+    font-size: 14px;
+    margin: -20px 0 0 0;
+    padding: 20px 0;
+    position: relative;
+    text-align: center;
+    z-index: 999;
+}
+
+    .page-signup .have-account a {
+        color: #fff;
+        text-decoration: underline;
+        transition: all .3s;
+    }
+
+        .page-signup .have-account a:hover {
+            opacity: .6;
+        }
+
+@media(min-width: 480px) {
+    .page-signup .signup-container {
+        width: 380px;
+        margin: 30px auto;
+        box-shadow: 0 0 15px #555;
+    }
+
+    .page-signup .signup-form {
+        padding: 30px;
+    }
+
+    .page-signup .signup-with {
+        margin-left: -30px;
+        margin-right: -30px;
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+
+    .page-signup .have-account {
+        margin: -80px 0 20px;
+    }
+}
+/* Login End */
+
+
+/* table-responsive Start */
+
+div [ui-jq="SheetWorkflow"] {
+    margin-left: 0px;
+}
+
+
+.table-responsive {
+    min-height: 450px;
+    font-size: 13px;
+}
+
+    .table-responsive .searchContainer {
+        padding-top: 15px;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+  /*tll 超时流程流程控件搜索会出现多重滑动，所以单独css*/
+      .app-content-body .form-group .bordered.SelectorPanel {
+    /*overflow: auto;*/
+     }
+    /*超时流程查询搜索选项上下距离调整，保存上面的写法*/
+        .table-responsive .searchContainer div.form-group {
+               margin: 4px 5px; 
+        }
+
+    .table-responsive table tr th {
+        font-weight: bold;
+    }
+
+    .table-responsive table tr.whitesmoke > td {
+        background-color: whitesmoke;
+    }
+/* table-responsive End */
+
+
+/* ShowReport Start*/
+
+#Report input {
+    min-height: 28px;
+}
+
+.chartTypeToolBar a {
+    color: #428bca;
+}
+
+#ReportView {
+    width: 100% !important;
+}
+
+    #ReportView .l-trigger {
+        height: 21px;
+    }
+
+    #ReportView .l-text-combobox {
+        height: 25px;
+        border: 1px solid #A9A9A9;
+    }
+
+        #ReportView .l-text-combobox input {
+            border: 0px;
+            height: 23px;
+        }
+
+    #ReportView .l-bar-control {
+        float: right;
+    }
+
+    #ReportView .l-bar-message {
+        position: static;
+        right: auto;
+    }
+
+.l-text-field-number {
+    text-align: left !important;
+}
+/* ShowReport End*/
+
+/* InstanceState Start*/
+
+body {
+    overflow-y: auto;
+}
+
+.toolText {
+    color: dodgerblue;
+}
+
+.toolImage {
+    color: dodgerblue;
+}
+
+#InstanceDetail #main-navbar {
+    /*border: 1px solid #f1f1f1;*/
+    border-bottom: 2px solid #f1f1f1;
+}
+
+    #InstanceDetail #main-navbar li {
+        border-left: 1px solid #f1f1f1;
+        border-right: none;
+    }
+
+        #InstanceDetail #main-navbar li span {
+            margin-left: 5px;
+        }
+
+#InstanceDetail a {
+    color: dodgerblue;
+}
+
+#InstanceDetail .ulColor {
+    padding: 0px;
+    list-style-type: none;
+    float: left;
+    margin-left: 25px;
+}
+
+    #InstanceDetail .ulColor li {
+        float: left;
+        margin-right: 10px;
+        width: 200px;
+        height: 22px;
+        line-height: 22px;
+        text-align: center;
+    }
+
+#InstanceDetail .bannerTitle {
+    color: #494949;
+    font-weight: bold;
+    font-size: 13px;
+    border-bottom: 2px solid #ccc;
+    height: 22px;
+    width: 100%;
+    margin-bottom: 6px;
+    cursor: pointer;
+}
+
+    #InstanceDetail .bannerTitle label {
+        padding-left: 5px;
+        cursor: pointer;
+    }
+
+#InstanceDetail .hrSplit {
+    margin-top: 3px;
+    margin-bottom: 8px;
+    border-width: 2px;
+    border-color: #9B9690;
+}
+
+#InstanceDetail .workspace .activity_instance {
+    min-height: 40px;
+}
+/* InstanceState End */
+
+/* SheetWorkflow Start */
+.icon-liuchengmoxing, .icon-zuzhitubiao {
+    font-family: 'LigerUIFont';
+    speak: none;
+    font-style: normal;
+    font-weight: bold;
+    font-variant: normal;
+    text-transform: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+/* SheetWorkflow End */
+
+/* tr InstanceException Start */
+tr.InstanceException > td > span.InstanceExceptionInfo {
+    color: red !important;
+}
+/* tr InstanceException End */
+
+/* PortalTemplates Start */
+.CodeMirror {
+    width: 95% !important;
+}
+
+.template-item {
+    width: 170px;
+    float: left;
+    height:190px;
+    overflow:hidden;
+}
+
+    .template-item .name {
+        text-align: center;
+        line-height: 18px;
+        word-break:break-all;
+        width:150px;
+        /*display:inline-block;
+        /*white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;*/
+    }
+
+.dodgerblue a {
+    color: dodgerblue;
+}
+/* PortalTemplates End */
+/*tll 首页header增加默认图标*/
+.defaultIcon.user-a {
+    background: url(../img/TempImages/yingyong.svg) #4DA9EB no-repeat center center;
+    background-size: 60% 60%;
+}
+.defaultIcon {
+    height: 64px;
+    width: 64px;
+    display: inline-block;
+    border-radius: 50%;
+
+}
+.defaultIconCss {
+    height: 64px;
+    width: 64px;
+    display: inline-block;
+    border-radius: 50%;
+ 
+    color: black;
+    font-size: 27px;
+    line-height: 64px;
+}
+
+.dataTables_empty i.icon-emoticon-smile {
+    margin-right: 5px;
+}
+#ulHomeApps.navbar-nav > li > .dropdown-menu {
+        max-height: 500px;
+    overflow: auto;
+}
+
+input{
+    border-radius:5px !important;
+}
+input:focus{
+    border-color:rgb(191,0,8);
+}

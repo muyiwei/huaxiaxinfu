@@ -1,0 +1,71 @@
+﻿<script>
+    $(function () {
+        $("#ToolBar").AspLinkToolBar();
+        CreateLigerGrid(
+            $("#GlobalDataList"),
+            GetCategoryColumns(),
+            $.Controller.GlobalData.GetGlobalDataList,
+            true
+            );
+    });
+
+    function GetCategoryColumns() {
+        var editName = $.Lang("GlobalButton.Edit");
+        var itemName = $.Lang("EditGlobalData.VariableName");
+        var itemValue = $.Lang("EditGlobalData.Value");
+        var description = $.Lang("EditGlobalData.Description");
+        return [
+            { display: itemName, name: 'ItemName', width: '20%' },
+            { display: itemValue, name: 'ItemValue', width: '20%' },
+            { display: description, name: 'Description', width: '40%' },
+            {
+                display: editName, name: '', width: '15%', render: function (row) {
+                    return "<a href='#' id='" + encodeURI(row.ItemName) + "'  onclick='RowEditClick(this)'>" + editName + "</a>";
+                }
+            },
+        ];
+    }
+    function AddFun() {
+        var editname = $.Lang("EditGlobalData.EditData");
+        ShowDialog(editname, _PORTALROOT_GLOBAL+"/admin/TabMaster.html?url=SysParam/EditGlobalDataDetail.html");
+    }
+
+    function RowEditClick(obj) {
+        var editname = $.Lang("EditGlobalData.EditData");
+        ShowDialog(editname,_PORTALROOT_GLOBAL+ "/admin/TabMaster.html?url=SysParam/EditGlobalDataDetail.html&itemName=" + obj.id);
+    }
+    function DeleteFun(obj) {
+        var SelectItemName = $.Lang("msgGlobalString.SelectItem");
+        var rows = H3GridManager.getSelectedRows();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: SelectItemName });
+            return false;
+        }
+        var ids = "";
+        for (var i = 0; i < rows.length; i++) {
+            ids = ids + rows[i].ItemName + ",";
+        }
+        if (ConfirmDel(obj)) {
+            $.ajax({
+                url: $.Controller.GlobalData.DelGlobalData,
+                type: 'post',
+                dataType: "json",
+                data: { ids: ids },
+                success: function (result) {
+                    if (result.Success) {
+                        top.workTab.reload(top.workTab.getSelectedTabItemID());
+                    } else {
+                        $.H3Dialog.Warn({ content: result.Message });
+                    }
+                }
+            });
+        }
+    }
+</script>
+<div id="ToolBar">
+    <a href="#" id="lnkAdd" onclick="AddFun()" data-icon="fa fa-plus" data-lang="GlobalButton.Add">添加</a>
+    <a onclick=" DeleteFun(this);" data-lang="GlobalButton.Delete" data-icon="fa fa-minus" href="#">删除</a>
+</div>
+<div class="H3Panel">
+    <div id="GlobalDataList"></div>
+</div>

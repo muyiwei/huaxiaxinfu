@@ -1,0 +1,51 @@
+{
+    "status": "1",
+    "msg": "",
+    "result": {
+        "LastTime": "/Date(1496905333000)/",
+        "LoadComplete": true,
+        "RefreshTime": "/Date(1496905333000)/",
+        "TotalCount": 5,
+        "workItems": [
+            {
+                "ObjectId": "1",
+                "OrigiantorName": "张三",
+                "UserAvatar": "img/adam.jpg",
+                "InstanceName": "张三的请假单",
+                "Summary":[
+                    
+                ],
+                "Priority": "1", 
+                "ReceiveTime": "08-02 19:47",
+                "Urged": true, 
+                "OrigiantorOUName": "我的公司",
+                "WorkflowCode": "AppliacationForLeave"
+            },
+              {
+                "ObjectId": "6",
+                "OrigiantorName": "张",
+                "UserAvatar": "img/adam.jpg",
+                "InstanceName": "kerry的请假单",
+                "Summary":[
+                    
+                ],
+                "Priority": "1", 
+                "ReceiveTime": "08-02 19:47",
+                "Urged": true, 
+                "OrigiantorOUName": "我的公司",
+                "WorkflowCode": "AppliacationForLeave"
+            },
+            {
+                "ObjectId": "2",
+                "OrigiantorName": "李四",
+                "UserAvatar": "img/adam.jpg",
+                "InstanceName": "李四的报销单",
+                "Priority": "1", 
+                "ReceiveTime": "08-02 19:47",
+                "Urged": false, 
+                "OrigiantorOUName": "我的公司",
+                "WorkflowCode": "ExpenseClaim"
+            }
+        ]
+    }
+}

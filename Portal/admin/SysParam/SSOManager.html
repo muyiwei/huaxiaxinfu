@@ -1,0 +1,88 @@
+﻿<script type="text/javascript">
+    $(function () {
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel({ excludeIDs: ["SSOManagerList"] });
+        //构造列表
+        CreateLigerGrid(
+            $("#SSOManagerList"),
+            GetCategoryColumns(),
+            $.Controller.SSOManager.GetSSOManagerList,
+            true
+            );
+    })
+    //构造列
+    function GetCategoryColumns() {
+        var edit = $.Lang("EditMasterData.Edit");
+        var AllowGetToken = $.Lang("SSOManager.AllowGetToken");
+        var State = $.Lang("SSOManager.State");
+        var DefaultUrl = $.Lang("SSOManager.DefaultUrl");
+        var SubmitPasswordID = $.Lang("SSOManager.SubmitPasswordID");
+        var SubmitUrl = $.Lang("SSOManager.SubmitUrl");
+        var SubmitUserNameControlID = $.Lang("SSOManager.SubmitUserNameControlID");
+        var SystemCode = $.Lang("SSOManager.SystemCode");
+        var SystemName = $.Lang("SSOManager.SystemName");
+        return [
+           { display: SystemCode, name: "SystemCode" },
+           { display: SystemName, name: "SystemName" },
+           //{ display: SubmitUrl, name: "SubmitUrl" },
+           //{ display: SubmitUserNameControlID, name: "SubmitUserNameControlID" },
+           //{ display: SubmitPasswordID, name: "SubmitPasswordID" },
+           { display: DefaultUrl, name: "DefaultUrl" },
+           { display: AllowGetToken, name: "AllowGetToken" },
+           { display: State, name: "State" },
+           {
+               display: edit, name: '', width: '5%', render: function (row) {
+                   return "<a href='#' id='" + row.SystemCode + "'  onclick='RowEditClick(this)'>" + edit + "</a>";
+               }
+           }
+        ];
+    }
+    //打开新增页面
+    function AddFun() {
+        var title = $.Lang("SSOManager.SSOManager");
+        ShowDialog(title, _PORTALROOT_GLOBAL+ "/admin/TabMaster.html?url=SysParam/EditSSOManager.html");
+    }
+
+
+    //行编辑
+    function RowEditClick(obj) {
+        var name = $.Lang("SSOManager.Edit");
+        ShowDialog(name, _PORTALROOT_GLOBAL+ "/admin/TabMaster.html?url=SysParam/EditSSOManager.html&code=" + obj.id);
+    }
+
+    //删除单点登录
+    function DeleteFun(obj) {
+        var SelectItemName = $.Lang("msgGlobalString.SelectItem");
+        var rows = H3GridManager.getSelectedRows();
+        if (rows == null || rows.length == 0) {
+            $.H3Dialog.Warn({ content: SelectItemName });
+            return false;
+        }
+        var ids = "";
+        for (var i = 0; i < rows.length; i++) {
+            ids = ids + rows[i].ObjectID + ",";
+        }
+        if (ConfirmDel(obj)) {
+            $.ajax({
+                url: $.Controller.SSOManager.DelSSOManager,
+                type: 'post',
+                dataType: "json",
+                data: { ids: ids },
+                success: function (result) {
+                    if (result.Success) {
+                        top.workTab.reload(top.workTab.getSelectedTabItemID());
+                    } else {
+                        $.H3Dialog.Warn({ content: result.Message });
+                    }
+                }
+            });
+        }
+    }
+</script>
+<div id="ToolBar">
+    <a href="#" id="lnkAdd" data-icon="fa fa-plus" onclick="AddFun()" data-lang="GlobalButton.Add"></a>
+    <a onclick=" DeleteFun(this);" data-icon="fa fa-minus" href="javascript:void(0)" data-lang="GlobalButton.Delete">删除</a>
+</div>
+<div>
+    <div id="SSOManagerList"></div>
+</div>

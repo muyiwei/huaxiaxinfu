@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<meta charset="utf-8">
+	
+	
+	<script type="text/javascript" src="js/jquery-1.8.3.js"></script>
+	<script type="text/javascript" src="js/jquery-ui-1.9.2.custom.min.js"></script>
+	<script type="text/javascript" src="js/jquery.nicescroll.min.js"></script>
+	<script type="text/javascript" src="vue.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/custom-theme/jquery-ui-1.9.2.custom.css">
+	<link rel="stylesheet" type="text/css" href="style.css">
+
+
+
+</head>
+<body>
+<button id="basic">基础设置</button>
+<button id="button">按钮显示设置</button>
+<button id="list">列表设置</button>
+<button id="change">更改查询字段</button>
+
+
+
+
+<div class="dialogContainer basicSettings" id="basicSettings" title="基础设置">
+	<div class="row cl">
+		<label>编码</label><input type="text" name="QueryCode" placeholder="请输入" class="fr">
+	</div>
+	<div class="row cl">
+		<label>显示名称</label><input type="text" name="DisplayName" placeholder="请输入" class="fr">
+	</div>
+	<div class="row cl">
+		<label>查询设置</label><label style="color: #333;width: 300px;" class='fr'><input type="checkbox" name="QueryWhenLoad" style="margin-right:5px;">页面加载时执行查询</label>
+	</div>
+</div>
+
+
+<div class="dialogContainer buttonSettings" id="buttonSettings" title="按钮显示设置">
+	<div class="checkboxlist">
+		<label class="dragable" v-for="a in array" :data-code="a.code" :key="a.code"><input type="checkbox" name="">{{a.text}}:{{a.index}}</label>
+	</div>
+</div>
+
+
+
+
+<div class="dialogContainer listSettings" id="listSettings" title="列表设置">
+	<div id="listSettingsScroll">
+		<table>
+      <thead>
+           <tr>
+                <th></th>
+                <th>列宽</th>
+                <th>显示格式<img id="ask" src="images/ask.png" title="" style="width: 12px;height: 12px;margin-left:5px;"></th>
+           </tr>
+      </thead>
+      <tbody>
+           <tr>
+                <td><label>字段1</label></td>
+                <td><input type="text" name=""></td>
+                <td><input type="text" name=""></td>
+           </tr>
+           <tr>
+                <td><label>字段1</label></td>
+                <td><input type="text" name=""></td>
+                <td><input type="text" name=""></td>
+           </tr>
+           <tr>
+                <td><label>字段1</label></td>
+                <td><input type="text" name=""></td>
+                <td><input type="text" name=""></td>
+           </tr>
+           <tr>
+                <td><label>字段1</label></td>
+                <td><input type="text" name=""></td>
+                <td><input type="text" name=""></td>
+           </tr>
+           <tr>
+                <td><label>字段1</label></td>
+                <td><input type="text" name=""></td>
+                <td><input type="text" name=""></td>
+           </tr>
+           <tr>
+                <td><label>字段1</label></td>
+                <td><input type="text" name=""></td>
+                <td><input type="text" name=""></td>
+           </tr>
+           <tr>
+                <td><label>字段1</label></td>
+                <td><input type="text" name=""></td>
+                <td><input type="text" name=""></td>
+           </tr>
+           <tr>
+                <td><label>字段1</label></td>
+                <td><input type="text" name=""></td>
+                <td><input type="text" name=""></td>
+           </tr>
+           <tr>
+                <td><label>字段1</label></td>
+                <td><input type="text" name=""></td>
+                <td><input type="text" name=""></td>
+           </tr>
+           <tr>
+                <td><label>字段1</label></td>
+                <td><input type="text" name=""></td>
+                <td><input type="text" name=""></td>
+           </tr>
+           <tr>
+                <td><label>字段1</label></td>
+                <td><input type="text" name=""></td>
+                <td><input type="text" name=""></td>
+           </tr>
+           <tr>
+                <td><label>字段1</label></td>
+                <td><input type="text" name=""></td>
+                <td><input type="text" name=""></td>
+           </tr>
+           <tr>
+                <td><label>字段1</label></td>
+                <td><input type="text" name=""></td>
+                <td><input type="text" name=""></td>
+           </tr>
+           <tr>
+                <td><label>字段1</label></td>
+                <td><input type="text" name=""></td>
+                <td><input type="text" name=""></td>
+           </tr>
+           <tr>
+                <td><label id="test" title='字段1字段1字段1字段1字段1字段1字段1字段1字段1字段1字段1字段1字段1'>字段1字段1字段1字段1字段1字段1字段1字段1字段1字段1字段1字段1字段1</label></td>
+                <td><input type="text" name=""></td>
+                <td><input type="text" name=""></td>
+           </tr>
+      </tbody>
+ 	</table>
+	</div>
+</div>
+
+
+<div class="dialogContainer changeQueryString" id="changeQueryString" title="更改查询字段">
+	<div class="dragBoxes">
+		<div class="leftBox dragbox fl">
+			<div class="boxTitle">隐藏字段(双击添加显示字段)</div>
+			<div class="boxContent">
+				<div class="item" v-for="item in array" v-if="item.visible==false" :key="item.code" :data-code="item.code">{{item.text}}:{{item.index}}</div>
+			</div>
+		</div>
+		<div class="boxOperation fl">
+			<div class="ltr">></div>
+			<div class="rtl"><</div>
+		</div>
+		<div class="rightBox dragbox fl">
+			<div class="boxTitle">显示字段</div>
+			<div class="boxContent">
+				<div class="item" v-for="item in array" v-if="item.visible==true" :key="item.code" :data-code="item.code">{{item.text}}:{{item.index}}</div>
+			</div>
+		</div>
+		<div class="cl"></div>
+	</div>
+</div>
+
+
+
+<script type="text/javascript">
+
+var data={};
+var data2={};
+
+$(function(){
+
+
+//提示框
+$( document ).tooltip();
+$("#ask").tooltip({
+	tooltipClass:"askTooltip",
+	content:function(){
+		return '1、支持html格式字符串,如:"&lt;a&gt;{Name}&lt;\/a&gt;"'+"<br/>"+
+		'2、支持时间格式化，如：yyyy-MM-dd等'+"<br/>"+
+		'3、数字格式化，如：人民币、美元符号';
+	}
+});
+
+
+
+
+
+
+	$("#basic").click(function(){
+		$("#basicSettings").dialog({
+			modal:true,
+			width:420,
+			resizable:false,
+			buttons:{
+				"保存":function(){
+					$(this).dialog("close");
+				},
+				"取消":function(){
+					$(this).dialog("close");
+				}
+			}
+		})
+	});
+
+	$("#button").click(function(){
+		$("#buttonSettings").dialog({
+			modal:true,
+			width:420,
+			resizable:false,
+			buttons:{
+				"保存":function(){
+					$(this).dialog("close");
+				},
+				"取消":function(){
+					$(this).dialog("close");
+				}
+			}
+		})
+	});
+
+
+
+
+	$("#list").click(function(){
+		$("#listSettings").dialog({
+			modal:true,
+			width:420,
+			resizable:false,
+			buttons:{
+				"保存":function(){
+					$(this).dialog("close");
+				},
+				"取消":function(){
+					$(this).dialog("close");
+				}
+			}
+		});
+
+		//设置滚动条
+		$("#listSettings").niceScroll("#listSettingsScroll",{cursorcolor:"#37ABFD",cursoropacitymax:0.7,boxzoom:true,touchbehavior:false,boxzoom:false}).resize(); 
+	});
+	
+
+
+
+	$("#change").click(function(){
+		$("#changeQueryString").dialog({
+			modal:true,
+			width:420,
+			resizable:false,
+			buttons:{
+				"保存":function(){
+					$(this).dialog("close");
+				},
+				"取消":function(){
+					$(this).dialog("close");
+				}
+			}
+		});
+		//设置滚动条
+		$(".boxContent").niceScroll({cursorcolor:"#37ABFD",cursoropacitymax:0.7,boxzoom:true,touchbehavior:false,boxzoom:false}).resize(); 
+
+	});
+
+
+
+
+	// var data2={};
+	data2.array=[
+		{text:"字段1",code:"a",visible:true,index:1},
+		{text:"字段2",code:"b",visible:true,index:2},
+		{text:"字段3",code:"c",visible:true,index:3}
+	]
+	var model2=new Vue({
+		el:"#changeQueryString",
+		data:data2,
+		methods:{
+
+		}
+	});
+	data2.array.sort(SortByProperty("index"));
+
+	function initDragBoxes(){
+		//拖拽事件
+		$("#changeQueryString .boxContent").sortable({
+			revert: true,
+      		cursor:"move",
+      		start:function(e){
+      			$(e.toElement).addClass("isMove");
+      		},
+      		stop:function(e){
+      			$(e.toElement).removeClass("isMove");
+      			var parent=$(e.toElement).parents(".dragbox");
+      			if(parent.hasClass("leftBox")){
+					$(".leftBox .item").each(function(i,v){
+						var len=$(".leftBox .item").length;
+						var code=$(v).data("code");
+						for(var item in data2.array){
+							if(data2.array[item].code==code){
+								data2.array[item].index=(len-1)-i;
+							}
+						}
+					});	
+      			}else{
+ 					$(".rightBox .item").each(function(i,v){
+						var len=$(".rightBox .item").length;
+						var code=$(v).data("code");
+						for(var item in data2.array){
+							if(data2.array[item].code==code){
+								data2.array[item].index=(len-1)-i;
+							}
+						}
+					});
+      			}
+				data2.array.sort(SortByProperty("index"));
+      		}
+		})
+
+		//item双击事件
+		$("#changeQueryString").on("dblclick",".item",function(){
+			var parent=$(this).parents(".dragbox");
+			var code=$(this).data("code");
+			for(var item in data2.array){
+				if(data2.array[item].code==code){
+					data2.array[item].visible=!data2.array[item].visible;
+					data2.array[item].index=-1;
+				}
+			}
+			Vue.nextTick(function(){
+					//排序
+					data2.array.sort(SortByProperty("index"));
+					if(parent.hasClass("leftBox")){
+						Vue.nextTick(function(){
+							$(".rightBox .item").each(function(i,v){
+								var len=$(".rightBox .item").length;
+								var code=$(v).data("code");
+								for(var item in data2.array){
+									if(data2.array[item].code==code){
+										data2.array[item].index=(len-1)-i;
+									}
+								}
+							});
+						})
+					}else{
+						Vue.nextTick(function(){
+							$(".leftBox .item").each(function(i,v){
+								var len=$(".leftBox .item").length;
+								var code=$(v).data("code");
+								for(var item in data2.array){
+									if(data2.array[item].code==code){
+										data2.array[item].index=(len-1)-i;
+									}
+								}
+							});
+						})
+					}
+				});
+		});
+		//>&<单击事件
+		$("#changeQueryString .boxOperation div").click(function(){
+			if(!$(this).hasClass("clickable")){
+				return;
+			};
+			$("#changeQueryString .boxContent .item.selected").each(function(i,v){
+				var code=$(v).data("code");
+				for(var item in data2.array){
+					if(data2.array[item].code==code){
+						data2.array[item].visible=!data2.array[item].visible;
+						data2.array[item].index=-1;
+					}
+				}
+			})
+			//已经更新了数据，但是Dom很有可能没有更新,Vue异步更新Dom
+			if($(this).hasClass("ltr")){
+				Vue.nextTick(function(){
+					//排序
+					data2.array.sort(SortByProperty("index"));
+					Vue.nextTick(function(){
+						$(".rightBox .item").each(function(i,v){
+							var len=$(".rightBox .item").length;
+							var code=$(v).data("code");
+							for(var item in data2.array){
+								if(data2.array[item].code==code){
+									data2.array[item].index=(len-1)-i;
+								}
+							}
+						});
+					})
+				});
+			}else{
+				Vue.nextTick(function(){
+					data2.array.sort(SortByProperty("index"));
+					Vue.nextTick(function(){
+						$(".leftBox .item").each(function(i,v){
+							var len=$(".leftBox .item").length;
+							var code=$(v).data("code");
+							for(var item in data2.array){
+								if(data2.array[item].code==code){
+									data2.array[item].index=(len-1)-i;
+								}
+							}
+						});	
+					})
+				});
+			}
+			$(this).removeClass("clickable");
+		});
+		//item单击事件
+		$("#changeQueryString").on("click",".item",function(){
+			var  parent=$(this).parents(".dragbox");
+			if(!$(this).hasClass("selected")){
+				$("#changeQueryString .item").removeClass("selected");
+				$("#changeQueryString .boxOperation div").removeClass("clickable");
+				$(this).addClass("selected");
+				if(parent.hasClass("leftBox")){
+					$("#changeQueryString .ltr").addClass("clickable");
+				}else{
+					$("#changeQueryString .rtl").addClass("clickable");
+				}
+			}else{
+				$(this).removeClass("selected");
+				if(parent.hasClass("leftBox")){
+					$("#changeQueryString .ltr").removeClass("clickable");
+				}else{
+					$("#changeQueryString .rtl").removeClass("clickable");
+				}
+			}
+		});
+	};
+	initDragBoxes();
+
+
+
+
+
+
+
+
+
+	// var data={};
+	data.array=[
+		{text:'新增1',index:3,code:'gg'},
+		{text:'新增2',index:0,code:'cc'},
+		{text:'新增3',index:4,code:'dd'},
+		{text:'新增4',index:2,code:'ee'}
+	];
+	var model=new Vue({
+		el:"#buttonSettings",
+		data:data,
+		methods:{
+
+		}
+	});
+	//数组排序
+	function SortByProperty(property){
+		function sortFun(obj1,obj2){
+			if(obj1[property]>obj2[property]) return -1;
+			if(obj1[property]==obj2[property]) return 0;
+			if(obj1[property]<obj2[property]) return 1;
+		}
+		return sortFun;
+	}
+	data.array.sort(SortByProperty("index"));
+	$( "#buttonSettings .checkboxlist" ).sortable({
+      revert: true,
+      cursor:"move",
+      stop:function(e){
+		// 重新设定index
+		$("#buttonSettings .checkboxlist .dragable").each(function(i,v){
+			var len=$(".checkboxlist .dragable").length;
+			var code=$(v).data('code');
+			for(var item in data.array){
+				if(data.array[item].code==code){
+					data.array[item].index=(len-1)-i;
+				}
+			}
+		});
+		data.array.sort(SortByProperty("index"));
+      }
+    });
+
+
+
+
+
+
+});
+</script>
+</body>
+</html>

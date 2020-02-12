@@ -1,0 +1,148 @@
+﻿<script>
+    $(function () {
+        var pageData = {
+            LanData: $.Languages
+        };
+        //初始化页面数据
+        initPageData();
+        //构造vue对象
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                }
+            }
+        });
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+
+        $("#propertyTree").ligerComboBox({
+            selectBoxWidth: 360,
+            selectBoxHeight: 260,
+            valueField: 'text',
+            tree: {
+                data: pageData.PropertyTree,
+                checkbox: false,
+                isExpand: 2,
+                ajaxType: 'get'
+            },
+            treeLeafOnly: true
+        });
+
+        //初始化页面数据
+        function initPageData() {
+            var MethodType = getUrlParam("MethodType") || "";
+            var SchemaCode = getUrlParam("SchemaCode") || "";
+            var Method = getUrlParam("Method") || "";
+            var MapIndex = getUrlParam("MapIndex") || "";
+            var IsParam = getUrlParam("IsParam") || "";
+            var ParamName = getUrlParam("ParamName") || "";
+            var param = { mapIndex: MapIndex, schemaCode: SchemaCode, method: Method, methodType: MethodType, paramName: ParamName, isParam: IsParam };
+            $.ajax({
+                url: $.Controller.ServiceMethodParamMap.GetServiceMethodParamMap,
+                type: 'get',
+                dataType: "json",
+                data: param,
+                async: false,//同步执行
+                success: function (result) {
+                    if (result.Success) {
+                        pageData.MapTypes = result.Extend.MapTypes;
+                        GetNames(result.Extend.PropertyTree[0]);
+                        pageData.PropertyTree = result.Extend.PropertyTree;
+                        pageData.ParamMap = result.Extend.ParamMap;
+                    } else {
+                        parent.$.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        parent.H3DialogManger.Cancel()
+                    }
+                }
+            });
+        };
+
+        function GetNames(obj) {
+            obj.text = $.Lang(obj.text);
+            if (obj.children && obj.children.length>0 && !obj.children[0].id) {
+                for (var i = 0; i < obj.children.length; i++) {
+                    GetNames(obj.children[i]);
+                }
+            }
+        }
+        //保存
+        function saveData() {
+            $.ajax({
+                url: $.Controller.ServiceMethodParamMap.SaveServiceMethodParamMap,
+                type: "post",
+                dataType: "json",
+                traditional: true,
+                data: pageData.ParamMap,
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                        setTimeout(function () {
+                            parent.H3DialogManger.Close()
+                        }, 1000);
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        }
+    });
+
+    //隐藏下拉框
+    function mapTypeClick() {
+        $(".l-box-select.l-box-select-absolute").hide();
+    }
+
+</script>
+<validator name="formValidator">
+    <div id="ToolBar">
+        <a id="lnkOK" v-on:click="saveData" data-icon="fa fa-save" href="javascript:void(0)" data-lang="GlobalButton.Save">保存</a>
+    </div>
+    <div class="H3Panel">
+        <span>{{LanData.msgGlobalString.BasicInfo}}</span>
+        <table>
+            <tr>
+                <td>{{LanData.EditBizObjectSchemaParamMap.ParamName}}</td>
+                <td>
+                    <input type="text" v-model="ParamMap.ParamName" disabled="disabled" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.EditBizObjectSchemaParamMap.Type}}
+                </td>
+                <td colspan="2" class="tableNoCss"onclick="mapTypeClick()" >
+                    <table border="0">
+                        <tr>
+                            <td v-for="item in MapTypes">
+                                <input type="radio" name="mapType" value="{{item.Value}}" v-model="ParamMap.MapType"/>
+                                <label>{{item.Text}}</label>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr v-show="ParamMap.MapType=='0'">
+                <td>{{LanData.EditBizObjectSchemaParamMap.PropertyName}}</td>
+                <td>
+                    <input id="propertyTree" v-model="ParamMap.PropertyName" />
+                </td>
+            </tr>
+            <tr v-show="ParamMap.MapType=='1'">
+                <td>{{LanData.EditBizObjectSchemaParamMap.ConstValue}}</td>
+                <td>
+                    <input type="text" v-model="ParamMap.ConstValue" />
+                </td>
+            </tr>
+        </table>
+    </div>
+
+
+</validator>

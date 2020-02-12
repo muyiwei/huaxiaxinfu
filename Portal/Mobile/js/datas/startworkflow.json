@@ -1,0 +1,54 @@
+[
+    {
+        "DisplayName": "入职流程",
+        "Workflows": [
+            {
+                "DisplayName": "前端开发入职",
+                "IsFavorite": false,
+                "WorkflowCode": "aaaa",
+                "WorkflowImage": "../img/startWorkFlow/chanfei.png"
+            },
+            {
+                "DisplayName": "Java开发入职",
+                "IsFavorite": true,
+                "WorkflowCode": "bbbbb",
+                "WorkflowImage": "../img/startWorkFlow/shiyong.png"
+            },
+            {
+                "DisplayName": "设计入职流程",
+                "IsFavorite": true,
+                "WorkflowCode": "cccc",
+                "WorkflowImage": "../img/startWorkFlow/wuzhi.png"
+            }
+        ]
+    },
+    {
+        "DisplayName": "财务流程",
+        "Workflows": [
+            {
+                "DisplayName": "报销流程",
+                "IsFavorite": true,
+                "WorkflowCode": "ddddd",
+                "WorkflowImage": "../img/startWorkFlow/chanfei.png"
+            },
+            {
+                "DisplayName": "会议纪要",
+                "IsFavorite": false,
+                "WorkflowCode": "eeeee",
+                "WorkflowImage": "../img/startWorkFlow/shiyong.png"
+            },
+            {
+                "DisplayName": "出差报销",
+                "IsFavorite": true,
+                "WorkflowCode": "fff",
+                "WorkflowImage": "../img/startWorkFlow/wuzhi.png"
+            },
+            {
+                "DisplayName": "升职加薪",
+                "IsFavorite": false,
+                "WorkflowCode": "3eder",
+                "WorkflowImage": "../img/startWorkFlow/yusuan.png"
+            }
+        ]
+    }
+]

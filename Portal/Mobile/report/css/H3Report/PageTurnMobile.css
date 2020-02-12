@@ -1,0 +1,98 @@
+﻿.Page_Num {
+    position: absolute;
+    right: 219px;
+    width: 70px;
+}
+
+    .Page_Num > input {
+        text-align: center;
+        width: 40px;
+        padding: 3px;
+        border-radius: 4px;
+        border: solid 1px #e2e2e2;
+        margin-right: 4px;
+    }
+
+    .Page_Num > label {
+        font-weight: normal;
+        color: #a2a2a2;
+    }
+.Page_Turn{
+    /*padding-top: 5px;*/
+}
+.Page_Turn button {
+    background-color: #fff;
+    border: solid 1px #e2e2e2;
+    color: #a2a2a2;
+}
+.Page_Turn_ButtonGroup {
+    margin-right: 15px;
+    position: absolute;
+    width: 72px;
+    right: 125px;
+}
+.Page_Turn_ButtonGroup > .disabled {
+    background-color: #efefef !important;
+}
+.Page_Turn_ButtonGroup .Page_Num_Pre ,.Page_Turn_ButtonGroup .Page_Num_Next{
+       background-color: #fff;
+    border: solid 1px #e2e2e2;
+    color: #a2a2a2;
+}
+.Page_Size {
+    margin-right: 15px;
+    position: absolute;
+    width: 60px;
+    right: 70px;
+}
+
+.Page_Size_Select {
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+}
+
+.Page_Size > button {
+    position: absolute;
+    width: auto;
+    top: 0px;
+    right: 0px;
+    height: 28px;
+    border-radius: 4px;
+    width: 60px;
+}
+
+    .Page_Size > button > i {
+        float: right;
+        padding-top: 4px;
+    }
+
+.Page_Size > ul {
+    min-width: 60px;
+    box-shadow: none;
+    margin-bottom: 0px;
+    border-bottom: none;
+    text-align: center;
+    padding: 0px;
+}
+    .Page_Size > ul > li > a:hover {
+        background-color: #4c9aed;
+        color: #fff;
+    }
+    .Page_Total{
+        position:absolute;
+        width:auto;
+        right:20px;
+        height:28px;
+            padding-top: 5px;
+            text-align: center;
+    white-space: nowrap;
+    }
+    .Page_Turn_ButtonGroup .Page_Num_Pre{
+        padding:6px 12px;
+        height: 30px!important;
+    }
+    .Page_Turn_ButtonGroup .Page_Num_Next{
+        padding:6px 12px;
+        height: 30px!important;
+    }

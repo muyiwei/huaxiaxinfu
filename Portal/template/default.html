@@ -1,0 +1,388 @@
+﻿<!--顶部导航栏Start-->
+<div data-ng-include="'template/platform/header.html'" class="app-header navbar">
+</div>
+<!--顶部导航栏End  mainContent-->
+<div class="mainContent" style="bottom: 0px;background-color:#f6f6f6;">
+    <div class="container" style="background-color:white;">
+        <div id="div_contents" ui-view>
+        </div>
+    </div>
+    <div class="app-aside-right pos-fix no-padder app-content w-auto-xs bg-white b-l animated fadeInRightBig hide" style="margin-top:0px;left:0px;">
+        <div class="vbox">
+            <div class="input-group-btn" style="height: 100%;">
+                <iframe src="" style="border:0px;width:100%;height:100%;"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加部件 -->
+<script type="text/ng-template" id="webpartEdit.html">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close"
+                    data-dismiss="modal" aria-hidden="true" ng-click="cancel()">
+                ×
+            </button>
+            <h4 class="modal-title" id="myModalLabel">
+                编辑部件
+            </h4>
+        </div>
+        <div class="modal-body">
+            <form class="bs-example form-horizontal">
+                <ul class="nav nav-tabs" id="StepTab">
+                    <li class="active">
+                        <a href="#public">公共属性</a>
+                    </li>
+                    <li>
+                        <a href="#part">部件属性</a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane active panel-body" id="public">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="col-sm-4 control-label" style="text-align:center;">标题</label>
+                                    <div class="col-sm-8 control-label alignLeft">
+                                        <input ng-model="Title" type="text" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="col-sm-4 control-label" style="text-align:center;">标题图标</label>
+                                    <div class="col-sm-8 control-label alignLeft">
+                                        <input ng-model="TitleIcon" type="text" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="col-sm-4 control-label" style="text-align:center;">权限编码</label>
+                                    <div class="col-sm-8 control-label alignLeft">
+                                        <input ng-model="FunctionCode" type="text" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="col-sm-4 control-label" style="text-align:center;">高度</label>
+                                    <div class="col-sm-8 control-label alignLeft form-inline">
+                                        <input ng-model="Height" type="number" class="form-control">
+                                        <select ng-model="HeightUnit" class="form-control">
+                                            <option value="px" ng-selected="true">px</option>
+                                            <option value="%">%</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="col-sm-4 control-label" style="text-align:center;">css样式</label>
+                                    <div class="col-sm-8 control-label alignLeft">
+                                        <input ng-model="CssName" type="text" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="col-sm-4 control-label" style="text-align:center;">显示标题栏</label>
+                                    <div class="col-sm-8 control-label alignLeft">
+                                        <label class="i-checks" style="margin-top:6px;">
+                                            <input ng-model="TitleVisible"
+                                                   type="radio" name="TitleVisible" value="1"><i></i>显示
+                                        </label>
+                                        <label class="i-checks">
+                                            <input ng-model="TitleVisible"
+                                                   type="radio" name="TitleVisible" value="0"><i></i>隐藏
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label" style="text-align:center;">部件类型</label>
+                                    <div class="col-sm-10 control-label alignLeft">
+                                        <label class="col-md-10">
+                                            <label class="checkbox-inline i-checks" ng-repeat="AllWebPart in AllWebParts">
+                                                <input type="radio" name="PartTypeRadio" value="{{AllWebPart.Value}}"
+                                                       ng-model="WebPartID" ng-click="WebPartIDChange('{{AllWebPart.Value}}')"
+                                                       ng-disabled="!IsNewWebPart"><i></i>{{AllWebPart.Text}}
+                                            </label>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="part">
+                        <!-- Ascx Start -->
+                        <div ng-show="PartType=='Ascx'" class="panel-body">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label" style="text-align:center;">控件路径[基于本站]</label>
+                                        <div class="col-sm-7 control-label alignLeft">
+                                            <input ng-model="ControlPath" type="text" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label" style="text-align:center;">更多链接</label>
+                                        <div class="col-sm-7 control-label alignLeft">
+                                            <input ng-model="MoreLink" type="text" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label" style="text-align:center;">更多链接文字</label>
+                                        <div class="col-sm-7 control-label alignLeft">
+                                            <input ng-model="MoreText" type="text" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label" style="text-align:center;">更多链接位置</label>
+                                        <div class="col-sm-7 control-label alignLeft">
+                                            <select ng-model="MorePos" class="form-control">
+                                                <option value="br" ng-selected="true">底部右侧</option>
+                                                <option value="bl">底部左侧</option>
+                                                <option value="tr">标题右侧</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Ascx End -->
+                        <!-- DataModel Start -->
+                        <div ng-show="PartType=='DataModel'" class="panel-body">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label" style="text-align:center;">数据模型</label>
+                                        <div class="col-md-8">
+                                            <div ui-jq="SheetWorkflow" ui-options="WorkflowOptions"
+                                                 id="sheetWorkflow" class="input-group"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label" style="text-align:center;">显示记录数</label>
+                                        <div class="col-sm-8 control-label alignLeft">
+                                            <input ng-model="ShowCount" type="number" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label" style="text-align:center;">查询编码</label>
+                                        <div class="col-sm-8 control-label alignLeft">
+                                            <input ng-model="QueryCode" type="text" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label" style="text-align:center;">排序</label>
+                                        <div class="col-sm-8 control-label alignLeft">
+                                            <input ng-model="SortBy" type="text" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label" style="text-align:center;">链接规则</label>
+                                        <div class="col-sm-8 control-label alignLeft">
+                                            <input ng-model="LinkFormat" type="text" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label" style="text-align:center;">更多链接</label>
+                                        <div class="col-sm-8 control-label alignLeft">
+                                            <input ng-model="MoreLink" type="text" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label" style="text-align:center;">更多链接文字</label>
+                                        <div class="col-sm-8 control-label alignLeft">
+                                            <input ng-model="MoreText" type="text" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label" style="text-align:center;">更多链接位置</label>
+                                        <div class="col-sm-7 control-label alignLeft">
+                                            <select ng-model="MorePos" class="form-control">
+                                                <option value="br" ng-selected="true">底部右侧</option>
+                                                <option value="bl">底部左侧</option>
+                                                <option value="tr">标题右侧</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="form-group">
+                                        <label class="col-sm-2 control-label" style="text-align:center;">绑定属性</label>
+                                        <div class="col-sm-10 control-label">
+                                            <!--表格部分Star-->
+                                            <table class="table m-b-none">
+                                                <tr>
+                                                    <th style="width:20%;">
+                                                        <span>属性名称</span>
+                                                    </th>
+                                                    <th style="width:10%;">
+                                                        <span>字符数</span>
+                                                    </th>
+                                                    <th style="width:30%;">
+                                                        <span>显示格式(C#语法，如{0:yyyy-MM-dd})</span>
+                                                    </th>
+                                                    <th style="width:10%;">
+                                                        <span></span>
+                                                    </th>
+                                                </tr>
+                                                <tr ng-repeat="DataField in BindDataFields">
+                                                    <th>
+                                                        <select ng-model="DataField.AttrName" class="form-control"
+                                                                ng-options="Workflow.Value as Workflow.Text for Workflow in WorkflowItems"></select>
+                                                    </th>
+                                                    <th>
+                                                        <input ng-model="DataField.Len" type="number" class="form-control">
+                                                    </th>
+                                                    <th>
+                                                        <input ng-model="DataField.Format" type="text" class="form-control">
+                                                    </th>
+                                                    <th class="dodgerblue">
+                                                        <a ng-click="RemoveBindDataField($index)">移除</a>
+                                                    </th>
+                                                </tr>
+                                            </table>
+                                            <a ng-click="AddBindDataField()" style="float:left;">增加一行</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- DataModel End -->
+                        <!-- Static Start -->
+                        <div ng-show="PartType=='Static'" class="panel-body">
+                            <div class="row">
+                                <div class="col-sm-12" style="">
+                                    <textarea ng-model="StaticHtml" id="StaticHtml" class="ckeditor" data-init="true"
+                                              style="width: 100%; height: 209px;"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Static End -->
+                        <!-- Tips Start -->
+                        <div ng-show="PartType==''" class="panel-body">
+                            <div class="row">
+                                <div class="col-sm-12" style="text-align:center;color:red;">
+                                    <span>未选择部件类型</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Tips End -->
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" ng-click="save()" ng-disabled="!WebPartID">保存</button>
+        </div>
+    </div>
+</script>
+
+
+<style>
+    /*
+            编辑样式
+            */
+    #content-wrapper {
+        min-height: 620px;
+        padding: 18px 18px 18px;
+    }
+
+    .edit-model .part {
+        min-height: 40px;
+        border: dashed 1px #ccc;
+        display: block;
+    }
+
+    .drag-proxy {
+        position: absolute;
+        z-index: 200;
+        border: 2px dotted #666;
+        background-color: #72adea;
+    }
+
+    .panel {
+        border-color: #e4e4e4;
+    }
+
+    .tool-button {
+        margin-top: 0px;
+        padding-top: 5px;
+        height: 30px;
+    }
+
+        .tool-button.drag-handler:hover {
+            background-color: #ccc;
+            cursor: move;
+        }
+
+    .edit-button {
+        /*float: left;*/
+        padding-left: 10px;
+        margin-left: 10px;
+        text-decoration: none;
+    }
+
+    .delete-button {
+        padding-left: 10px;
+        margin-left: 10px;
+        text-decoration: none;
+        /*float: left;*/
+    }
+
+    .fa-gear {
+        margin-right: 5px;
+    }
+
+    .fa-remove {
+        margin-right: 6px;
+    }
+    #report .l-text-combobox {
+        width:360px;
+        height:30px;
+        line-height:26px;
+        margin:0 auto;
+    }
+
+</style>

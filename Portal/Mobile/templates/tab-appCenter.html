@@ -1,0 +1,32 @@
+﻿<ion-view view-title="{{languages.tabs.AppCenter}}" hide-nav-bar="true" class="tab-appCenter">
+
+    <div class="menu-tittle  {{$root.dingMobile.dingHeaderClass}}">
+        <div class="menu-tittle-left">
+        </div>
+        <div class="menu-tittle-middle f17">
+            {{languages.tabs.AppCenter}}
+        </div>
+        <div class="menu-tittle-right">
+        </div>
+    </div>
+    <div class="menu-border">
+    </div>
+    <ion-content class="{{$root.dingMobile.dingContentClass}}">
+        <div class="appCenterList" ng-if="AllApps.length>0">
+            <div class="acItem" ng-repeat="item in AllApps" ng-click="openAppCenterItem(item.AppCode,item.DisplayName)">
+                <img ng-if="item.IconUrl" ng-src="{{setting.httpUrl}}/{{item.IconUrl}}" class="acItemIcon" />
+                <i ng-if="!item.IconUrl" ng-class="{'defaultIcon':true,'acItemIcon':true,'user-a':$index%4==0,'user-d':$index%4==3,'user-b':$index%4==1,'user-c':$index%4==2}"></i>
+                <p class="f12">{{item.DisplayName}}</p>
+            </div>
+        </div>
+        <div class="appCenterListEmpty" ng-if="AllApps.length==0">
+            <img ng-src="{{setting.httpUrl}}/Mobile/img/emptyAppCenter.png" />
+            <p>暂无应用</p>
+        </div>
+    </ion-content>
+    
+
+</ion-view>
+
+
+  

@@ -1,0 +1,534 @@
+﻿<script type="text/javascript" src="../WFRes/_Scripts/MvcSheet/Controls/SheetWorkflow.js"></script>
+<script type="text/javascript">
+    $(function () {
+
+        var pageData = {
+            FunctionNode: {},
+            LanData: $.Languages
+        };
+        //初始化页面数据
+        initPageData();
+        $("#ToolBar").AspLinkToolBar();
+        $(".H3Pannel").BuildPanel();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    if ($("#SortKey").val() == "") {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormSortKeyInvalid") });
+                    } else if (isnullorempty(pageData.FunctionNode.Code)) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormCodeInvalid") });
+                    } else if (isnullorempty(pageData.FunctionNode.DisplayName)) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormNameInvalid") });
+                    }
+                    else {
+                        saveData();
+                    }
+                },
+                setAppAcl: function (event) {
+                    if ($(event.currentTarget).attr("disabled")) {
+                        return false;
+                    }
+                    SetAppAcl();
+                },
+                DelData: function (obj) {
+
+                },
+                selectChange: function () {
+                    if (pageData.FunctionNode.PageUrl != "0") {
+                        ComposeUrl();
+                    }
+                },
+                inpuValid: function (field)
+                {
+                    pageData.FunctionNode[field + "Valid"] = !isnullorempty(pageData.FunctionNode[field]);
+                }
+            }
+        });
+        $("input[type='radio'][name='FunctionNode']").change(function () {
+            if (pageData.FunctionNode.PageUrl != "0") {
+                ComposeUrl();
+            }
+        });
+        $("#workflowSelector").SheetWorkflow({
+            Editable: true, Visiable: true, IsMultiple: false,  IsFrequentFlow: true, Mode: "Package", Originate: true, DefaultValue: pageData.FunctionNode.FunctionUrl.SchemaCode, OnChange: function () {
+                OnSchemaSelected();
+                ComposeUrl();
+            }
+        });
+
+        var Controls = {
+        };
+        var ComposeUrl = function () {
+            var functionUrl = pageData.FunctionNode.FunctionUrl;
+            var txtUrl = "";
+            var url = pageData.FunctionNode.PageUrl;
+            var _SchemaCode = $("#workflowSelector").SheetUIManager().GetValue();
+            var AppCode = getUrlParam("AppCode") || "";
+            txtUrl = url + "({";
+            txtUrl += "TopAppCode:\"" + AppCode + "\",";
+            switch (url) {
+                case "app.BizQueryView":
+                    txtUrl += "SchemaCode:\"" + _SchemaCode + "\",";
+                    txtUrl += "QueryCode:\"" + functionUrl.QueryCode + "\",";
+                    txtUrl += "FunctionCode:\"" + pageData.FunctionNode.Code + "\",";
+                    txtUrl += "DisplayName:\"" + pageData.FunctionNode.DisplayName + "\"";
+                    break;
+                case "app.MyWorkItem":
+                        txtUrl += "SchemaCode:\"" + _SchemaCode + "\",";
+                        txtUrl += "State:\"" + functionUrl.WorkItemState + "\",";
+                        txtUrl += "FunctionCode:\"" + pageData.FunctionNode.Code + "\"";
+                        break;
+                case "app.MyInstance":
+                    txtUrl += "SchemaCode:\"" + _SchemaCode + "\",";
+                    txtUrl += "State:\"" + functionUrl.InstanceState + "\",";
+                    txtUrl += "FunctionCode:\"" + pageData.FunctionNode.Code + "\"";
+                    break;
+                case "app.ShowReport":
+                    txtUrl += "ReportCode:\"" + functionUrl.ReportCode + "\"";
+                    break;
+                case "app.EditBizObject":
+                    txtUrl += "SchemaCode:\"" + _SchemaCode + "\",";
+                    txtUrl += "SheetCode:\"" + functionUrl.SheetCode + "\",";
+                    txtUrl += "Mode:\"Originate\",";
+                    txtUrl += "FunctionCode:\"" + pageData.FunctionNode.Code + "\"";
+                    break;
+                default:
+                    break;
+
+            }
+            txtUrl += "})";
+            Controls.txtUrl.val(txtUrl);
+        }
+
+        $.fn.SelectFirst = function () {
+            $(this).show();
+            $(this).find("option:visible:gt(0)").prop("selected", "false");
+            $(this).find("option:visible:first").prop("selected", "true");
+        }
+        var SchemaCache = {};
+
+
+        var OnSchemaSelected = function () {
+            var _SchemaCode = $("#workflowSelector").SheetUIManager().GetValue();
+
+            if (arguments && arguments.length > 0) {
+                var SchemaCodeTest = arguments[0];
+                _SchemaCode = SchemaCodeTest[0];
+            }
+            if (!_SchemaCode)
+                return;
+            if (!SchemaCache[_SchemaCode]) {
+                $.ajax({
+                    type: "post",
+                    url: $.Controller.FunctionNode.GetSheetsAndQueries,
+                    cache: false,
+                    async: false,
+                    dataType: "json",
+                    data: { schemaCode: _SchemaCode },
+                    success: function (result) {
+                        //添加到缓存
+                        SchemaCache[_SchemaCode] = result;
+                    },
+                    error: function (msg) {
+                    }
+                });
+            }
+            //更新选项
+            if (SchemaCache[_SchemaCode]) {
+                if (SchemaCache[_SchemaCode].Queries) {
+                    pageData.QueryCodes = SchemaCache[_SchemaCode].Queries;
+                    if (pageData.QueryCodes[0])
+                        pageData.FunctionNode.FunctionUrl.QueryCode = pageData.QueryCodes[0].Value;
+                }
+                if (SchemaCache[_SchemaCode].Sheets) {
+                    pageData.SheetCodes = SchemaCache[_SchemaCode].Sheets;
+                    if (pageData.SheetCodes[0])
+                        pageData.FunctionNode.FunctionUrl.SheetCode = pageData.SheetCodes[0].Value;
+                }
+            }
+        }
+
+        Controls = {
+            txtCode: $("[id*=txtCode]"),
+            txtUrl: $("[id*=txtUrl]"),
+            sltSheetCode: $("[select*=sltSheetCode]"),
+            table: $("#pnlSelectUrl"),
+            TrPageUrl: $("[id*=ddlPageUrl]").parents("tr:first"),
+            TrSchemaCode: $("[id*=workflowSelector]").parents("tr:first"),
+            TrQueryCode: $("[id*=sltQueryCode]").parents("tr:first"),
+            TrWorkItemState: $("[id*=ddlWorkItemState]").parents("tr:first"),
+            TrInstanceState: $("[id*=ddlInstanceState]").parents("tr:first"),
+            TrSheetCode: $("[id*=sltSheetCode]").parents("tr:first"),
+            TrReportCode: $("[id*=ddlReportCode]").parents("tr:first")
+        }
+
+        Controls.ddlPageUrl = Controls.TrPageUrl.find("select");
+
+        function isnullorempty(val)
+        {
+            return (val == "" || val == null);
+        }
+        //初始化页面数据
+        function initPageData() {
+            var FunctionID = getUrlParam("Id") || "";
+            var ParentCode = getUrlParam("CategoryCode") || "";
+            var AppCode = getUrlParam("AppCode") || "";
+            if (!FunctionID) {
+                $("#btnAcl").attr("disabled", "disabled");
+            }
+            if (AppCode) {
+                $.ajax({
+                    url: $.Controller.FunctionNode.GetFunctionNode,
+                    type: 'get',
+                    dataType: "json",
+                    data: { id: FunctionID, appCode: AppCode, parentCode: ParentCode },
+                    async: false,//同步执行
+                    success: function (result) {
+                        if (result.Success) {
+                            pageData = result.Extend;
+                            $.LangArray(pageData, "Text");
+                            pageData.LanData = $.Languages;
+                            pageData.FunctionNode.SortKeyValid = true;
+                            pageData.FunctionNode.CodeValid = true;
+                            pageData.FunctionNode.DisplayNameValid = true;
+                            pageData.AppCode = AppCode;
+                            InitReportSelect(pageData.ReportTree);
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        }
+                    }
+                });
+            } else {
+                pageData.FunctionNode.SortKey = 0;
+            }
+        };
+        function InitReportSelect(datas) {
+            //$("#ddlReportCode").ligerComboBox({
+            //    valueField: 'id',
+            //    treeLeafOnly: false,
+            //    tree: { data: _date, checkbox: false, idFieldName: 'id' }
+            //});
+            var combob = $("#ddlReportCode").ligerComboBox({
+                selectBoxWidth: 360,
+                selectBoxHeight: 260,
+                valueField: 'Code',
+                idFieldName:'Code',
+                textField: 'Text',
+                treeLeafOnly: false,
+                tree: {
+                    isMultiSelect: false,
+                    data: datas,
+                    checkbox: false,
+                    idField: 'Code',
+                    idFieldName: 'Code',
+                   // iconFieldName: 'Icon',
+                    textFieldName: 'Text',
+                    render: function (row) {
+                        row.Text = row.ExtendObject.Text;
+                        return row.ExtendObject.Text;
+                    },
+                    isLeaf: function (row) {
+                        return row.ToolBarCode == "ReportFolderPage";
+                    },
+                    selectable: function (row) {
+                        return row.Icon == "fa icon-charubiaoge";
+                    }
+                },
+                onSelected: function (val,name) {
+                    pageData.FunctionNode.FunctionUrl.ReportCode = val;
+                    ComposeUrl();
+                },
+                onSuccess: function (data) {
+                }
+            });
+            if (pageData.FunctionNode.PageUrl == "app.ShowReport") {
+                setTimeout(function () {
+                    if (pageData.FunctionNode.FunctionUrl.ReportCode)
+                    {
+                        combob.setValue(pageData.FunctionNode.FunctionUrl.ReportCode);
+                    }
+                }, 500)
+            }
+           
+           
+        }
+        //保存变量
+        function saveData() {
+            if (pageData.FunctionNode.PageUrl != "0") {
+                ComposeUrl();
+            }
+            pageData.FunctionNode.Url = $("[id*=txtUrl]").val();
+            pageData.FunctionNode.TopAppCode = pageData.AppCode;
+
+            var dataStr = JSON.stringify(pageData.FunctionNode);
+            $.ajax({
+                url: $.Controller.FunctionNode.SaveFunctionNode,
+                type: "post",
+                dataType: "json",
+                data: { "functionNodeStr": dataStr },
+                success: function (result) {
+                    if (result.Success) {
+                        parent.ReloadGridData();
+                        parent.$.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                        parent.H3DialogManger.Cancel();
+                    } else {
+                        if (result.Message) {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.SaveFailed") });
+                        }
+                    }
+                }
+            });
+        };
+
+        var SetAppAcl = function () {
+            var AppCode = pageData.FunctionNode.Code;
+            if (typeof (AppCode) != "undefined" && AppCode) {
+                $.ligerDialog.open({
+                    title: "菜单权限",
+                    url: _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=Apps/FunctionAcl.html&Code=" + AppCode,
+                    height: 500,
+                    width: 650,
+                    showMax: true
+                });
+            }
+            return false;
+        };
+
+       
+    })
+</script>
+<style>
+    input[type=number] {
+        width: 250px;
+        margin: 1px;
+        border: 1px solid #a8a8a8;
+        height: 28px;
+        padding-left: 3px;
+        line-height: 25px;
+        border-radius: 2px;
+    }
+
+</style>
+    <div id="ToolBar">
+        <a v-on:click="saveData" data-icon="fa fa-save" href="javascript:void(0)" data-lang="GlobalButton.Save">保存</a>
+        <a v-on:click="setAppAcl" id="btnAcl" data-icon="icon-quanxianshezhi" href="javascript:void(0)" data-lang="GlobalButton.SetAcl">设置权限</a>
+    </div>
+
+    <div class="H3Pannel">
+        <span>{{LanData.FunctionNode.BasicPro}}</span>
+        <table class="tableList">
+            <tr id="rowParent" runat="server">
+                <td>
+                    {{LanData.FunctionNode.Parent}}
+                </td>
+                <td>
+                    <input v-model="FunctionNode.ParentName" type="text" v-bind:disabled="FunctionNode.ParentName" />
+                </td>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.FunctionNode.Code}}
+                </td>
+                <td>
+                    <input id="txtCode" v-model="FunctionNode.Code" type="text" v-bind:disabled="FunctionNode.ObjectID" v-on:change="inpuValid('Code')" />
+                    <span style="color:Red;" v-show="!FunctionNode.CodeValid">{{LanData.msgGlobalString.CodeOrNameNotNull}}</span>
+                </td>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.FunctionNode.DisplayName}}
+                </td>
+                <td>
+                    <input v-model="FunctionNode.DisplayName" type="text" v-on:change="inpuValid('DisplayName')" />
+                    <span style="color:Red;" v-show="!FunctionNode.DisplayNameValid">{{LanData.msgGlobalString.CodeOrNameNotNull}}</span>
+                </td>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.FunctionNode.SortKey}}
+                </td>
+                <td>
+                    <input v-model="FunctionNode.SortKey" id="SortKey" type="number" v-on:change="inpuValid('SortKey')" />
+                    <span style="color:Red;" v-show="!FunctionNode.SortKeyValid">{{LanData.msgGlobalString.NumberValidate}}</span>
+                </td>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.FunctionNode.Visibility}}
+                </td>
+                <td>
+                    <label>
+                        <input type="checkbox" id="PortalEnable" v-model="FunctionNode.PortalEnable" />{{LanData.FunctionNode.PortalEnable}}
+                    </label>
+                    <label style="margin-left:10px">
+                        <input type="checkbox" id="MobileEnable" v-model="FunctionNode.MobileEnable" /> {{LanData.FunctionNode.MobileEnable}}
+                    </label>
+                </td>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="H3Pannel">
+        <span>{{LanData.FunctionNode.Fun}}</span>
+        <table>
+            <tr style="display:none">
+                <td>
+                    {{LanData.FunctionNode.OpenNewWindow}}
+                </td>
+                <td>
+                    <input id="chkOpenNewWindow" v-model="FunctionNode.OpenNewWindow" type="checkbox" />
+                </td>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
+            <tr style="display:none">
+                <td>
+                    {{LanData.FunctionNode.Image}}
+                </td>
+                <td>
+                    <label>
+                        <input type="radio" name="chkCycle" value="0" v-model="FunctionNode.IconType" />{{LanData.FunctionNode.IconType.Url}}
+                    </label>
+                    <label style="margin-left:10px">
+                        <input type="radio" name="chkCycle" value="1" v-model="FunctionNode.IconType" checked /> {{LanData.FunctionNode.IconType.Css}}
+                    </label>
+                </td>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <table id="pnlSelectUrl" style="width: 255px; table-layout: fixed;">
+                        <tr id="trIconCss" v-if="FunctionNode.IconType==1">
+                            <td style="width: 94px; text-indent: 10px">
+                                {{LanData.FunctionNode.ImageCss}}
+                            </td>
+                            <td>
+                                <input v-model="FunctionNode.IconCss" type="text" maxlength="32" />
+                            </td>
+                            <td>
+                                &nbsp;
+                            </td>
+                        </tr>
+                        <tr id="trIconUrl" v-else>
+                            <td style="width: 94px; text-indent: 10px">
+                                {{LanData.FunctionNode.IconUrl}}
+                            </td>
+                            <td>
+                                <input v-model="FunctionNode.IconUrl" type="text" maxlength="128" />
+                            </td>
+                            <td>
+                                &nbsp;
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width: 94px; text-indent: 10px">{{LanData.FunctionNode.Page}}</td>
+                            <td colspan="2">
+                                <div style="width:300px">
+                                    <!--<input type="radio" name="FunctionNode" v-model="FunctionNode.PageUrl" value="app.MyInstance">{{LanData.FunctionNode.InstanceList}}-->
+                                    <input type="radio" name="FunctionNode" v-model="FunctionNode.PageUrl" value="app.EditBizObject">{{LanData.FunctionNode.InstanceList}}
+                                    <input type="radio" name="FunctionNode" v-model="FunctionNode.PageUrl" value="0">{{LanData.FunctionNode.UserDefined}}
+                                    <input type="radio" name="FunctionNode" v-model="FunctionNode.PageUrl" value="app.BizQueryView">{{LanData.FunctionNode.BizQuery}}
+                                    <input type="radio" name="FunctionNode" v-model="FunctionNode.PageUrl" value="app.ShowReport">{{LanData.FunctionNode.Report}}
+                                    <!--<input type="radio" name="FunctionNode" v-model="FunctionNode.PageUrl" value="app.EditBizObject">{{LanData.FunctionNode.Sheet}}-->
+                                </div>
+                            </td>
+                        </tr>
+                        <tr param-name="SchemaCode" v-show="FunctionNode.PageUrl!='0'&&FunctionNode.PageUrl!='app.ShowReport'">
+                            <td style="width: 94px; text-indent: 10px">
+                                {{LanData.FunctionNode.BizObject}}
+                            </td>
+                            <td style="width: 240px; text-align: left">
+                                <div id="workflowSelector" style="width: 255px; " />
+                            </td>
+                        </tr>
+                        <tr param-name="QueryCode" v-show="FunctionNode.PageUrl=='app.BizQueryView'">
+                            <td style="width: 94px; text-indent: 10px">
+                                {{LanData.FunctionNode.QueryInstance}}
+                            </td>
+                            <td style="width: 154px; text-align: left">
+                                <select id="sltQueryCode" style="width: 255px" v-model="FunctionNode.FunctionUrl.QueryCode" v-on:change="selectChange">
+                                    <option v-for="option in QueryCodes" v-bind:value="option.Value">{{option.Text}}</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr param-name="State" v-show="FunctionNode.PageUrl=='app.MyWorkItem'">
+                            <td style="width: 94px; text-indent: 10px">
+                                {{LanData.FunctionNode.WorkItemState}}
+                            </td>
+                            <td style="width: 240px; text-align: left">
+                                <select id="ddlWorkItemState" v-model="FunctionNode.FunctionUrl.WorkItemState" style="width:155px" v-on:change="selectChange">
+                                    <option v-for="option in WorkItemState" v-bind:value="option.Value">{{option.Text}}</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tbody v-show="FunctionNode.PageUrl=='app.MyInstance'">
+                            <tr param-name="State">
+                                <td style="width: 94px; text-indent: 10px">
+                                    {{LanData.FunctionNode.InstanceState}}
+                                </td>
+                                <td style="width: 240px; text-align: left">
+                                    <select id="ddlInstanceState" v-model="FunctionNode.FunctionUrl.InstanceState" style="width:155px" v-on:change="selectChange">
+                                        <option v-for="option in InstanceState" v-bind:value="option.Value">{{option.Text}}</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tr param-name="SheetCode" v-show="FunctionNode.PageUrl=='0'">
+                            <td style="width: 94px; text-indent: 10px">
+                                {{LanData.FunctionNode.Url}}
+                            </td>
+                            <td style="width: 154px; text-align: left">
+                                <textarea name="txtUrl" rows="2" cols="20" id="txtUrl" spellcheck="false" style="height:60px;" v-model="FunctionNode.Url"></textarea>
+                            </td>
+                        </tr>
+                        <tr param-name="Code" v-show="FunctionNode.PageUrl=='app.ShowReport'">
+                            <td style="width: 94px; text-indent: 10px">
+                                {{LanData.FunctionNode.Report}}
+                            </td>
+                            <td style="width: 154px; text-align: left">
+                                <input type="text" id="ddlReportCode" >
+                                <!--<select id="ddlReportCode" v-model="FunctionNode.FunctionUrl.ReportCode" style="width:155px" v-on:change="selectChange">
+                                    <option v-for="option in ReportCode" v-bind:value="option.Value">{{option.Text}}</option>
+                                 </select>-->
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                {{LanData.FunctionNode.Description}}
+                            </td>
+                            <td>
+                                <textarea name="txtDesc" rows="2" cols="20" id="txtDesc" spellcheck="false" style="height:60px;" v-model="FunctionNode.Description"></textarea>
+                            </td>
+                            <td>
+                                &nbsp;
+                            </td>
+                        </tr>
+                    </table>
+
+                </td>
+            </tr>
+        </table>
+    </div>

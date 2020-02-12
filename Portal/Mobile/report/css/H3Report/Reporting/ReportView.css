@@ -1,0 +1,374 @@
+﻿.row {
+margin-right:0px!important;
+}
+
+#ReportFiters {
+    background-color: #F6F7F8;
+}
+
+.report-content {
+    padding: 10px;
+}
+
+    .report-content .panel-heading {
+        line-height: 30px;
+        padding-top: 0px;
+        padding-bottom: 0px;
+    }
+
+    .report-content .panel-body {
+        padding: 0px;
+        width: 100%;
+        min-height: 330px;
+        /*overflow-x: auto;*/
+    }
+    /*.report-content .panel-footer{
+        position:absolute;
+        top:420px;
+        width:100%;
+    }*/
+    .report-content .echartsbody {
+        height: 100%;
+        text-align: center;
+    }
+
+th.gridview-th {
+    min-width: 100px;
+    word-break: keep-all;
+}
+
+
+.carousel-indicators {
+    right: 0;
+    left: auto;
+    bottom: -10px;
+    width: 20px;
+}
+
+    .carousel-indicators li {
+        background-color: #fff;
+        border: 1px solid #0cbed7;
+    }
+
+        .carousel-indicators li.active {
+            background-color: #0cbed7;
+        }
+        .unittd,.unittdcolumn,.unittdrow,.unittddata{
+            cursor:pointer;
+        }
+.reportexporta, .myreportleftbutton, .myreportrightbutton{
+   float:right;margin-right:15px;
+}
+.reportexporta:hover{
+    color:#e6e6e6;
+}
+.reportfullscreena{
+    float:right;
+    padding-top:3px;
+}
+.reportfullscreena:hover{
+    color:#e6e6e6;
+}
+div.dataTables_wrapper div.dataTables_processing{
+    z-index:9999999;
+}
+.table{
+    background-color:#fff;
+}
+.table-column-freezen,.table-row-freezen,.table-onlyheader-freezen{
+    position:absolute;
+    left:0;
+    top:0;
+    background-color:#fff;
+    width:auto;
+    height:auto;
+}
+.table thead > tr > th, .table tbody > tr > th, .table tfoot > tr > th, .table thead > tr > td, .table tbody > tr > td, .table tfoot > tr > td {
+    /*white-space: nowrap;*/
+        max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.Full{
+   
+    position: fixed !important ;
+    left:0 !important;
+    top:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    z-index: 99999;
+}
+.whitecontent{
+    background-color:#f5f5f5;
+}
+
+.myReportWidgetSimpleBoardText{
+
+}
+.myReportWidgetSimpleBoardValue{
+
+}
+.panel-primary{
+    border:none;
+}
+.panel-primary .panel-heading{
+        background-color: #fffbef;
+        color:black;
+        border:solid 1px #dddddd;
+}
+
+.panel-body{
+    border-left:solid 1px #e2e2e2;
+     border-right:solid 1px #e2e2e2;
+      border-bottom:solid 1px #e2e2e2;
+}
+.orgtable{
+    border:none !important;
+}
+.orgtable thead th:first-child,.orgtable thead tr:first-child,.orgtable tbody tr:first-child,.orgtable tbody th:first-child{
+    border-left:none;
+}
+.orgtable thead th:last-child,.orgtable thead tr:last-child,.orgtable tbody tr:last-child,.orgtable tbody th:last-child{
+    border-right:none;
+}
+.orgtable thead th, .orgtable tbody td,.orgtable tbody th,
+.table-column-freezen thead  th, .table-column-freezen  tbody td,.table-column-freezen  tbody th,
+.table-row-freezen thead th, .table-row-freezen tbody td,.table-row-freezen tbody th,
+.table-onlyheader-freezen thead th, .table-onlyheader-freezen tbody td,.table-onlyheader-freezen tbody th{
+    text-align:center;
+    font-size:14px;
+    vertical-align:middle !important;
+}
+.dataTable thead th, .dataTable tbody td,.dataTable tbody th{
+    text-align:left;
+    font-size:14px;
+    vertical-align:middle !important;
+}
+.orgtable thead th,.orgtable tbody th,
+.table-column-freezen thead  th,.table-column-freezen  tbody th,
+.table-row-freezen thead th, .table-row-freezen tbody th,
+.table-onlyheader-freezen thead th, .table-onlyheader-freezen tbody th{
+    color:#565656 !important;
+}
+.table-column-freezen{
+    border:none !important;
+}
+.table-column-freezen thead th:first-child,.table-column-freezen thead tr:first-child,.table-column-freezen tbody tr:first-child,.table-column-freezen tbody th:first-child{
+    border-left:none;
+}
+.table-column-freezen thead th:last-child,.table-column-freezen thead tr:last-child,.table-column-freezen tbody tr:last-child,.table-column-freezen tbody th:last-child{
+    border-right:none;
+}
+.table-row-freezen{
+    border:none !important;
+}
+.table-row-freezen thead th:first-child,.table-row-freezen thead tr:first-child,.table-row-freezen tbody tr:first-child,.table-row-freezen tbody th:first-child{
+    border-left:none;
+}
+.table-row-freezen thead th:last-child,.table-row-freezen thead tr:last-child,.table-row-freezen tbody tr:last-child,.table-row-freezen tbody th:last-child{
+    border-right:none;
+}
+.table-onlyheader-freezen{
+    border:none !important;
+}
+.table-onlyheader-freezen thead th:first-child,.table-onlyheader-freezen thead tr:first-child,.table-onlyheader-freezen tbody tr:first-child,.table-onlyheader-freezen tbody th:first-child{
+    border-left:none;
+}
+.table-onlyheader-freezen thead th:last-child,.table-onlyheader-freezen thead tr:last-child,.table-onlyheader-freezen tbody tr:last-child,.table-onlyheader-freezen tbody th:last-child{
+    border-right:none;
+}
+
+.table thead th:first-child,.table thead tr:first-child,.table tbody tr:first-child,.table tbody th:first-child{
+    border-left:none;
+}
+.table thead th:last-child,.table thead tr:last-child,.table tbody tr:last-child,.table tbody th:last-child{
+    border-right:none;
+}
+.reportheadermenu{
+    font-size: 12px !important;
+    margin-top: 5px !important;
+    margin-bottom: 0 !important;
+    line-height: 18px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    padding-bottom: 5px !important;
+    display:none;
+    white-space:nowrap;
+}
+.reportfullscreena:hover .reportheadermenu, .reportexporta:hover .reportheadermenu{
+    display:block;
+}
+ .reportheadermenu{
+     color:black;
+ }
+ .myreportleftbutton,.myreportrightbutton{
+     display:none;
+ }
+ .Full .myleft .myreportrightbutton,.Full .myright .myreportleftbutton,.Full .mycenter .myreportleftbutton,.Full .mycenter .myreportrightbutton{
+     display:block;
+ }
+ .mypanel .panel-footer{
+         padding: 0px;
+    height: 40px;
+    background: #fff;
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+ }
+  .mypanel .panel-footer-reportview{
+         padding-top: 10px;
+    height: 40px;
+    background: #fff;
+    bottom: 0px;
+    right: 0px;
+ }
+ .Page_Num > input{
+     padding: 4.5px !important;
+ }
+ .Page_Num{
+      right: 229px !important;
+ }
+ .Page_Num label{
+     font-size:14px;
+ }
+ .dataTable tr:hover td{
+     cursor:pointer;
+     background-color:#f5f5f5 !important;
+ }
+ /*查询条件样式end*/
+   .myform-control {
+        -moz-border-radius: 3px;
+        -webkit-border-radius: 3px;
+        border-radius: 3px;
+        padding-top: 10px;
+        height: 30px !important;
+        -moz-box-shadow: none;
+        -webkit-box-shadow: none;
+        box-shadow: none;
+        font-size: 13px;
+        overflow: hidden !important;
+    }
+
+    .selectmyform-control {
+        -moz-border-radius: 3px;
+        -webkit-border-radius: 3px;
+        border-radius: 3px;
+        padding-top: 10px;
+        padding:3px 12px !important;
+        /*height: 39px !important;*/
+        -moz-box-shadow: none;
+        -webkit-box-shadow: none;
+        box-shadow: none;
+        font-size: 13px;
+        overflow: hidden !important;
+    }
+
+    .myuserpicker .form-control {
+        -moz-border-radius: 3px;
+        -webkit-border-radius: 3px;
+        border-radius: 3px;
+        padding-top: 4px;
+        height: 30px !important;
+        -moz-box-shadow: none;
+        -webkit-box-shadow: none;
+        box-shadow: none;
+        font-size: 13px;
+        overflow: hidden !important;
+    }
+
+    .myform-horizontal .myform-group {
+        margin-right: 0px !important;
+        margin-left: 0px;
+    }
+    .input-group-btn .btn{
+        line-height:12px !important;
+    }
+    td>table>tbody>tr:not(:last-child){
+      border-bottom: 1px solid #ddd;
+    }
+    td>table>tbody>tr{
+        font-size:14px;
+    }
+
+    #ReportFiters button.multiselect {
+    padding: 4px 10px;
+    width: 100%;
+    text-align: left;
+    background-color: #fff;
+}
+
+#ReportFiters button.multiselect .multiselect-selected-text {
+    width: 96%;
+    display: inline-block;
+    overflow: hidden;
+    font-size: 13px;
+    float: left;
+    min-height: 21px;
+}
+
+#ReportFiters .btn-group {
+    width: 100%;
+    margin: 0;
+}
+
+.label-info {
+        color: #565656;
+    height: 24px;
+    line-height: 24px;
+    cursor: pointer;
+    padding: 0 18px 0 6px;
+    font-size: 12px;
+    float: left;
+    border-radius: 3px;
+    color: #666;
+    background-color: #e2f0ff !important;
+    margin-right: 5px;
+    position: relative;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    top: -2px;
+}
+
+a.label-info:hover{
+    color:#565656;
+}
+#ReportFiters>.row>.reportfiltertext{
+    text-align:center;
+    padding:0px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+#ReportFiters>.row>.reportfilteritem{
+    padding:0px;
+}
+
+#ReportFiters .drop-list.drop-combox {
+    left: 0px;
+    right: 0px;
+}
+
+#ReportFiters>.row>.reportfilteritem>.input-group>.input-group-addon{
+    padding:6px 6px;
+}
+
+#ReportPage .Mytable_SimpleBoard {
+   height:35%;
+   width:60%;
+   position:absolute;
+   left:19.5%;
+   top:20%;
+   right:15%;
+   bottom:15%;
+   text-align:center;
+   border-top:1px solid #e2e2e2;
+   border-left:1px solid #e2e2e2;
+}
+#ReportPage .Mytable_SimpleBoard > tbody > tr > td {
+   border-right:1px solid #e2e2e2;
+   border-bottom:1px solid #e2e2e2;
+    
+}

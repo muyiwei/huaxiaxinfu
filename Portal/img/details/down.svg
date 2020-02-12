@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="15px" height="9px" viewBox="0 0 15 9" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 44 (41411) - http://www.bohemiancoding.com/sketch -->
+    <title>ckqb_down_icon</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="6流程详情页_进行中" transform="translate(-693.000000, -216.000000)" fill="#77BCFA">
+            <g id="1" transform="translate(0.000000, 129.000000)">
+                <g id="Group-3" transform="translate(164.000000, 47.000000)">
+                    <g id="查看全部" transform="translate(419.000000, 25.000000)">
+                        <g id="Group-4">
+                            <path d="M120.391222,18.9290487 L115.036716,13.5745427 L114.501265,13.0390921 C114.503723,12.9869693 114.16795,12.9869693 113.965814,13.0390921 L113.430364,13.5745427 C113.378645,13.7824425 113.378645,14.1208393 113.430364,14.1099933 L113.965814,14.6454439 L119.32032,19.9999499 L113.430364,25.8899065 C113.378645,25.8786595 113.378645,26.2175909 113.430364,26.4253571 L113.965814,26.9608077 C114.16795,27.0130641 114.503723,27.0130641 114.501265,26.9608077 L121.462123,19.9999499 L120.391222,18.9290487 Z" id="ckqb_down_icon" transform="translate(117.426849, 20.000000) rotate(90.000000) translate(-117.426849, -20.000000) "></path>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

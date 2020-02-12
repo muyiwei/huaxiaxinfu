@@ -1,0 +1,148 @@
+﻿<!-- 个人信息 -->
+<div class="modal-header">
+    <button type="button" class="close"
+            data-dismiss="modal" aria-hidden="true" ng-click="cancel()">
+        ×
+    </button>
+    <h4 class="modal-title" id="myModalLabel">
+        <span translate="UserInfo.UserInfo">用户信息</span>
+    </h4>
+</div>
+
+<div class="modal-body" style="padding-left:50px;padding-right:50px;">
+    <form class="bs-example form-horizontal" name="UserInfo">
+        <div class="row">
+            <div class="col-md-12" style="text-align:center;">
+                <!--如果当前用户有编辑权限，则点击头像更改图片  -->
+                <label class="col-md-12 control-label alignLeft">
+                    <input ng-disabled="!editAble" file-model="myFile" type="file" name="file" id="file" accept="image/*" style="width: 99%; display: none;" />
+                    <div class="col-md-12">
+                        <img ng-src="{{imageSrc}}" class="img-circle" style="cursor:pointer;width:80px;height:80px;margin:0 auto;display:block;" />
+                    </div>
+                </label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="col-md-4 control-label" translate="UserInfo.UserName">姓名</label>
+                    <label class="col-md-8 control-label alignLeft">
+                        {{user.Name}}
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="col-md-4 control-label" translate="UserInfo.LoginName">帐号</label>
+                    <label class="col-md-8 control-label alignLeft">
+                        {{user.Code}}
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="col-md-4 control-label" translate="UserInfo.Deptof">所属组织</label>
+                    <label class="col-md-8 control-label alignLeft">
+                        {{user.OUDepartName}}
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="col-md-4 control-label" translate="UserInfo.Managerof">上级主管</label>
+                    <label class="col-md-8 control-label alignLeft">
+                        {{user.ManagerName}}
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group form-horizontal">
+                    <label class="col-md-4 control-label" translate="UserInfo.Mobile">手机号</label>
+                    <label class="col-md-8" ng-class="{'control-label alignLeft':!editAble}">
+                        <input ng-model="user.Mobile" type="text" maxlength="16" id="invalidTexta"
+                               class="form-control" ng-if="editAble"
+                               placeholder="请输入手机号...">
+                        <span class="" ng-show="!editAble">{{user.Mobile}}</span>
+                    </label>
+                    <div style="color: red; position: absolute; top: 63%; left: 37%;" ng-show="invalidWarma">您输入的手机号有误,请重新输入！</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group form-horizontal">
+                    <label class="col-md-4 control-label" translate="UserInfo.OfficePhone">办公电话</label>
+                    <label class="col-md-8" ng-class="{'control-label alignLeft':!editAble}">
+                        <input ng-model="user.OfficePhone" ng-if="editAble" type="tel" maxlength="20" class="form-control" ng-if="editAble"
+                               placeholder="请输入办公电话...">
+                        <span ng-show="!editAble">{{user.OfficePhone}}</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group form-horizontal">
+                    <label class="col-md-4 control-label" translate="UserInfo.EmailAddress">邮箱</label>
+                    <label class="col-md-8" ng-class="{'control-label alignLeft':!editAble}">
+                        <input ng-if="editAble" ng-model="user.Email" ng-disabled="!editAble" id="invalidTextb" type="email" maxlength="50" class="form-control"
+                               placeholder="请输入邮箱...">
+                        <span ng-show="!editAble">{{user.Email}}</span>
+                    </label>
+                    <div style="color: red; position: absolute; top: 63%; left: 37%;" ng-show="invalidWarmb">您输入的邮箱有误,请重新输入！</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="col-md-4 control-label" translate="UserInfo.Fax">传真号</label>
+                    <label class="col-md-8" ng-class="{'control-label alignLeft':!editAble}">
+                        <input ng-model="user.FacsimileTelephoneNumber" type="text" maxlength="20" class="form-control"
+                               ng-if="editAble" placeholder="输入传真号...">
+                        <span ng-show="!editAble">{{user.FacsimileTelephoneNumber}}</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label class="col-md-2 control-label" translate="UserInfo.NewWorkItemNotifyMethod">接收消息</label>
+                    <label class="col-md-10">
+                        <label class="checkbox-inline i-checks">
+                            <input ng-disabled="!editAble" type="checkbox" value="EmailNotifiy"
+                                   ng-model="user.chkEmail" ng-checked="{{user.chkEmail}}"><i></i>
+                            <label translate="UserInfo.Email">邮件</label>
+                        </label>
+                        <label class="checkbox-inline i-checks">
+                            <input ng-disabled="!editAble" type="checkbox" value="AppNotify"
+                                   ng-model="user.chkApp" ng-checked="user.chkApp"><i></i>
+                            <label translate="UserInfo.App">App</label>
+                        </label>
+                        <label class="checkbox-inline i-checks">
+                            <input ng-disabled="!editAble" type="checkbox" value="WeChatNotify"
+                                   ng-model="user.chkWeChat" ng-checked="user.chkWeChat"><i></i>
+                            <label translate="UserInfo.WeChat">微信</label>
+                        </label>
+                        <label class="checkbox-inline i-checks">
+                            <input ng-disabled="!editAble" type="checkbox" value="SMSNotify"
+                                   ng-model="user.chkMobileMessage" ng-checked="user.chkMobileMessage"><i></i>
+                            <label translate="UserInfo.MobilMessage">短信</label>
+                        </label>
+                        <label class="checkbox-inline i-checks">
+                            <input ng-disabled="!editAble" type="checkbox" value="DingTalkNotify"
+                                   ng-model="user.chkDingTalk" ng-checked="user.chkDingTalk"><i></i>
+                            <label translate="UserInfo.DingTalk">钉钉</label>
+                        </label>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-info" ng-click="ok()" ng-if="editAble">
+        <sapn translate="QueryTableColumn.Button_Save">保存</sapn>
+    </button>
+</div>

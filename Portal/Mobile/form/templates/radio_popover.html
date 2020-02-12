@@ -1,0 +1,39 @@
+﻿<ion-popover-view class="MvcPopover MvcPopover1">
+    <ion-header-bar>
+        <button class='button button-clear button-dark button-icon ion-chevron-left' ng-click='hide()'>{{names.Close}}</button>
+        <h1 class='title'>{{header}}</h1>
+    </ion-header-bar>
+    <!--<ion-header-bar class='bar-subheader item-input-inset'>
+        <label ng-class="searchFocus?'focused item-input-wrapper search':'blured item-input-wrapper search'">
+            <i class='icon-search placeholder-icon'></i>
+            <input type='search' placeholder='{{names.Search}}' ng-model='searchText' ng-focus="searchAnimate()" ng-blur="searchAnimate()" ng-keyup="searChange()" />
+        </label>
+    </ion-header-bar>-->
+    <ion-content>
+        <ion-list>
+            <ion-radio ng-repeat='item in RadioListDisplay | filter:searchText'
+                       ng-model='RadioListValue'
+                       ng-value='item.Value'
+                       ng-click='clickRadio(item.Value,item.Text)'>
+                {{item.Text}}
+            </ion-radio>
+        </ion-list>
+
+        <ion-item ng-show="searchNum==0&&searchText!=''" style="cursor:pointer;border:none;">
+            <div class="item-icon-left" style="padding-left:20px;">
+                <h2 style="margin-left:10px;" ng-show="{{names.SheetUser.isShow}}">未搜索到与 “ <span class="overSearch" ng-bind="searchText">{{searchText}}</span> ” 相关的结果</h2>
+                <h2 style="margin-left:10px;" ng-show="{{!names.SheetUser.isShow}}">{{names.SheetUser.result}}<span class="overSearch" ng-bind="searchText">{{searchText}}</span> </h2>
+            </div>
+        </ion-item>
+    </ion-content>
+    <ion-footer-bar>
+        <div class="footer-left" ng-click="reset()">{{names.Reset}}</div>
+        <div ng-click="hide()" class="close footer-right">{{names.OK}}</div>
+    </ion-footer-bar>
+</ion-popover-view>
+<style>
+    .MvcPopover1 .radio-content .item-content {
+        max-width: 90%;
+        white-space: initial;
+    }
+</style>

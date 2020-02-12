@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="34px" height="34px" viewBox="0 0 34 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 46.2 (44496) - http://www.bohemiancoding.com/sketch -->
+    <title>lc_orange_icon</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="9流程详情页_进行中" transform="translate(-31.000000, -2303.000000)">
+            <g id="Group-9" transform="translate(-1.000000, 1818.000000)">
+                <g id="Group-6" transform="translate(32.000000, 292.000000)">
+                    <g id="lc_orange_icon" transform="translate(0.000000, 193.000000)">
+                        <circle id="Oval" fill="#E44C4C" cx="17" cy="17" r="17"></circle>
+                        <polygon id="关闭" fill="#FFFFFF" points="23.3932585 10 17.4999538 15.8842381 11.6067415 10 10 11.6042927 15.8923105 17.4884154 10 23.3726534 11.6067415 24.9769231 17.4999538 19.0937008 23.3932585 24.9769231 25 23.3726534 19.1066953 17.4884154 25 11.6042927"></polygon>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

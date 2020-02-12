@@ -1,0 +1,341 @@
+﻿<script>
+    var pageData = {
+        BizObjectSchemaMethod: {},
+        MethodTypes: [],
+        LanData: $.Languages
+    };
+    $(function () {
+        initPageData();
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function () {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        saveData();
+                    }
+                },
+                changeMethodType: function () {
+                    pageData.BizObjectSchemaMethod.MethodTypeTip = $.Lang("EditBizObjectSchemaMethod.MethodTypeTip." + pageData.BizObjectSchemaMethod.MethodType);
+                }
+            }
+        });
+        // 获取页面初始化数据
+        function initPageData() {
+            var ParentID = getUrlParam("ParentID") || "";
+            var SchemaCode = getUrlParam("SchemaCode") || "";
+            var Method = getUrlParam("Method") || "";
+            var OwnSchemaCode = getUrlParam("OwnSchemaCode") || "";
+            $.ajax({
+                url: $.Controller.BizObjectSchemaMethod.GetBizObjectSchemaMethod,
+                type: "GET",
+                cache: false,
+                async: false,//同步执行
+                data: { parentId: ParentID, schemaCode: SchemaCode, method: Method, ownSchemaCode: OwnSchemaCode },
+                dataType: "JSON",
+                success: function (data) {
+                    if (data.Success) {
+                        pageData = data.Extend;
+                        pageData.MethodTypes = $.LangArray(pageData.MethodTypes, "Text");
+                        pageData.LanData = $.Languages;
+                        setControlUsable(data.Extend.IsLocked, $("a"));
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(data.Message) });
+                    }
+                }
+            });
+        };
+
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel({ excludeIDs: ["MethodMapGrid"] });
+
+        $("#MethodMapGrid").ligerGrid({
+            columns: GetMethodMapColumns(),
+            width: '100%',
+            height: '98%',
+            //url: "BizObjectSchemaMethodList.aspx?Action=GetMethodMapData&SchemaCode=Glee&Method=Test",
+            data: pageData.ServiceMethodMapList,
+            rownumbers: true,
+            usePager: false,
+            allowAdjustColWidth: true,
+            rownumbers: true,
+            checkbox: false,
+            columnWidth: "auto",
+            onAfterShowData: function () {
+                SetDragEvent(this);
+                setControlUsable("1", $("a"));
+            }
+        });
+
+        function SetDragEvent(obj) {
+            var g = obj;
+            var p = obj.options;
+            $("div[DragDiv='DragDiv']").ligerDrag({
+                proxyX: 10,
+                proxy: function (draggable, e) {
+                    var proxy = $("<div class='l-drag-proxy' style='display:none'><div class='l-drop-icon l-drop-no'></div></div>").appendTo('body');
+                    return proxy;
+                },
+                onDrag: function (current, e) {
+                    if (IsCanMove(current, e))
+                        this.proxy.find(".l-drop-icon:first").removeClass("l-drop-no l-drop-yes").addClass("l-drop-yes");
+                    else
+                        this.proxy.find(".l-drop-icon:first").removeClass("l-drop-yes l-drop-add").addClass("l-drop-no");
+                },
+                onStopDrag: function (current, e) {
+                    if (!IsCanMove(current, e)) return;
+                    var moveObj = $(current.target);
+                    var target = $("div[DragDiv='DragDiv']", e.target);
+                    var eTarget = e.target;
+                    while (target.length != 1 && eTarget.parentElement != "body" && eTarget.parentElement != null) {
+                        target = $("div[DragDiv='DragDiv']", eTarget.parentElement);
+                        eTarget = eTarget.parentElement;
+                    }
+                    var curentIndex = parseInt(moveObj.attr("mapIndex"));
+                    var targetIndex = parseInt(target.attr("mapIndex"));
+                    var changeType = curentIndex > targetIndex ? "UP" : "DOWN";
+                    var param = {
+                        schemaCode: pageData.BizObjectSchemaMethod.SchemaCode,
+                        method: pageData.BizObjectSchemaMethod.SchemaCode,
+                        curentIndex: encodeURI(curentIndex),
+                        targetIndex: encodeURI(targetIndex),
+                        changeType: changeType
+                    };
+                    $.ajax({
+                        url: $.Controller.BizObjectSchemaMethod.DragMethodMap,
+                        data: param,
+                        dataType: "json",
+                        type: "post",
+                        success: function (result) {
+                            var scrollTop = $(".l-scroll").scrollTop();
+                            var manager = $("#MethodMapGrid").ligerGetGridManager();
+                            manager.move(curentIndex, targetIndex, curentIndex < targetIndex);
+                            $(".l-scroll").scrollTop(scrollTop);
+                        }
+                    });
+                }
+            });
+        }
+        setControlUsable("1", $("a"));
+    });
+
+    //保存
+    function saveData() {
+        $.ajax({
+            url: $.Controller.BizObjectSchemaMethod.SaveBizObjectSchemaMethod,
+            type: "post",
+            dataType: "json",
+            data: pageData.BizObjectSchemaMethod,
+            success: function (result) {
+                if (result.Success) {
+                    top.workTab.setHeader(top.workTab.getSelectedTabItemID(), pageData.BizObjectSchemaMethod.DisplayName || pageData.BizObjectSchemaMethod.MethodCode);
+                    parent.$.H3Dialog.Success({ content: $.Lang("msgGlobalString.SaveSucced") });
+                    if (pageData.BizObjectSchemaMethod.MethodCode) {
+                        top.ReloadNode();
+                    } else {
+                        top.ReloadNode(pageData.BizObjectSchemaMethod.ParentId);
+                        parent.H3DialogManger.Cancel()
+                    }
+                } else {
+                    $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                }
+            }
+        });
+    }
+
+    //删除
+    function deleteData(obj, schemaCode, methodCode) {
+        if (ConfirmDel(obj)) {
+            var param = {
+                schemaCode: schemaCode,
+                methodCode: encodeURI(methodCode)
+            };
+            $.ajax({
+                url: $.Controller.BizObjectSchemaMethod.DeleteBizObjectSchemaMethod,
+                data: param,
+                type: 'post',
+                dataType: "json",
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.DeleteSucced") });
+                        setTimeout(function () {
+                            top.ReloadNode(); top.workTab.removeTabItem(top.workTab.getSelectedTabItemID());
+                        }, "1000");
+                    } else {
+                        $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                    }
+                }
+            });
+        }
+
+    };
+
+    function GetMethodMapColumns() {
+        var bizService = $.Lang("EditBizObjectSchemaMethod.BizService");
+        var bizRule = $.Lang("EditBizObjectSchemaMethod.BizRule");
+        var edit = $.Lang("GlobalButton.Edit");
+        return [{ display: bizService, name: "ServiceCode" },
+                { display: bizRule, name: "MethodName" },
+                {
+                    display: edit, Code: "eidt",
+                    render: function (rowdata, index, value) {
+                        var open = "<a style='float:left;width:30px;' href='#' methodtype='" + rowdata.MethodType + "' mapIndex='" + index + "' ServiceCode='" + rowdata.ServiceCode + "' MethodName='" + rowdata.MethodName + "'  onclick='AddTabPage(this,\"EditBizObjectSchemaMethodMap.html\")'>" + "编辑" + "</a>";
+                        var del = "<a style='float:left;width:30px;' href='#' methodtype='" + rowdata.MethodType + "' mapIndex='" + index + "' ServiceCode='" + rowdata.ServiceCode + "' MethodName='" + rowdata.MethodName + "'  onclick='DelMethodMap(this)'>" + "删除" + "</a>";
+                        var MoveObj = "<div DragDiv='DragDiv' methodtype='" + rowdata.MethodType + "' mapIndex='" + index + "' ServiceCode='" + rowdata.ServiceCode + "' MethodName='" + rowdata.MethodName + "' style='padding:5px;float:left;width: 20px;height: 20px;margin-top: 5px;background:url(" + _PORTALROOT_GLOBAL + "/WFRes/_Content/themes/H3Default/Images/dragtarget.png);background-size: 20px;background-repeat: no-repeat;'></div>";
+                        return open + del + MoveObj;
+                    }
+                }
+        ];
+    };
+
+    function DelMethodMap(obj) {
+        if (ConfirmDel(obj)) {
+            var MethodType = $(obj).attr("methodtype");
+            var mapIndex = $(obj).attr("mapIndex");
+            //{ schemaCode: ServiceMethodMap.SchemaCode, method: ServiceMethodMap.Method, methodType: ServiceMethodMap.MethodType, serviceCode: ServiceMethodMap.ServiceCode },
+            var param = {
+                schemaCode: pageData.BizObjectSchemaMethod.SchemaCode,
+                method: pageData.BizObjectSchemaMethod.MethodCode,
+                methodType: MethodType,
+                mapIndex: mapIndex
+            };
+            $.ajax({
+                url: $.Controller.ServiceMethodMap.DelServiceMethodMap,
+                data: param,
+                type: "post",
+                dataType: "json",
+                success: function (result) {
+                    if (result.Success) {
+                        $.H3Dialog.Success({ content: $.Lang("msgGlobalString.DeleteSucced") });
+                        $("#MethodMapGrid").ligerGetGridManager().set({ data: result.Extend });
+                        $("#MethodMapGrid").ligerGetGridManager().reload();
+                    }
+                    else {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.DeleteFailed") });
+                    }
+                }
+            });
+        }
+    }
+
+    function AddTabPage(obj, url) {
+        //业务方法，选中业务方法时，会记录下来
+        var methodName = pageData.BizObjectSchemaMethod.MethodCode
+        var MethodType = $(obj).attr("methodtype");
+        var mapIndex = $(obj).attr("mapIndex") == null ? "" : $(obj).attr("mapIndex");
+        if (mapIndex == "") {
+            if (pageData.BizObjectSchemaMethod.MethodType == "Filter" && MethodType == "ServiceMethod") {
+                if ($("#MethodMapGrid").ligerGetGridManager().rows.length > 0) {
+                    $.H3Dialog.ShowDiallog($.Lang("EditBizObjectSchemaMethod.ObjectSchemaMethod_Mssg"), "Warn");
+                    return;
+                }
+            }
+        }
+
+        //如果是新增，这个会是空
+        var ServiceCode = $(obj).attr("ServiceCode") == null ? "" : $(obj).attr("ServiceCode");
+        var MapMethodName = $(obj).attr("MethodName") == null ? "" : $(obj).attr("MethodName");
+        var linkUrl = _PORTALROOT_GLOBAL + "/admin/ProcessModel/" + url;
+        linkUrl += "&SchemaCode=" + pageData.BizObjectSchemaMethod.SchemaCode;
+        linkUrl += "&Method=" + methodName;
+        linkUrl += "&MapIndex=" + mapIndex;
+        linkUrl += "&MethodType=" + MethodType;
+        var titleTxt = methodName + "_" + $(obj).text();
+        if (mapIndex != "") {
+            titleTxt = methodName + "_" + ServiceCode + "_" + MapMethodName;
+        }
+        top.f_addTab(
+        {
+            tabid: CurrenteTabID + "#" + methodName + "_" + mapIndex + "_" + MethodType,
+            text: titleTxt,
+            url: linkUrl
+        });
+    };
+
+
+    function AddTestDialog(obj, data, url) {
+        if (data.StorageType == "1" && $("#MethodMapGrid").ligerGetGridManager().rows.length == 0) {//数据模型为外部数据源且绑定方法为空时,不可运行
+            $.H3Dialog.Warn({ content: $.Lang("EditBizObjectSchemaMethod.ServiceMethodMapListIsNull") });
+            return false;
+        }
+        var linkUrl = "ProcessModel/" + url;
+        linkUrl += "&SchemaCode=" + pageData.BizObjectSchemaMethod.SchemaCode;
+        linkUrl += "&Method=" + pageData.BizObjectSchemaMethod.MethodCode;
+        ShowDialog($(obj).text(), _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=" + linkUrl);
+    }
+
+</script>
+<div id="H3ToolBar">
+    <a id="btnAddMethod" data-icon="fa fa-save" href="javascript:void(0)" v-on:click="saveData" data-lang="GlobalButton.Save">保存</a>
+    <div v-if="BizObjectSchemaMethod.MethodCode">
+        <a href="javascript:void(0)" id="AddServerMethodMap" data-icon="fa fa-plus" onclick="AddTabPage(this,'EditBizObjectSchemaMethodMap.html')" data-lang="GlobalButton.BindBizService" methodtype="ServiceMethod">绑定业务服务</a>
+        <a href="javascript:void(0)" id="AddRuleMethodMap" data-icon="fa fa-plus" onclick="AddTabPage(this,'EditBizObjectSchemaMethodMap.html')" data-lang="GlobalButton.BindBizRule" methodtype="RuleMethod" v-if="BizObjectSchemaMethod.MethodType!='Filter'">绑定业务规则</a>
+        <a id="lnkTest" href="javascript:void(0);" onclick="AddTestDialog(this, pageData, 'TestBizObject.html')" data-icon="icon-yunxing" data-lang="GlobalButton.RunMethod" v-if="BizObjectSchemaMethod.MethodType!='Filter'">运行方法</a>
+        <a id="btnDeleteMethod" onclick="deleteData(this, pageData.BizObjectSchemaMethod.SchemaCode, pageData.BizObjectSchemaMethod.MethodCode)" data-icon="fa fa-minus" href="javascript:void(0)" data-lang="GlobalButton.Delete" v-if="!BizObjectSchemaMethod.IsDefaultMethod">删除</a>
+    </div>
+</div>
+<validator name="formValidator">
+    <div class="H3Panel">
+        <span>{{LanData.EditBizObjectSchemaMethod.BasicInfo}}</span>
+        <table>
+            <tr>
+                <td>{{LanData.EditBizObjectSchemaMethod.MethodName}}</td>
+                <td>
+                    <input v-model="BizObjectSchemaMethod.MethodName" detect-change="on" detect-blur="on" initial="off" v-validate:method-name="{required:true}" type="text" v-bind:disabled="BizObjectSchemaMethod.MethodCode" />
+                    <span style="color:Red;" v-if="$formValidator.methodName.required" data-lang="msgGlobalString.EnumValueRequired"></span>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>
+                    {{LanData.EditBizObjectSchemaMethod.DisplayName}}
+                </td>
+                <td>
+                    <input v-model="BizObjectSchemaMethod.DisplayName" type="text" />
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>{{LanData.EditBizObjectSchemaMethod.FunctionType}}</td>
+                <td>
+                    <select v-model="BizObjectSchemaMethod.MethodType" v-bind:disabled="BizObjectSchemaMethod.MethodCode" v-on:change="changeMethodType">
+                        <option v-for="option in MethodTypes" v-bind:value="option.Value">{{option.Text}}</option>
+                    </select>
+                    <span class="tableDesCol">{{BizObjectSchemaMethod.MethodTypeTip}}</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="H3Panel">
+        <span>{{LanData.EditBizObjectSchemaMethod.Execution}}</span>
+        <table>
+            <tr>
+                <td>
+                    {{LanData.EditBizObjectSchemaMethod.Affairs}}
+                </td>
+                <td>
+                    <input v-model="BizObjectSchemaMethod.Transaction" type="checkbox" />
+                </td>
+                <td></td>
+            </tr>
+            <!--<tr>
+                <td>
+                    {{LanData.EditBizObjectSchemaMethod.Upon}}
+                </td>
+                <td>
+                    <input v-model="BizObjectSchemaMethod.UpdateAfterInvoking" type="checkbox" />
+                </td>
+            </tr>-->
+        </table>
+    </div>
+
+    <div class="H3Panel" v-if="BizObjectSchemaMethod.MethodCode">
+        <span>{{LanData.EditBizObjectSchemaMethod.BList}}</span>
+        <div id="MethodMapGrid"></div>
+    </div>
+
+</validator>

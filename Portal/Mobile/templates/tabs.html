@@ -1,0 +1,39 @@
+<!--
+Create tabs with an icon and label, using the tabs-positive style.
+Each tab's child <ion-nav-view> directive will have its own
+navigation history that also transitions its views in and out.
+-->
+<ion-tabs class="tabs-icon-top tabs-color-active-positive" >
+
+    <!-- Dashboard Tab 首页-->
+    <ion-tab title="{{languages.tabs.home}}" icon-off="icon-shouye-o" icon-on="icon-shouye" href="#/tab/home" class="f11 " on-select="tabOnSelect(0)">
+        <!--		<ion-subheader>	SEWDEW</ion-subheader>-->
+        <ion-nav-view name="tab-home"></ion-nav-view>
+    </ion-tab>
+
+    <!-- Chats Tab 发起流程-->
+    <ion-tab title="{{languages.tabs.InitiateProcess}}" icon-off="icon-faqiliuc-o" icon-on="icon-faqiliuc" href="#/tab/startworkflow" class="f11 " on-select="tabOnSelect(1)">
+        <ion-nav-view name="tab-startworkflow"></ion-nav-view>
+    </ion-tab>
+
+    <!-- Account Tab 常用报表-->
+    <!-- <ion-tab title="常用报表" icon-off="icon-baobaio tabs-icon" icon-on="index-baobiao " href="#/tab/account">
+      <ion-nav-view name="tab-account"></ion-nav-view>
+    </ion-tab> -->
+    <!-- Account Tab 我的流程-->
+    <ion-tab title="{{languages.tabs.myProcess}}" icon-off="icon-wodelc-o" icon-on="icon-wodelc" href="#/tab/myInstances" class="f11 " on-select="tabOnSelect(2)">
+        <ion-nav-view name="tab-myInstances"></ion-nav-view>
+    </ion-tab>
+
+
+    <!-- Account Tab 应用-->
+    <ion-tab title="{{languages.tabs.AppCenter}}" icon-off="icon-yingyong-o" icon-on="icon-yingyong" href="#/tab/appCenter" class="f11 " on-select="tabOnSelect(3)">
+        <ion-nav-view name="tab-appCenter"></ion-nav-view>
+    </ion-tab>
+
+    <!-- Account Tab 通讯录-->
+    <ion-tab title="{{languages.tabs.addressList}}" icon-off="icon-tongxunlu-o" icon-on="icon-tongxunlu" href="#/tab/addressList" class="f11 " on-select="tabOnSelect(4)" ng-if="appShow">
+        <ion-nav-view name="tab-addressList"></ion-nav-view>
+    </ion-tab>
+
+</ion-tabs>

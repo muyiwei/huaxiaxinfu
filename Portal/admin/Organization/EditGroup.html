@@ -1,0 +1,272 @@
+﻿
+<script>
+    $(function () {
+        //TODO 读写权限控制
+        var pageData = {
+            EditUnitData: { SortKey: 0,Edit:true,View:true,VisibleType:"1" },
+            LanData: $.Languages
+        };
+        //初始化页面数据
+        initPageData();
+
+        //页面控件可编辑、功能按钮是否能使用
+        SetPageControlDisabled(pageData.EditUnitData.Edit);
+        if (!pageData.EditUnitData.ObjectID)
+        {
+            setControlUsable("0", $("a.ShowAfterSave"))
+        }
+
+        //绑定Vue
+        var model = new Vue({
+            el: "#content",
+            data: pageData,
+            methods: {
+                saveData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        SaveData();
+                    }
+                },
+                deleteData: function (event) {
+                    this.$validate(true);//表单验证
+                    if (this.$formValidator.invalid) {
+                        $.H3Dialog.Warn({ content: $.Lang("msgGlobalString.FormInvalid") });
+                    } else {
+                        DeleteData();
+                    }
+                },
+                setAcl: function (event) {
+                    var setAclName = $.Lang("msgGlobalString.UpdateAcl");
+                    var objId = pageData.EditUnitData.ObjectID;
+                    ShowDialog(setAclName, _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=Organization/FunctionAclByUnit.html&unitid=" + objId);
+                }
+            }
+        });
+
+        //工具栏格式化
+        $("#H3ToolBar").AspLinkToolBar();
+        $(".H3Panel").BuildPanel();
+      
+        //选人控件初始化
+        InitSelectUserControl(pageData.EditUnitData.Edit);
+
+        //选人控件初始化
+        function InitSelectUserControl(edit)
+        {
+            var parent = getUrlParam("Parent");
+            if (pageData.EditUnitData.ParentUnit) { parent = pageData.EditUnitData.ParentUnit; }
+
+            $("#dvParent").SheetUser({ Editable: edit, Visiable: true, UserVisible: false, OrgUnitVisible: true, });
+            $("#dvMembers").SheetUser({ Editable: edit, Visiable: true, UserVisible: true, OrgUnitVisible: false, IsMultiple: true });
+
+            //debugger;
+            $("#dvParent").SheetUIManager().SetValue(parent);
+            if (pageData.EditUnitData.Members) {
+                $("#dvMembers").SheetUIManager().SetValue(pageData.EditUnitData.Members.split(';'));
+            }
+        }
+
+        //根据传递的参数获取对应的数据，Vue绑定数据使用
+        function initPageData() {
+            
+            var id = getUrlParam("ID");
+            if (id && id != "") {
+                $.ajax({
+                    url: $.Controller.OrgGroup.GetGroupInfo,
+                    type: 'get',
+                    dataType: "json",
+                    data: { unitID: id },
+                    async: false,//同步执行
+                    success: function (result) {
+                        if (result.Success) {
+                            pageData.EditUnitData = result.Extend;
+                        } else {
+                            pageData.EditUnitData.Edit = false;
+                            pageData.EditUnitData.View = false;
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                            return;
+                        } 
+                    }
+                });
+            }
+        };
+
+        function SaveData() {
+            if (!pageData.EditUnitData.Edit) { return; }//没有编辑权限不执行
+            //读取选人控件的值
+            var parent = $("#dvParent").SheetUIManager().GetValue();
+            var members = $("#dvMembers").SheetUIManager().GetValue();
+            if (parent == "") {
+                $.H3Dialog.Warn({ content: $.Lang("EditOrgUnit.ParentNotNull") });
+                return;
+            }
+
+            var oldParentUnit = pageData.EditUnitData.ParentUnit;
+            pageData.EditUnitData.ParentUnit = parent;
+            if (members.length > 0) {
+                pageData.EditUnitData.Members = members.join(";");
+            } else {
+                pageData.EditUnitData.Members = members;
+            }
+
+            if (parent) {
+                $.ajax({
+                    url: $.Controller.OrgGroup.SaveGroupInfo,
+                    type: "post",
+                    dataType: "json",
+                    data: pageData.EditUnitData,
+                    success: function (result) {
+                        //debugger;
+                        if (result.Success) {
+                            top.ReloadNode(parent); //刷新组织树
+                            if (oldParentUnit != pageData.EditUnitData.ParentUnit) { top.ReloadNode(oldParentUnit); }
+                            if (pageData.EditUnitData.ObjectID == undefined) {
+                                var unitid = result.Extend.UnitID;
+                                ChangeCurrentTabId(unitid);
+                                //设置标签显示名称
+                                top.workTab.setHeader(top.workTab.getSelectedTabItemID(), pageData.EditUnitData.GroupName);
+                                var newUrl = _PORTALROOT_GLOBAL + "/admin/TabMaster.html?url=Organization/EditGroup.html&Mode=View&ID=" + unitid + "&Parent=" + parent + "&code=" + pageData.EditUnitData.GroupName;
+                                ChangeCurrentTabIframe(unitid, newUrl);
+                            }
+                            $.H3Dialog.Success({ content: $.Lang(result.Message) });
+                        } else {
+                            $.H3Dialog.Warn({ content: $.Lang(result.Message) });
+                        }
+                    }
+                });
+            }
+        }
+
+        //修改TabID
+        function ChangeCurrentTabId(newTabId) {
+            top.$("div[tabid='" + top.workTab.getSelectedTabItemID() + "']").attr("tabid", newTabId);
+            top.$("iframe[id='" + top.workTab.getSelectedTabItemID() + "']").attr("id", newTabId);
+            top.$("iframe[name='" + top.workTab.getSelectedTabItemID() + "']").attr("name", newTabId);
+            top.$("li[tabid='" + top.workTab.getSelectedTabItemID() + "']").attr("tabid", newTabId);
+        }
+
+        //修改页面地址
+        function ChangeCurrentTabIframe(tabID, newUrl) {
+            top.$("iframe[id='" + tabID + "']").attr("src", newUrl);
+        }
+
+        function DeleteData() {
+            if (!pageData.EditUnitData.Edit) { return;}//没有编辑权限不执行
+            var id = getUrlParam("ID");
+            var parent = getUrlParam("Parent");
+            var deleteConfirm = $.Lang("msgGlobalString.DeleteConfrim");
+            if (id && id != "") {
+                $.ligerDialog.confirm(deleteConfirm, function (result) {
+                    if (result) {
+                        $.ajax({
+                            url: $.Controller.OrgGroup.DeleteGroupInfo,
+                            type: "post",
+                            dataType: "json",
+                            data: {id:id},
+                            success: function (result) {
+                                //debugger;
+                                if (result.Success) {
+                                    top.ReloadNode(parent); //刷新组织树
+                                    top.workTab.removeTabItem(id, true); //关闭当前标签页
+                                } else {
+                                    $.H3Dialog.Warn({ content: result.Message });
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }
+
+       
+
+    });
+</script>
+
+
+<validator name="formValidator">
+    <div id="H3ToolBar">
+        <a id="SaveBtn" v-on:click="saveData" data-icon="fa fa-save" data-lang="GlobalButton.Save"></a>
+        <a id="DeleteBtn" v-on:click="deleteData"  class="ShowAfterSave" data-icon="fa fa-minus" data-lang="GlobalButton.Delete"></a>
+        <a id="UnitAclBtn" v-on:click="setAcl" class="ShowAfterSave" data-icon="fa icon-quanxianshezhi" data-lang="Orgnization.UnitAcl"></a>
+    </div>
+    <!--基本信息-->
+    <div class="H3Panel">
+        <span>{{LanData.msgGlobalString.Msg_BasciInfor}}</span>
+        <table class="tableList">
+            <!--显示名称-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditGroup.GroupName}}
+                </td>
+                <td>
+                    <input type="text" id="txtName" v-model="EditUnitData.GroupName" detect-change="on" detect-blur="on" initial="off" v-validate:item-code="{required:true}" />
+                    <span style="color:Red;" v-if="$formValidator.itemCode.required">{{LanData.msgGlobalString.EnumValueRequired}}</span>
+                </td>
+            </tr>
+            <!--组成员-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditGroup.Members}}
+                </td>
+                <td style="padding-left: 0px">
+                    <div id="dvMembers" style="width: 250px;">
+                    </div>
+                </td>
+            </tr>
+            <!--所属机构-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditGroup.ParentUnit}}
+                </td>
+                <td style="padding-left: 0px">
+                    <div id="dvParent" style="width: 250px;">
+                    </div>
+                </td>
+            </tr>
+            <!--排序值-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditGroup.SortKey}}
+                </td>
+                <td>
+                    <input v-model="EditUnitData.SortKey" v-bind:disabled="Mode=='View'" detect-change="on" detect-blur="on" initial="off" v-validate:sort-key="['number']" type="text" />
+                    <span style="color:Red;" v-if="$formValidator.sortKey.number">{{LanData.msgGlobalString.NumberValidate}}</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!--高级信息-->
+    <div class="H3Panel">
+        <span>{{LanData.msgGlobalString.Msg_Advanced}}</span>
+        <table>
+            <!--可见类型-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditGroup.VisibleType}}
+                </td>
+                <td>
+                    <input type="radio" id="normal" value="1" v-model="EditUnitData.VisibleType" />
+                    <label for="normal">{{LanData.EditGroup.VisibleType_Normal}}</label>
+                    <input type="radio" id="onlyAdmin" value="2" v-model="EditUnitData.VisibleType" />
+                    <label for="onlyAdmin">{{LanData.EditGroup.VisibleType_Admin}}</label>
+                    <input type="radio" id="onlyOrganization" value="4" v-model="EditUnitData.VisibleType" />
+                    <label for="onlyOrganization">{{LanData.EditGroup.VisibleType_Org}}</label>
+                </td>
+            </tr>
+            <!--描述内容-->
+            <tr>
+                <td class="tableLeft">
+                    {{LanData.EditGroup.Description}}
+                </td>
+                <td>
+                    <textarea v-model="EditUnitData.Description" id="txtDescription"></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+</validator>

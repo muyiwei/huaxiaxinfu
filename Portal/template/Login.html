@@ -1,0 +1,43 @@
+﻿<div class="container w-xxl w-auto-xs page-signup">
+    <div class="signup-container">
+        <div class="signup-header">
+            <img src="WFRes/_Content/Login/images/LOGO_W.png">
+        </div>
+        <form name="form">
+            <div class="signup-form">
+                <div class="signup-text">
+                    <span>H3业务流程管理系统</span>
+                </div>
+                <div class="form-group w-icon">
+                    <input name="txtUser" type="text" id="txtUser"
+                           autofocus class="form-control input-lg" size="20" placeholder="{{LanJson.Code}}"
+                           ng-model="userCode" ng-keypress="($event.which===13)?loginIn():''" required>
+                    <span class="fa fa-user signup-form-icon"></span>
+                </div>
+                <div class="form-group w-icon" style="margin-top:15px;">
+                    <input name="txtPassword" type="password" id="txtPassword"
+                           class="form-control input-lg" size="20" placeholder="{{LanJson.Password}}"
+                           ng-model="userPassword" ng-keypress="($event.which===13)?loginIn():''" required>
+                    <span class="fa fa-lock signup-form-icon"></span>
+                </div>
+                <div ng-if="!LoginSuccess" style="text-align: center;color:#ff0000; margin-top: 15px;">
+                    <span translate="LoginController.NotInvalid">用户名密码错误</span>
+                </div>
+                <div ng-if="!ConnectionFailed" style="text-align: center;color:#ff0000; margin-top: 15px;">
+                    <span>引擎连接失败</span>
+                </div>
+                <div ng-if="!EnginePasswordValid" style="text-align: center;color:#ff0000; margin-top: 15px;">
+                    <span>引擎连接失败,密码错误</span>
+                </div>
+                <!-- ng-disabled="form.$invalid" -->
+                <div class="form-actions">
+                    <button type="button" class="btn btn-lg btn-info btn-block"
+                            style="background-color: #4997D6"
+                            ng-click="loginIn()">
+                        <span translate="LoginController.Login">登录</span>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

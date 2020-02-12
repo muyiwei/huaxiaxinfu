@@ -1,0 +1,137 @@
+.msgBox_back,
+.msgBox_container {
+    position: fixed;
+}
+
+.msgBox_back {
+    left: 0;
+    top: 0;
+    z-index: 999;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+/*.msgBox_container {
+    top: -100%;
+    left: 0;
+    z-index: 1045;
+    color: #525252;
+    background-color: #fff;
+    box-shadow: 2px 2px 5px rgba(111, 111, 111, 0.54);
+    opacity: 0;
+}*/
+
+.msgBox-content {
+    position: relative;
+    background-color: #fff;
+    -webkit-background-clip: padding-box;
+    background-clip: padding-box;
+    border: 1px solid #999;
+    border: 1px solid rgba(0,0,0,.2);
+    border-radius: 1px;
+    outline: 0;
+    -webkit-box-shadow: 0 3px 9px rgba(0,0,0,.5);
+    box-shadow: 0 3px 9px rgba(0,0,0,.5);
+}
+
+.msgBox-header {
+    height: 30px;
+    line-height: 30px;
+    background-color: #f1f1f1;
+    word-spacing: 1px;
+    color: #525252;
+    font-size: 14px;
+    font-family: '微软雅黑';
+    text-align: center;
+    cursor: move;
+    border-bottom: 1px solid #ddd;
+    box-sizing: border-box;
+}
+
+.msgBox-title {
+    height: 30px;
+    line-height: 30px;
+    font-family: '微软雅黑';
+    text-align: center;
+}
+
+.msgBox-header .close {
+    font-weight: 300;
+    margin: 0px 5px;
+}
+
+/*.msgBox_close {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    text-align: center;
+    width: 16px;
+    height: 16px;
+    font-size: 14px;
+    line-height:
+    cursor: pointer;
+}*/
+
+.msgBox-body {
+    position: relative;
+    padding: 15px;
+}
+
+    .msgBox-body .msgBox-iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+    }
+
+.msgBox-footer {
+    padding: 14px;
+    border-top: 1px solid #ddd;
+    box-sizing: border-box;
+    text-align: right;
+    background-color: #fff;
+}
+
+.masBox-btn {
+    display: inline-block;
+    padding: 5px 13px;
+    margin-bottom: 0;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    background-color: #f1f1f1;
+    border-radius: 4px;
+    margin-left: 14px;
+    border:0;
+}
+
+.btn_ok {
+    background-color: #4ecb48;
+    color: white;
+    border: 1px solid #4ecb48;
+}
+.btn_normal {
+    background-color: #fff;
+    color: #525252;
+    border: 1px solid #ddd;
+}
+
+.btn_cancel {
+    background-color: #f1f1f1;
+    color: #525252;
+    border: 1px solid #ddd;
+}
+.btn_disabled{
+     background-color: #f1f1f1;
+    color: #525252;
+    border: 1px solid #ddd;
+    cursor:no-drop;
+}

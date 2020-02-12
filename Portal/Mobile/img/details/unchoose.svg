@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<svg width="68px" height="68px" viewBox="0 0 68 68" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 44 (41411) - http://www.bohemiancoding.com/sketch -->
+    <title>lc_orange_icon</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <filter x="-4.4%" y="-10.5%" width="130.4%" height="125.5%" filterUnits="objectBoundingBox" id="filter-1">
+            <feOffset dx="0" dy="4" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="8.5" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0.717647059   0 0 0 0 0.784313725   0 0 0 0 0.878431373  0 0 0 0.5 0" type="matrix" in="shadowBlurOuter1" result="shadowMatrixOuter1"></feColorMatrix>
+            <feMerge>
+                <feMergeNode in="shadowMatrixOuter1"></feMergeNode>
+                <feMergeNode in="SourceGraphic"></feMergeNode>
+            </feMerge>
+        </filter>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="matrix(1.9415,0,0,1.9415,-31.00304,-24.23803)" xmlns="http://www.w3.org/2000/svg">
+<g id="6流程详情页_进行中_展开" transform="translate(-49.000000, -525.000000)" stroke-width="2" stroke="#77BCFA">
+<g id="指派人员" filter="url(#filter-1)" transform="translate(66.000000, 519.000000)">
+<g id="lc_orange_icon" transform="translate(0.000000, 19.000000)">
+<circle id="Oval" cx="17" cy="17" r="16">
+</circle>
+</g>
+</g>
+</g>
+</g>
+</svg>
